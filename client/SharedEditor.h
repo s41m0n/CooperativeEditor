@@ -1,0 +1,13 @@
+//
+// Created by s41m0n on 20/05/19.
+//
+
+#ifndef COOPERATIVEEDITOR_SHAREDEDITOR_H
+#define COOPERATIVEEDITOR_SHAREDEDITOR_H
+
+
+class SharedEditor {
+};
+
+
+#endif //COOPERATIVEEDITOR_SHAREDEDITOR_H
