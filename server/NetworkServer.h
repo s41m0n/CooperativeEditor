@@ -1,0 +1,13 @@
+//
+// Created by s41m0n on 20/05/19.
+//
+
+#ifndef COOPERATIVEEDITOR_NETWORKSERVER_H
+#define COOPERATIVEEDITOR_NETWORKSERVER_H
+
+
+class NetworkServer {
+};
+
+
+#endif //COOPERATIVEEDITOR_NETWORKSERVER_H
