@@ -102,3 +102,10 @@ void SharedEditor::process(std::shared_ptr<Message>& msg) {
     spdlog::debug("SharedEditor{}::Received Message (type={}, editorId={})", editorId, msg->getMsgType(), msg->getEditorId());
 }
 
+void SharedEditor::writeOnFile() {
+    std::ofstream outfile;
+    std::string filename = "../../testSE" + std::to_string(editorId) + ".txt";
+    outfile.open(filename, std::ios_base::app);
+    outfile << this->to_string() << std::endl;
+}
+
