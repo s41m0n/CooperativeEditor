@@ -32,3 +32,29 @@ SharedEditor::~SharedEditor() {
     spdlog::debug("SharedEditor{0:d}::Destroyed", editorId);
 }
 
+/// Handle completion of a connect operation.
+void SharedEditor::handle_connect(const boost::system::error_code& e,
+                    boost::asio::ip::tcp::resolver::iterator endpoint_iterator) {
+    if (!e) {
+
+        //Successfully connect, start reading (recursively)
+        std::shared_ptr<Message> incomingMsg(new Message());
+        conn.async_read(*incomingMsg,
+                               boost::bind(&SharedEditor::handle_read, this,
+                                           boost::asio::placeholders::error, incomingMsg));
+    }
+    else if (endpoint_iterator != boost::asio::ip::tcp::resolver::iterator()) {
+        // Try to reconnect to next endpoint
+        conn.socket().close();
+        boost::asio::ip::tcp::endpoint endpoint = *endpoint_iterator;
+        conn.socket().async_connect(endpoint,
+                                           boost::bind(&SharedEditor::handle_connect, this,
+                                                       boost::asio::placeholders::error, ++endpoint_iterator));
+    }
+    else {
+
+        //Error while connecting
+        spdlog::error("SharedEditor::Connect error -> {}", e.message());
+    }
+}
+
