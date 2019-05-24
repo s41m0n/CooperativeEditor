@@ -165,3 +165,11 @@ void NetworkServer::writeOnFile() {
     outfile.open(filename, std::ios_base::app);
     outfile << this->to_string() << std::endl;
 }
+
+std::string NetworkServer::to_string() {
+    std::string str;
+    std::for_each(this->symbols.begin(), this->symbols.end(), [&str](Symbol s){
+        str += s.getChar();
+    });
+    return str;
+}
