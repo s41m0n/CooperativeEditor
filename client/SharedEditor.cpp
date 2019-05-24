@@ -85,3 +85,20 @@ void SharedEditor::handle_write(const boost::system::error_code& e, std::shared_
         spdlog::error("SharedEditor::Write error -> {}", e.message());
 }
 
+void SharedEditor::process(std::shared_ptr<Message>& msg) {
+    switch (msg->getMsgType()) {
+        case CONNECT:
+            this->editorId = msg->getEditorId();
+            break;
+        case INSERT :
+            this->remoteInsert(msg->getSymbol());
+            break;
+        case ERASE :
+            this->remoteErase(msg->getSymbol());
+            break;
+        default:
+            throw std::runtime_error("SharedEditor::Bad message received from server");
+    }
+    spdlog::debug("SharedEditor{}::Received Message (type={}, editorId={})", editorId, msg->getMsgType(), msg->getEditorId());
+}
+
