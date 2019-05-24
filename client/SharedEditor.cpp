@@ -27,3 +27,8 @@ const std::string& host, const std::string& service)
     spdlog::debug("SharedEditor?::Created");
 }
 
+
+SharedEditor::~SharedEditor() {
+    spdlog::debug("SharedEditor{0:d}::Destroyed", editorId);
+}
+
