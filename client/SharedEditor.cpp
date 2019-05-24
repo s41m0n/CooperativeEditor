@@ -106,6 +106,7 @@ void SharedEditor::process(std::shared_ptr<Message>& msg) {
         spdlog::debug("SharedEditor{}::Received Message (type={}, editorId={})", editorId, msg->getMsgType(), msg->getEditorId());
     } else {
         spdlog::debug("SharedEditor{}::Received vector of Symbol", editorId);
+        this->writeOnFile();
         this->ready = true;
     }
 
