@@ -1,20 +1,25 @@
 cmake_minimum_required(VERSION 3.14)
 project(CooperativeEditor)
 
-set(CMAKE_CXX_STANDARD 14)
-set(CMAKE_CXX_FLAGS -pthread)
-set (Boost_USE_STATIC_LIBS TRUE) #disable dynamic linking
 
-set(Boost_INCLUDE_DIR /usr/include)
-set(Boost_LIBRARY_DIR /usr/lib)
+if(CMAKE_VERSION VERSION_LESS 3.0.0)
+    include(CheckCXXCompilerFlag)
+    check_cxx_compiler_flag(-std=c++11 COMPILER_SUPPORTS_CXX11)
+    check_cxx_compiler_flag(-std=c++0x COMPILER_SUPPORTS_CXX0X)
+    if(COMPILER_SUPPORTS_CXX11)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+    elseif(COMPILER_SUPPORTS_CXX0X)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
+    endif()
+else()
+    SET(CMAKE_CXX_STANDARD 11)
+    SET(CMAKE_CXX_STANDARD_REQUIRED ON)
+endif()
 
-find_package(Boost COMPONENTS REQUIRED serialization system iostreams thread)
-include_directories(${Boost_INCLUDE_DIR})
+include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
+conan_basic_setup()
 
-set(SPDLOG_DIR ${CMAKE_SOURCE_DIR})
-include_directories(${SPDLOG_DIR})
+add_executable(CooperativeEditor main.cpp server/NetworkServer.cpp client/SharedEditor.cpp
+        components/Symbol.cpp components/Message.cpp components/Identifier.cpp crdtAlgorithm/CrdtAlgorithm.cpp)
 
-add_executable(CooperativeEditor main.cpp client/SharedEditor.cpp client/SharedEditor.h components/Symbol.cpp components/Symbol.h server/NetworkServer.cpp server/NetworkServer.h components/Message.cpp components/Message.h components/Identifier.cpp components/Identifier.h network/Socket.h network/Socket.cpp utility/Utility.h)
-
-#link Boost libraries to the new target
-target_link_libraries (CooperativeEditor ${Boost_LIBRARIES})
+target_link_libraries(CooperativeEditor ${CONAN_LIBS})
