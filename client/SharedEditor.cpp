@@ -156,3 +156,11 @@ void SharedEditor::remoteInsert(Symbol s) {
     this->writeOnFile();
 }
 
+Symbol SharedEditor::generateSymbol(int index, char value) {
+    auto symbolBefore= (index-1 < this->symbols.size() && index - 1 >= 0 && !this->symbols[index - 1].getPos().empty()) ? &this->symbols[index - 1] : nullptr;
+    auto symbolAfter= (index < this->symbols.size() && index >= 0 && !this->symbols[index].getPos().empty()) ? &this->symbols[index] : nullptr;
+    std::vector<int> newPos;
+    CrdtAlgorithm::generatePosBetween(symbolBefore, symbolAfter, &newPos);
+    Symbol s(value, this->editorId, this->_counter++, newPos);
+    return s;
+}
