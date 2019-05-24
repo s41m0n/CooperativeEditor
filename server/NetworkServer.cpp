@@ -22,6 +22,10 @@ NetworkServer::NetworkServer(boost::asio::io_service& io_service, unsigned short
                     boost::asio::placeholders::error, new_conn));
 }
 
+NetworkServer::~NetworkServer() {
+    spdlog::debug("NetworkServer::Destroyed");
+}
+
 void NetworkServer::handle_accept(const boost::system::error_code& e, connection_ptr& conn)
 {
     if (!e) {
