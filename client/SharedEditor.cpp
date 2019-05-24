@@ -140,3 +140,12 @@ void SharedEditor::localErase(int index) {
                                       boost::asio::placeholders::error, msg));
     }
 }
+
+void SharedEditor::remoteErase(Symbol s) {
+    int index = CrdtAlgorithm::findPositionErase(std::move(s), this->symbols);
+    if(index >= 0) {
+        this->symbols.erase(this->symbols.begin() + index);
+        this->writeOnFile();
+    }
+}
+
