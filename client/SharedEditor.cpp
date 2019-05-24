@@ -109,3 +109,11 @@ void SharedEditor::writeOnFile() {
     outfile << this->to_string() << std::endl;
 }
 
+std::string SharedEditor::to_string() {
+    std::string str;
+    std::for_each(this->symbols.begin(), this->symbols.end(), [&str](Symbol s){
+        str += s.getChar();
+    });
+    return str;
+}
+
