@@ -128,3 +128,15 @@ void SharedEditor::localInsert(int index, char value) {
                                  boost::asio::placeholders::error, msg));
 }
 
+void SharedEditor::localErase(int index) {
+    auto s = (index < this->symbols.size() && index >= 0) ? &this->symbols[index] : nullptr;
+    if (s != nullptr) {
+        while(editorId < 0);
+        this->symbols.erase(this->symbols.begin() + index);
+        std::shared_ptr<Message> msg(new Message(ERASE, *s, this->editorId));
+        this->writeOnFile();
+        conn.async_write(*msg,
+                          boost::bind(&SharedEditor::handle_write, this,
+                                      boost::asio::placeholders::error, msg));
+    }
+}
