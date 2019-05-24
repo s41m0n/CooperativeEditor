@@ -143,3 +143,12 @@ void NetworkServer::dispatch() {
         this->messages.pop();
     }
 }
+
+void NetworkServer::remoteErase(Symbol s) {
+    int index = CrdtAlgorithm::findPositionErase(std::move(s), this->symbols);
+    if(index >= 0) {
+        this->symbols.erase(this->symbols.begin() + index);
+        this->writeOnFile();
+    }
+}
+
