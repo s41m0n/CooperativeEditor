@@ -11,6 +11,7 @@
 #include <map>
 #include "../components/Message.h"
 #include "../client/SharedEditor.h"
+#include "../network/Connection.h"
 
 /**
  * NetworkServer class, the server in this architecture
