@@ -58,3 +58,21 @@ void SharedEditor::handle_connect(const boost::system::error_code& e,
     }
 }
 
+/// Handle completion of a read operation.
+void SharedEditor::handle_read(const boost::system::error_code& e, std::shared_ptr<Message>& incomingMsg) {
+
+    if (!e) {
+
+        //Successfully read, process and prepare to read again
+        this->process(incomingMsg);
+
+        std::shared_ptr<Message> newMsg(new Message());
+        conn.async_read(*newMsg,
+                        boost::bind(&SharedEditor::handle_read, this,
+                                    boost::asio::placeholders::error, newMsg));
+    } else {
+        //Error while reading (may be also socket shutdown)
+        spdlog::error("SharedEditor::Read error -> {}", e.message());
+    }
+}
+
