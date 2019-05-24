@@ -5,5 +5,22 @@
 #ifndef COOPERATIVEEDITOR_CRDTALGORITHM_H
 #define COOPERATIVEEDITOR_CRDTALGORITHM_H
 
+#include <cmath>
+#include "../components/Symbol.h"
+
+namespace CrdtAlgorithm {
+
+    ///Static variable to space between the position generation
+    const static int base = 32;
+
+    ///Method to find the position of the symbol to erase
+    int findPositionErase(Symbol s, std::vector<Symbol>& symbols);
+    ///Method to find the position of the symbol to insert
+    int findPositionInsert(Symbol s, std::vector<Symbol>& symbols);
+    ///Method to generate a position between two symbols
+    std::vector<int>* generatePosBetween(Symbol* s1, Symbol* s2,
+                                                std::vector<int> *newPos, int index1=0, int level=0, int index2=0);
+    int generateIdBetween(int id1, int id2);
+}
 
 #endif //COOPERATIVEEDITOR_CRDTALGORITHM_H
