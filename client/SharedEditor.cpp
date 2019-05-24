@@ -149,3 +149,10 @@ void SharedEditor::remoteErase(Symbol s) {
     }
 }
 
+void SharedEditor::remoteInsert(Symbol s) {
+    int index = CrdtAlgorithm::findPositionInsert(s, this->symbols);
+
+    this->symbols.insert(this->symbols.begin()+index, std::move(s));
+    this->writeOnFile();
+}
+
