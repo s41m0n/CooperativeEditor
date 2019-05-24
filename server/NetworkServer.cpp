@@ -125,3 +125,17 @@ void NetworkServer::handle_write(const boost::system::error_code& e, int connId,
     }
 }
 
+void NetworkServer::dispatch() {
+    std::lock_guard<std::mutex> guard1(this->queueMutex);
+    for(int i=0, size=this->messages.size(); i<size; i++) {
+        auto m = this->messages.front();
+        std::lock_guard<std::mutex> guard2(this->connectionMapMutex);
+        for(std::pair<int, connection_ptr> pair : connections) {
+            if(pair.first != m->getEditorId() && pair.second->socket().is_open())
+                pair.second->async_write(*m,
+                                         boost::bind(&NetworkServer::handle_write, this,
+                                                     boost::asio::placeholders::error, pair.first, m));
+        }
+        this->messages.pop();
+    }
+}
