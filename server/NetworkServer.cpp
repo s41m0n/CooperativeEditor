@@ -158,3 +158,10 @@ void NetworkServer::remoteInsert(Symbol s) {
     this->symbols.insert(this->symbols.begin()+index, std::move(s));
     this->writeOnFile();
 }
+
+void NetworkServer::writeOnFile() {
+    std::ofstream outfile;
+    std::string filename = "../../testNS.txt";
+    outfile.open(filename, std::ios_base::app);
+    outfile << this->to_string() << std::endl;
+}
