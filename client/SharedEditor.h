@@ -28,7 +28,7 @@ private:
     std::vector<Symbol> symbols;
     ///The unique digit generator
     int _counter = 0;
-
+    bool ready = false;
     Symbol generateSymbol(int index, char value);
 
 public:

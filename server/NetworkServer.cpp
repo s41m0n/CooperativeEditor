@@ -30,32 +30,18 @@ void NetworkServer::handle_accept(const boost::system::error_code& e, connection
 {
     if (!e) {
 
-        //Data read successfully, send editorId and start reading & listening recursively
+        {
+            std::lock_guard<std::mutex> guard(this->connectionMapMutex);
+            if (connections.empty() || connections.find(idGenerator) == connections.end())
+                connections.insert(std::pair<int, connection_ptr>(idGenerator, conn));
+        }
+
+        //Connected successfully, send editorId and start reading & listening recursively
         spdlog::debug("NetworkServer::Connected Shared Editor n. {0:d}", idGenerator);
         std::shared_ptr<Message> msg(new Message(CONNECT, idGenerator));
         conn->async_write(*msg,
                           boost::bind(&NetworkServer::handle_write, this,
                                       boost::asio::placeholders::error, idGenerator, msg));
-        {
-            std::lock_guard<std::mutex> guard(this->connectionMapMutex);
-            if (connections.find(idGenerator) == connections.end())
-                connections.insert(std::pair<int, connection_ptr>(idGenerator, conn));
-        }
-
-        {
-            std::lock_guard<std::mutex> guard(this->symbolsMutes);
-            for(Symbol& s : this->symbols) {
-                std::shared_ptr<Message> newMsg(new Message(INSERT, s, idGenerator));
-                conn->async_write(*newMsg,
-                                  boost::bind(&NetworkServer::handle_write, this,
-                                              boost::asio::placeholders::error, idGenerator, newMsg));
-            }
-        }
-
-        std::shared_ptr<Message> newMsg(new Message());
-        conn->async_read(*newMsg,
-                        boost::bind(&NetworkServer::handle_read, this,
-                                    boost::asio::placeholders::error, idGenerator, newMsg));
 
         idGenerator++;
 
@@ -117,7 +103,19 @@ void NetworkServer::handle_write(const boost::system::error_code& e, int connId,
     if(!e) {
 
         //Write successfully
-        spdlog::debug("NetworkServer::Sent Message (type={}, editorId={}) to SharedEditor{}", msg->getMsgType(), msg->getEditorId(), connId);
+        if(msg && msg->getMsgType() == CONNECT) {
+            spdlog::debug("NetworkServer::Sent Message (type={}, editorId={}) to SharedEditor{}", msg->getMsgType(),
+                          msg->getEditorId(), connId);
+            std::lock_guard<std::mutex> guard(this->connectionMapMutex);
+            this->connections[connId]->async_write(this->symbols,
+                              boost::bind(&NetworkServer::handle_write, this,
+                                          boost::asio::placeholders::error, connId, std::shared_ptr<Message>()));
+        } else {
+            std::shared_ptr<Message> newMsg(new Message());
+            this->connections[connId]->async_read(*newMsg,
+                             boost::bind(&NetworkServer::handle_read, this,
+                                         boost::asio::placeholders::error, connId, newMsg));
+        }
 
     }else {
 

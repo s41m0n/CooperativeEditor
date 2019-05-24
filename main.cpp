@@ -18,7 +18,7 @@ void spawnClient(const std::string& host, const std::string& port, std::vector<s
 
         {
             std::shared_ptr<SharedEditor> client(new SharedEditor(io_service, host, port));
-            sleep(3);
+
             std::for_each(toInsert.begin(), toInsert.end(), [&client](std::pair<int, char> pair) -> void {
                 client->localInsert(pair.first, pair.second);
             });

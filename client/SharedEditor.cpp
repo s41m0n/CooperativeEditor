@@ -2,10 +2,13 @@
 // Created by s41m0n on 16/05/19.
 //
 
+#include <iostream>
 #include <boost/archive/text_iarchive.hpp>
 #include <boost/archive/text_oarchive.hpp>
+#include <boost/serialization/vector.hpp>
 #include <spdlog/spdlog.h>
 #include <fstream>
+#include <iostream>
 #include "SharedEditor.h"
 #include "../server/NetworkServer.h"
 #include "../crdtAlgorithm/CrdtAlgorithm.h"
@@ -39,9 +42,12 @@ void SharedEditor::handle_connect(const boost::system::error_code& e,
 
         //Successfully connect, start reading (recursively)
         std::shared_ptr<Message> incomingMsg(new Message());
+
         conn.async_read(*incomingMsg,
                                boost::bind(&SharedEditor::handle_read, this,
                                            boost::asio::placeholders::error, incomingMsg));
+
+
     }
     else if (endpoint_iterator != boost::asio::ip::tcp::resolver::iterator()) {
         // Try to reconnect to next endpoint
@@ -61,19 +67,11 @@ void SharedEditor::handle_connect(const boost::system::error_code& e,
 /// Handle completion of a read operation.
 void SharedEditor::handle_read(const boost::system::error_code& e, std::shared_ptr<Message>& incomingMsg) {
 
-    if (!e) {
-
-        //Successfully read, process and prepare to read again
+    if (!e)
         this->process(incomingMsg);
-
-        std::shared_ptr<Message> newMsg(new Message());
-        conn.async_read(*newMsg,
-                        boost::bind(&SharedEditor::handle_read, this,
-                                    boost::asio::placeholders::error, newMsg));
-    } else {
+    else
         //Error while reading (may be also socket shutdown)
         spdlog::error("SharedEditor::Read error -> {}", e.message());
-    }
 }
 
 void SharedEditor::handle_write(const boost::system::error_code& e, std::shared_ptr<Message>& msg)
@@ -86,20 +84,35 @@ void SharedEditor::handle_write(const boost::system::error_code& e, std::shared_
 }
 
 void SharedEditor::process(std::shared_ptr<Message>& msg) {
-    switch (msg->getMsgType()) {
-        case CONNECT:
-            this->editorId = msg->getEditorId();
-            break;
-        case INSERT :
-            this->remoteInsert(msg->getSymbol());
-            break;
-        case ERASE :
-            this->remoteErase(msg->getSymbol());
-            break;
-        default:
-            throw std::runtime_error("SharedEditor::Bad message received from server");
+
+    if(msg) {
+        switch (msg->getMsgType()) {
+            case CONNECT:
+                this->editorId = msg->getEditorId();
+                conn.async_read(this->symbols,
+                                boost::bind(&SharedEditor::handle_read, this,
+                                            boost::asio::placeholders::error, std::shared_ptr<Message>()));
+                spdlog::debug("SharedEditor{}::Received Message (type={}, editorId={})", editorId, msg->getMsgType(), msg->getEditorId());
+                return;
+            case INSERT :
+                this->remoteInsert(msg->getSymbol());
+                break;
+            case ERASE :
+                this->remoteErase(msg->getSymbol());
+                break;
+            default:
+                throw std::runtime_error("SharedEditor::Bad message received from server");
+        }
+        spdlog::debug("SharedEditor{}::Received Message (type={}, editorId={})", editorId, msg->getMsgType(), msg->getEditorId());
+    } else {
+        spdlog::debug("SharedEditor{}::Received vector of Symbol", editorId);
+        this->ready = true;
     }
-    spdlog::debug("SharedEditor{}::Received Message (type={}, editorId={})", editorId, msg->getMsgType(), msg->getEditorId());
+
+    std::shared_ptr<Message> newMsg(new Message());
+    conn.async_read(*newMsg,
+                    boost::bind(&SharedEditor::handle_read, this,
+                                boost::asio::placeholders::error, newMsg));
 }
 
 void SharedEditor::writeOnFile() {
@@ -118,7 +131,7 @@ std::string SharedEditor::to_string() {
 }
 
 void SharedEditor::localInsert(int index, char value) {
-    while(editorId < 0);
+    while(!ready);
     Symbol s = this->generateSymbol(index, value);
     this->symbols.insert(this->symbols.begin() + index, s);
     std::shared_ptr<Message> msg(new Message(INSERT, s, this->editorId));
@@ -131,7 +144,7 @@ void SharedEditor::localInsert(int index, char value) {
 void SharedEditor::localErase(int index) {
     auto s = (index < this->symbols.size() && index >= 0) ? &this->symbols[index] : nullptr;
     if (s != nullptr) {
-        while(editorId < 0);
+        while(!ready);
         this->symbols.erase(this->symbols.begin() + index);
         std::shared_ptr<Message> msg(new Message(ERASE, *s, this->editorId));
         this->writeOnFile();
