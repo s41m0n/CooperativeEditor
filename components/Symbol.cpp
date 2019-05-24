@@ -17,3 +17,23 @@ const std::vector<int> Symbol::getPos() {
     return this->position;
 }
 
+int Symbol::compareTo(const Symbol &other) {
+    int digit1, digit2;
+    std::vector<int> pos1 = this->position;
+    std::vector<int> pos2 = other.position;
+
+    for (int i = 0; i < std::min(pos1.size(), pos2.size()); i++) {
+        digit1 = pos1[i];
+        digit2 = pos2[i];
+        if (digit1 != digit2)
+            return digit1 > digit2? 1 : -1;
+    }
+
+    if (pos1.size() < pos2.size()) {
+        return -1;
+    } else if (pos1.size() > pos2.size()) {
+        return 1;
+    } else {
+        return this->id.compareTo(other.id);
+    }
+}
