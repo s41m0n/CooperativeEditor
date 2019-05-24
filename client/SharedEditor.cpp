@@ -76,3 +76,12 @@ void SharedEditor::handle_read(const boost::system::error_code& e, std::shared_p
     }
 }
 
+void SharedEditor::handle_write(const boost::system::error_code& e, std::shared_ptr<Message>& msg)
+{
+    if(!e)
+        spdlog::debug("SharedEditor{}::Sent Message (type={})", editorId, msg->getMsgType());
+    else
+        // Error while writing (same).
+        spdlog::error("SharedEditor::Write error -> {}", e.message());
+}
+
