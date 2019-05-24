@@ -65,3 +65,45 @@ void NetworkServer::handle_accept(const boost::system::error_code& e, connection
         spdlog::error("NetworkServer::Connect error -> {}", e.message());
     }
 }
+
+void NetworkServer::handle_read(const boost::system::error_code& e, int connId, std::shared_ptr<Message>& msg) {
+    if (!e) {
+
+        //If still present, read recursively
+        std::shared_ptr<Message> newMsg(new Message());
+        if(this->connections.find(connId) != this->connections.end())
+            this->connections[connId]->async_read(*newMsg,
+                    boost::bind(&NetworkServer::handle_read, this,
+                            boost::asio::placeholders::error, connId, newMsg));
+
+        {
+            //Update symbols array
+            std::lock_guard<std::mutex> guard(this->symbolsMutes);
+            switch(msg->getMsgType()) {
+                case INSERT:
+                    this->remoteInsert(msg->getSymbol());
+                    break;
+                case ERASE:
+                    this->remoteErase(msg->getSymbol());
+                    break;
+                default:
+                    throw std::runtime_error("NetworkServer::Received bad message in function handle");
+            }
+        }
+
+        {
+            //Read successfully, insert Message in the queue
+            spdlog::debug("NetworkServer::Received Message (type={}, editorId={}) from SharedEditor{}", msg->getMsgType(), msg->getEditorId(), connId);
+            std::lock_guard<std::mutex> guard(this->queueMutex);
+            messages.push(std::move(msg));
+        }
+
+    } else {
+        // Error while reading (socket down?)
+        std::lock_guard<std::mutex> guard(this->connectionMapMutex);
+        if(!this->connections.empty() && this->connections.find(connId) != this->connections.end())
+            this->connections.erase(connId);
+        spdlog::error("NetworkServer::Read error -> {}", e.message());
+    }
+}
+
