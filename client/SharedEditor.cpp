@@ -117,3 +117,14 @@ std::string SharedEditor::to_string() {
     return str;
 }
 
+void SharedEditor::localInsert(int index, char value) {
+    while(editorId < 0);
+    Symbol s = this->generateSymbol(index, value);
+    this->symbols.insert(this->symbols.begin() + index, s);
+    std::shared_ptr<Message> msg(new Message(INSERT, s, this->editorId));
+    this->writeOnFile();
+    conn.async_write(*msg,
+                     boost::bind(&SharedEditor::handle_write, this,
+                                 boost::asio::placeholders::error, msg));
+}
+
