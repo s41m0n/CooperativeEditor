@@ -107,3 +107,21 @@ void NetworkServer::handle_read(const boost::system::error_code& e, int connId, 
     }
 }
 
+void NetworkServer::handle_write(const boost::system::error_code& e, int connId, std::shared_ptr<Message>& msg)
+{
+
+    if(!e) {
+
+        //Write successfully
+        spdlog::debug("NetworkServer::Sent Message (type={}, editorId={}) to SharedEditor{}", msg->getMsgType(), msg->getEditorId(), connId);
+
+    }else {
+
+        //Error, write failed (socket shutdown?)
+        std::lock_guard<std::mutex> guard(this->connectionMapMutex);
+        if(!this->connections.empty() && this->connections.find(connId) != this->connections.end())
+            this->connections.erase(connId);
+        spdlog::error("NetworkServer::Write error -> {}", e.message());
+    }
+}
+
