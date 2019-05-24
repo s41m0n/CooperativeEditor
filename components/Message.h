@@ -65,8 +65,6 @@ public:
     const Type getMsgType();
     ///Return the Symbol contained in the Message
     const Symbol getSymbol();
-    ///Method to compare two messages
-    int compareTo(const Message& o);
 
 };
 
