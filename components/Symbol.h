@@ -45,9 +45,9 @@ public:
     ///Classic constructor with all parameters
     Symbol(char character, int siteId, int digit, std::vector<int> &position);
     ///Constructor to create a non-valid symbol to be filled
-    Symbol();
+    Symbol() = default;
     ///Method to compare two symbols
-    int compareTo(const Symbol &s);
+    const int compareTo(const Symbol &s);
     ///Method to get the character
     const char getChar();
     ///Method to get the position

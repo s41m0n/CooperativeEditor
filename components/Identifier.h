@@ -40,7 +40,7 @@ public:
     ///Classic constructor, given both the two parameter
     Identifier(unsigned int editorId, unsigned int digit);
     ///Constructor used to create a non-valid Identifier to be filled
-    Identifier();
+    Identifier() = default;
     ///Method to compare two identifier by their private variables
     int compareTo(Identifier other);
 

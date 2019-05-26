@@ -7,8 +7,6 @@
 Symbol::Symbol(char character, int siteId, int digit, std::vector<int> &position)
         : position(std::move(position)), id(siteId, digit), character(character){}
 
-Symbol::Symbol() : character('\0'), id(), position(std::vector<int>()){}
-
 const char Symbol::getChar() {
     return this->character;
 }
@@ -17,7 +15,7 @@ const std::vector<int> Symbol::getPos() {
     return this->position;
 }
 
-int Symbol::compareTo(const Symbol &other) {
+const int Symbol::compareTo(const Symbol &other) {
     int digit1, digit2;
     std::vector<int> pos1 = this->position;
     std::vector<int> pos2 = other.position;

@@ -3,17 +3,16 @@
 //
 
 #include <spdlog/spdlog.h>
-#include <boost/asio.hpp>
 #include <fstream>
 #include "NetworkServer.h"
-#include "../network/Connection.h"
-#include "../crdtAlgorithm/CrdtAlgorithm.h"
 
 NetworkServer::NetworkServer(boost::asio::io_service& io_service, unsigned short port)
 : acceptor_(io_service,
-        boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), port)), symbols() {
+        boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), port)), openedFiles(), idGenerator(0) {
 
     spdlog::debug("NetworkServer::Created NetworkServer");
+
+    loadAllFileNames();
 
     //Create new connection and start listening asynchronously
     connection_ptr new_conn(new Connection(acceptor_.get_io_service()));
@@ -30,18 +29,18 @@ void NetworkServer::handle_accept(const boost::system::error_code& e, connection
 {
     if (!e) {
 
-        {
-            std::lock_guard<std::mutex> guard(this->connectionMapMutex);
-            if (connections.empty() || connections.find(idGenerator) == connections.end())
-                connections.insert(std::pair<int, connection_ptr>(idGenerator, conn));
-        }
+        connections.insert(std::pair<int, std::pair<std::string, connection_ptr>>(idGenerator,
+                std::pair<std::string, connection_ptr>("",conn)));
+
+        buffers.insert(std::pair<int, std::pair<boost::shared_ptr<BasicMessage>, boost::shared_ptr<BasicMessage>>>(
+                idGenerator, std::pair<boost::shared_ptr<BasicMessage>, boost::shared_ptr<BasicMessage>>()));
 
         //Connected successfully, send editorId and start reading & listening recursively
-        spdlog::debug("NetworkServer::Connected Shared Editor n. {0:d}", idGenerator);
-        std::shared_ptr<Message> msg(new Message(CONNECT, idGenerator));
-        conn->async_write(*msg,
+        spdlog::debug("NetworkServer::Connected Shared Editor{}", idGenerator);
+        buffers[idGenerator].second = boost::make_shared<BasicMessage>(Type::CONNECT, idGenerator);
+        conn->async_write(buffers[idGenerator].second,
                           boost::bind(&NetworkServer::handle_write, this,
-                                      boost::asio::placeholders::error, idGenerator, msg));
+                                      boost::asio::placeholders::error, idGenerator));
 
         idGenerator++;
 
@@ -51,123 +50,214 @@ void NetworkServer::handle_accept(const boost::system::error_code& e, connection
                                boost::bind(&NetworkServer::handle_accept, this,
                                            boost::asio::placeholders::error, new_conn));
     }
-    else {
+    else
         spdlog::error("NetworkServer::Connect error -> {}", e.message());
-    }
+
 }
 
-void NetworkServer::handle_read(const boost::system::error_code& e, int connId, std::shared_ptr<Message>& msg) {
+void NetworkServer::handle_read(const boost::system::error_code& e, int connId) {
+
     if (!e) {
+        spdlog::debug("NetworkServer::Received Message (type={}) from SharedEditor{}", buffers[connId].first->getMsgType(), connId);
 
-        //If still present, read recursively
-        std::shared_ptr<Message> newMsg(new Message());
-        if(this->connections.find(connId) != this->connections.end())
-            this->connections[connId]->async_read(*newMsg,
-                    boost::bind(&NetworkServer::handle_read, this,
-                            boost::asio::placeholders::error, connId, newMsg));
+        switch (buffers[connId].first->getMsgType()) {
 
-        {
-            //Update symbols array
-            std::lock_guard<std::mutex> guard(this->symbolsMutes);
-            switch(msg->getMsgType()) {
-                case INSERT:
-                    this->remoteInsert(msg->getSymbol());
-                    break;
-                case ERASE:
-                    this->remoteErase(msg->getSymbol());
-                    break;
-                default:
-                    throw std::runtime_error("NetworkServer::Received bad message in function handle");
+            case Type::INSERT : {
+                boost::shared_ptr<CrdtMessage> converted = boost::static_pointer_cast<CrdtMessage>(buffers[connId].first);
+                std::string filename = connections[connId].first;
+
+                std::lock_guard<std::mutex> guard(symbolsMutes);
+                CrdtAlgorithm::remoteInsert(converted->getSymbol(), openedFiles[filename]);
+
+                writeOnFile(filename);
+
+                std::lock_guard<std::mutex> guard2(queueMutex);
+                messages.push(std::move(converted));
+                break;
             }
+            case Type::ERASE : {
+                boost::shared_ptr<CrdtMessage> converted = boost::static_pointer_cast<CrdtMessage>(buffers[connId].first);
+                std::string filename = connections[connId].first;
+
+                std::lock_guard<std::mutex> guard(symbolsMutes);
+                CrdtAlgorithm::remoteErase(converted->getSymbol(), openedFiles[filename]);
+
+                writeOnFile(filename);
+
+                std::lock_guard<std::mutex> guard2(queueMutex);
+                messages.push(std::move(converted));
+                break;
+            }
+            case Type::CREATE : {
+                std::string filename = boost::static_pointer_cast<RequestMessage>(buffers[connId].first)->getFilename();
+
+                if(availableFiles.find(filename) != std::string::npos) {
+
+                    buffers[connId].second = boost::make_shared<RequestMessage>(Type::FILEKO, connId, filename);
+                    connections[connId].second->async_write(buffers[connId].second,
+                            boost::bind(&NetworkServer::handle_write, this,
+                                    boost::asio::placeholders::error, connId));
+                } else {
+
+                    connections[connId].first = filename;
+                    availableFiles.append(filename + ";");
+
+                    openedFiles.insert(std::pair<std::string, std::vector<Symbol>>(filename, std::vector<Symbol>()));
+
+                    buffers[connId].second = boost::make_shared<RequestMessage>(Type::FILEOK, connId, connections[connId].first);
+                    connections[connId].second->async_write(buffers[connId].second,
+                            boost::bind(&NetworkServer::handle_write, this,
+                                    boost::asio::placeholders::error, connId));
+                }
+
+                return;
+            }
+            case Type::OPEN : {
+                std::string filename = boost::static_pointer_cast<RequestMessage>(buffers[connId].first)->getFilename();
+
+                if(openedFiles.empty() || openedFiles.find(filename) == openedFiles.end()) {
+
+                    openedFiles.insert(
+                            std::pair<std::string, std::vector<Symbol>>(filename, std::vector<Symbol>()));
+
+                    restoreFromFile(filename);
+
+                    connections[connId].first = filename;
+                    buffers[connId].second = boost::make_shared<RequestMessage>(Type::FILEOK, connId, filename);
+                    connections[connId].second->async_write(buffers[connId].second,
+                            boost::bind(&NetworkServer::handle_write, this,
+                                    boost::asio::placeholders::error, connId));
+                } else {
+
+                    buffers[connId].second = boost::make_shared<RequestMessage>(Type::FILEKO, connId, filename);
+                    connections[connId].second->async_write(buffers[connId].second,
+                            boost::bind(&NetworkServer::handle_write, this,
+                                    boost::asio::placeholders::error, connId));
+                }
+                return;
+            }
+            default :
+                throw std::runtime_error("NetworkServer::Should never read different types of Message");
+
         }
 
-        {
-            //Read successfully, insert Message in the queue
-            spdlog::debug("NetworkServer::Received Message (type={}, editorId={}) from SharedEditor{}", msg->getMsgType(), msg->getEditorId(), connId);
-            std::lock_guard<std::mutex> guard(this->queueMutex);
-            messages.push(std::move(msg));
-        }
-
+        buffers[connId].first = boost::make_shared<CrdtMessage>();
+        connections[connId].second->async_read(buffers[connId].first,
+                boost::bind(&NetworkServer::handle_read, this,
+                        boost::asio::placeholders::error, connId));
     } else {
-        // Error while reading (socket down?)
-        std::lock_guard<std::mutex> guard(this->connectionMapMutex);
-        if(!this->connections.empty() && this->connections.find(connId) != this->connections.end())
-            this->connections.erase(connId);
+
+        buffers.erase(connId);
+        connections.erase(connId);
         spdlog::error("NetworkServer::Read error -> {}", e.message());
     }
 }
 
-void NetworkServer::handle_write(const boost::system::error_code& e, int connId, std::shared_ptr<Message>& msg)
+void NetworkServer::handle_write(const boost::system::error_code& e, int connId)
 {
 
     if(!e) {
 
+        spdlog::debug("NetworkServer::Sent Message (type={}) to SharedEditor{}", buffers[connId].second->getMsgType(), connId);
         //Write successfully
-        if(msg && msg->getMsgType() == CONNECT) {
-            spdlog::debug("NetworkServer::Sent Message (type={}, editorId={}) to SharedEditor{}", msg->getMsgType(),
-                          msg->getEditorId(), connId);
-            std::lock_guard<std::mutex> guard(this->connectionMapMutex);
-            this->connections[connId]->async_write(this->symbols,
-                              boost::bind(&NetworkServer::handle_write, this,
-                                          boost::asio::placeholders::error, connId, std::shared_ptr<Message>()));
-        } else {
-            std::shared_ptr<Message> newMsg(new Message());
-            this->connections[connId]->async_read(*newMsg,
-                             boost::bind(&NetworkServer::handle_read, this,
-                                         boost::asio::placeholders::error, connId, newMsg));
+        switch (buffers[connId].second->getMsgType()) {
+
+            case Type::CONNECT : {
+                buffers[connId].second = boost::make_shared<FilesListingMessage>(Type::LISTING, connId, availableFiles);
+                connections[connId].second->async_write(buffers[connId].second,
+                        boost::bind(&NetworkServer::handle_write, this,
+                                boost::asio::placeholders::error, connId));
+                break;
+            }
+            case Type::LISTING : {
+                buffers[connId].first = boost::make_shared<RequestMessage>();
+                connections[connId].second->async_read(buffers[connId].first,
+                        boost::bind(&NetworkServer::handle_read, this,
+                                boost::asio::placeholders::error, connId));
+                break;
+            }
+            case Type::FILEOK : {
+                buffers[connId].second = boost::make_shared<FileContentMessage>(Type::CONTENT, connId, openedFiles[connections[connId].first]);
+                connections[connId].second->async_write(buffers[connId].second ,
+                        boost::bind(&NetworkServer::handle_write, this,
+                                boost::asio::placeholders::error, connId));
+                break;
+            }
+            case Type::FILEKO : {
+                buffers[connId].first = boost::make_shared<RequestMessage>();
+                connections[connId].second->async_read(buffers[connId].first,
+                        boost::bind(&NetworkServer::handle_read, this,
+                                boost::asio::placeholders::error, connId));
+                break;
+            }
+            case Type::CONTENT : {
+                buffers[connId].first = boost::make_shared<CrdtMessage>();
+                connections[connId].second->async_read(buffers[connId].first,
+                        boost::bind(&NetworkServer::handle_read, this,
+                                boost::asio::placeholders::error, connId));
+
+                break;
+            }
+            default:
+                throw std::runtime_error("NetworkServer::Should never write other types of Message");
         }
+    } else {
 
-    }else {
-
-        //Error, write failed (socket shutdown?)
-        std::lock_guard<std::mutex> guard(this->connectionMapMutex);
-        if(!this->connections.empty() && this->connections.find(connId) != this->connections.end())
-            this->connections.erase(connId);
+        buffers.erase(connId);
+        connections.erase(connId);
         spdlog::error("NetworkServer::Write error -> {}", e.message());
     }
+
 }
 
 void NetworkServer::dispatch() {
     std::lock_guard<std::mutex> guard1(this->queueMutex);
+
     for(int i=0, size=this->messages.size(); i<size; i++) {
-        auto m = this->messages.front();
+
+        auto msg = this->messages.front();
         std::lock_guard<std::mutex> guard2(this->connectionMapMutex);
-        for(std::pair<int, connection_ptr> pair : connections) {
-            if(pair.first != m->getEditorId() && pair.second->socket().is_open())
-                pair.second->async_write(*m,
-                                         boost::bind(&NetworkServer::handle_write, this,
-                                                     boost::asio::placeholders::error, pair.first, m));
+
+        for(std::pair<int, std::pair<std::string,connection_ptr>> pair : connections) {
+
+            if(pair.first != msg->getEditorId() && pair.second.second->socket().is_open())
+                pair.second.second->async_write(msg,
+                        boost::bind(&NetworkServer::handle_write, this,
+                                boost::asio::placeholders::error, pair.first));
         }
+
         this->messages.pop();
     }
+
 }
 
-void NetworkServer::remoteErase(Symbol s) {
-    int index = CrdtAlgorithm::findPositionErase(std::move(s), this->symbols);
-    if(index >= 0) {
-        this->symbols.erase(this->symbols.begin() + index);
-        this->writeOnFile();
+void NetworkServer::writeOnFile(std::string& filename) {
+    std::ofstream file{filename + ".crdt"};
+    boost::archive::text_oarchive oa{file};
+    oa << openedFiles[filename];
+}
+
+void NetworkServer::restoreFromFile(std::string& filename) {
+    std::ifstream file{filename + ".crdt"};
+    boost::archive::text_iarchive oa{file};
+    oa >> openedFiles[filename];
+}
+
+void NetworkServer::loadAllFileNames() {
+
+    boost::filesystem::recursive_directory_iterator it(boost::filesystem::current_path());
+    boost::filesystem::recursive_directory_iterator endit;
+
+    while(it != endit) {
+
+        if(boost::filesystem::is_regular_file(*it) && it->path().extension() == ".crdt") {
+            std::string toAdd = it->path().filename().string();
+            size_t index = toAdd.find_last_of('.');
+            toAdd = toAdd.substr(0, index);
+            availableFiles.append(toAdd + ";");
+        }
+        ++it;
+
     }
-}
 
-void NetworkServer::remoteInsert(Symbol s) {
-    int index = CrdtAlgorithm::findPositionInsert(s, this->symbols);
-
-    this->symbols.insert(this->symbols.begin()+index, std::move(s));
-    this->writeOnFile();
-}
-
-void NetworkServer::writeOnFile() {
-    std::ofstream outfile;
-    std::string filename = "../../testNS.txt";
-    outfile.open(filename, std::ios_base::app);
-    outfile << this->to_string() << std::endl;
-}
-
-std::string NetworkServer::to_string() {
-    std::string str;
-    std::for_each(this->symbols.begin(), this->symbols.end(), [&str](Symbol s){
-        str += s.getChar();
-    });
-    return str;
 }

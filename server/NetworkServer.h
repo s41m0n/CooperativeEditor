@@ -7,11 +7,16 @@
 
 
 #include <queue>
-#include <memory>
+#include <set>
 #include <map>
+#include <vector>
+#include <string>
+#include <boost/asio.hpp>
+#include <boost/shared_ptr.hpp>
+#include <boost/filesystem.hpp>
 #include "../components/Message.h"
-#include "../client/SharedEditor.h"
 #include "../network/Connection.h"
+#include "../crdtAlgorithm/CrdtAlgorithm.h"
 
 /**
  * NetworkServer class, the server in this architecture
@@ -21,19 +26,23 @@
 class NetworkServer {
 
 private:
+    std::map<int, std::pair<boost::shared_ptr<BasicMessage>, boost::shared_ptr<BasicMessage>>> buffers;
     ///The map of the connection, containing the editorId and the pointer to the connection
-    std::map<int, connection_ptr> connections;
+    std::map<std::string, std::vector<Symbol>> openedFiles;
+    ///Map of connection ID, filename required by user and Connection ptr
+    std::map<int, std::pair<std::string, connection_ptr>> connections;
     ///The queue containing all the messages
-    std::queue<std::shared_ptr<Message>> messages;
+    std::queue<boost::shared_ptr<CrdtMessage>> messages;
     ///The mutex used for the message queue
     std::mutex queueMutex;
     ///The mutex used to update the symbols array
     std::mutex symbolsMutes;
     ///The mutex used for the connections map
     std::mutex connectionMapMutex;
-    int idGenerator = 0;
-    ///The vector of symbol, which composes the text
-    std::vector<Symbol> symbols;
+    ///Editor Id unique generator
+    unsigned int idGenerator;
+    ///Set of all available files
+    std::string availableFiles;
     /// The acceptor object used to accept incoming socket connections.
     boost::asio::ip::tcp::acceptor acceptor_;
 
@@ -51,18 +60,20 @@ public:
     void handle_accept(const boost::system::error_code &e, connection_ptr &conn);
 
     /// Handle completion of a read operation.
-    void handle_read(const boost::system::error_code &e, int connId, std::shared_ptr<Message> &msg);
+    void handle_read(const boost::system::error_code &e, int connId);
 
     /// Handle completion of a write operation.
-    void handle_write(const boost::system::error_code &e, int connId, std::shared_ptr<Message> &msg);
+    void handle_write(const boost::system::error_code &e, int connId);
 
-    void remoteInsert(Symbol s);
+    ///Method to write on file the respective sequence of symbols
+    void writeOnFile(std::string& filename);
 
-    void remoteErase(Symbol s);
+    ///Method to restore from file the respective sequence of symbols
+    void restoreFromFile(std::string& filename);
 
-    void writeOnFile();
+    ///Method to perform directory listing for file with certain extension
+    void loadAllFileNames();
 
-    std::string to_string();
 };
 
 #endif //COOPERATIVEEDITOR_NETWORKSERVER_H

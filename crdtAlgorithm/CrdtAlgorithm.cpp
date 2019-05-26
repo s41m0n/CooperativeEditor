@@ -88,3 +88,15 @@ std::vector<int>* CrdtAlgorithm::generatePosBetween(Symbol* s1, Symbol* s2,
     }
     throw std::runtime_error("Fix Position Sorting");
 }
+
+void CrdtAlgorithm::remoteErase(Symbol s, std::vector<Symbol>& symbols) {
+    int index = CrdtAlgorithm::findPositionErase(std::move(s), symbols);
+    if(index >= 0)
+        symbols.erase(symbols.begin() + index);
+}
+
+void CrdtAlgorithm::remoteInsert(Symbol s, std::vector<Symbol>& symbols) {
+    int index = CrdtAlgorithm::findPositionInsert(s, symbols);
+
+    symbols.insert(symbols.begin()+index, std::move(s));
+}

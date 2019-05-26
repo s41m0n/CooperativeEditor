@@ -5,12 +5,13 @@
 #ifndef COOPERATIVEEDITOR_SHAREDEDITOR_H
 #define COOPERATIVEEDITOR_SHAREDEDITOR_H
 
+#include <set>
+#include <string>
+#include <boost/asio.hpp>
+#include <boost/shared_ptr.hpp>
 #include "../network/Connection.h"
 #include "../components/Message.h"
-#include "../components/Symbol.h"
-
-///Forward declaration of class NetworkServer (to avoid cycle)
-class NetworkServer;
+#include "../crdtAlgorithm/CrdtAlgorithm.h"
 
 /**
  * SharedEditor class, the client of this architecture
@@ -23,29 +24,44 @@ private:
     ///Connection to the server
     Connection conn;
     ///The specific editor ID
-    int editorId;
+    unsigned int editorId;
     ///The vector of symbol, which composes the text
     std::vector<Symbol> symbols;
+    ///The actual file used
+    std::string currentFile;
+    boost::shared_ptr<BasicMessage> bufferOut;
+    boost::shared_ptr<BasicMessage> bufferIn;
     ///The unique digit generator
-    int _counter = 0;
+    unsigned int digitGenerator;
+    ///Since there is no guys, used to wait until all "automated" operations are performed
     bool ready = false;
+    ///Method to generate a symbol
     Symbol generateSymbol(int index, char value);
 
 public:
+    ///Classic constructor with all parameters
     SharedEditor(boost::asio::io_service& io_service,
                                const std::string& host, const std::string& service);
+    ///Destructor used for debug purpose only by now
     ~SharedEditor();
-    void localInsert(int index, char value);
-    void localErase(int index);
-    void remoteInsert(Symbol s);
-    void remoteErase(Symbol s);
-    void process(std::shared_ptr<Message>& msg);
+
+    ///Method to be called once connected to the server
     void handle_connect(const boost::system::error_code& e,
                                       boost::asio::ip::tcp::resolver::iterator endpoint_iterator);
-    void handle_write(const boost::system::error_code& e, std::shared_ptr<Message>& msg);
-    void handle_read(const boost::system::error_code& e, std::shared_ptr<Message>& incomingMsg);
+    ///Method to be called once something has been written on socket
+    void handle_write(const boost::system::error_code& e);
+    ///Method to be called once something has been read on socket
+    void handle_read(const boost::system::error_code& e);
+
+    ///Crdt local method to insert a symbol
+    void localInsert(int index, char value);
+    ///Crdt local method to erase a symbol
+    void localErase(int index);
+    ///Method to perform the tostring on file
     void writeOnFile();
+    ///Method to return the sequence of characters
     std::string to_string();
+
 };
 
 

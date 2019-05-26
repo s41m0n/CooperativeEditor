@@ -1,9 +1,18 @@
 #include <iostream>
+#include <boost/serialization/export.hpp>
 #include <spdlog/spdlog.h>
 #include <boost/lexical_cast.hpp>
 #include <boost/thread.hpp>
 #include "server/NetworkServer.h"
 #include "client/SharedEditor.h"
+
+
+//BOOST_SERIALIZATION_ASSUME_ABSTRACT(BasicMessage)
+BOOST_CLASS_EXPORT(CrdtMessage)
+BOOST_CLASS_EXPORT(RequestMessage)
+BOOST_CLASS_EXPORT(FileContentMessage)
+BOOST_CLASS_EXPORT(FilesListingMessage)
+
 
 void spawnClient(const std::string& host, const std::string& port, std::vector<std::pair<int, char>> toInsert, std::vector<int> toDelete, int clientId) {
     boost::thread t;
@@ -41,6 +50,30 @@ int main() {
     const std::string service("3000");
     auto port = boost::lexical_cast<unsigned short>(service);
 
+
+/*
+    {
+        std::string toInsert("ciao.txt; prova.txt");
+        boost::shared_ptr<BasicMessage> newMsg(new FilesListingMessage(LISTING, 0, toInsert));
+        {
+            std::ofstream ofs("Porcodio");
+            boost::archive::text_oarchive oa(ofs);
+            // write class instance to archive
+            oa << newMsg;
+        }
+
+        {
+            boost::shared_ptr<BasicMessage> recvMsg(new FilesListingMessage());
+            std::ifstream ifs("Porcodio");
+            boost::archive::text_iarchive ia(ifs);
+            // write class instance to archive
+            ia >> recvMsg;
+            spdlog::error("DIOCANE -> {}",
+                          boost::static_pointer_cast<FilesListingMessage, BasicMessage>(recvMsg)->getFiles());
+        }
+    }
+*/
+
     std::vector<std::pair<int, char>> client1ToInsert({{0,'c'}, {1, 'i'}, {2, 'a'}, {3, 'o'}});
     std::vector<int> client1ToDelete;
 
@@ -61,8 +94,8 @@ int main() {
     client1.detach();
 
     //Starting client2
-    std::thread client2(spawnClient, host, service, client2ToInsert, client2ToDelete, 2);
-    client2.detach();
+    //std::thread client2(spawnClient, host, service, client2ToInsert, client2ToDelete, 2);
+    //client2.detach();
 
     while(1) server->dispatch();
 }
