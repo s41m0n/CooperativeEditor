@@ -20,6 +20,6 @@ include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
 conan_basic_setup()
 
 add_executable(CooperativeEditor main.cpp server/NetworkServer.cpp client/SharedEditor.cpp
-        components/Symbol.cpp components/Message.cpp components/Identifier.cpp crdtAlgorithm/CrdtAlgorithm.cpp)
+        components/Symbol.cpp components/Identifier.cpp crdtAlgorithm/CrdtAlgorithm.cpp)
 
 target_link_libraries(CooperativeEditor ${CONAN_LIBS})

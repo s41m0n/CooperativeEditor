@@ -101,9 +101,9 @@ void SharedEditor::handle_read(const boost::system::error_code& e) {
                 return;
             }
             case Type::CONTENT: {
-                this->symbols = boost::static_pointer_cast<FileContentMessage>(bufferIn)->getSymbols();
-                this->writeOnFile();
-                this->ready = true;
+                symbols = boost::move(boost::static_pointer_cast<FileContentMessage>(bufferIn)->getSymbols());
+                spdlog::error("Received content -> {}", to_string());
+                ready = true;
                 break;
             }
             case Type::FILEKO : {
@@ -170,12 +170,11 @@ void SharedEditor::localInsert(int index, char value) {
 
     while(!ready);
 
-    Symbol s = generateSymbol(index, value);
-    symbols.insert(symbols.begin() + index, s);
+    symbols.insert(symbols.begin() + index, generateSymbol(index, value));
 
     writeOnFile();
 
-    bufferOut = boost::make_shared<CrdtMessage>(Type::INSERT, s, editorId);
+    bufferOut = boost::make_shared<CrdtMessage>(Type::INSERT, symbols[index], editorId);
     conn.async_write(bufferOut,
             boost::bind(&SharedEditor::handle_write, this,
                     boost::asio::placeholders::error));

@@ -7,7 +7,6 @@
 #include "client/SharedEditor.h"
 
 
-//BOOST_SERIALIZATION_ASSUME_ABSTRACT(BasicMessage)
 BOOST_CLASS_EXPORT(CrdtMessage)
 BOOST_CLASS_EXPORT(RequestMessage)
 BOOST_CLASS_EXPORT(FileContentMessage)
@@ -50,34 +49,12 @@ int main() {
     const std::string service("3000");
     auto port = boost::lexical_cast<unsigned short>(service);
 
-
-/*
-    {
-        std::string toInsert("ciao.txt; prova.txt");
-        boost::shared_ptr<BasicMessage> newMsg(new FilesListingMessage(LISTING, 0, toInsert));
-        {
-            std::ofstream ofs("Porcodio");
-            boost::archive::text_oarchive oa(ofs);
-            // write class instance to archive
-            oa << newMsg;
-        }
-
-        {
-            boost::shared_ptr<BasicMessage> recvMsg(new FilesListingMessage());
-            std::ifstream ifs("Porcodio");
-            boost::archive::text_iarchive ia(ifs);
-            // write class instance to archive
-            ia >> recvMsg;
-            spdlog::error("DIOCANE -> {}",
-                          boost::static_pointer_cast<FilesListingMessage, BasicMessage>(recvMsg)->getFiles());
-        }
-    }
-*/
-
-    std::vector<std::pair<int, char>> client1ToInsert({{0,'c'}, {1, 'i'}, {2, 'a'}, {3, 'o'}});
+    std::vector<std::pair<int, char>> client1ToInsert({{0,'c'}, {1, 'i'}, {2, 'a'}, {3, 'o'}, {4, ' '},
+                                                       {5,'s'}, {6, 'i'}, {7, 'm'}, {8, 'o'},
+                                                       {4, ' '}, {5, 's'}, {6, 'c'}, {7, 'u'}, {8, 's'}, {9, 'a'}});
     std::vector<int> client1ToDelete;
 
-    std::vector<std::pair<int, char>> client2ToInsert({{4,'s'}, {5, 'i'}, {6, 'm'}, {7, 'o'}});
+    std::vector<std::pair<int, char>> client2ToInsert({{12,'s'}, {13, 'i'}, {14, 'm'}, {15, 'o'}});
     std::vector<int> client2ToDelete;
 
     //Setting LogLevel=debug

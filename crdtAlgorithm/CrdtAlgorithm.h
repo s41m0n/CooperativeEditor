@@ -5,7 +5,6 @@
 #ifndef COOPERATIVEEDITOR_CRDTALGORITHM_H
 #define COOPERATIVEEDITOR_CRDTALGORITHM_H
 
-#include <cmath>
 #include "../components/Symbol.h"
 
 namespace CrdtAlgorithm {

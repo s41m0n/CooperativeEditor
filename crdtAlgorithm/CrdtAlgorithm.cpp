@@ -2,6 +2,7 @@
 // Created by s41m0n on 24/05/19.
 //
 
+#include <cmath>
 #include "CrdtAlgorithm.h"
 
 int CrdtAlgorithm::generateIdBetween(int id1, int id2){
@@ -83,6 +84,9 @@ std::vector<int>* CrdtAlgorithm::generatePosBetween(Symbol* s1, Symbol* s2,
             return CrdtAlgorithm::generatePosBetween(s1, s2, newPos, index1+1, level+1, -1);
         } else if(comp == 0) {
             newPos->push_back(id1);
+            return CrdtAlgorithm::generatePosBetween(s1, s2, newPos, index1+1, level+1, index2+1);
+        } else {
+            newPos->push_back(id2);
             return CrdtAlgorithm::generatePosBetween(s1, s2, newPos, index1+1, level+1, index2+1);
         }
     }
