@@ -26,10 +26,11 @@ int main() {
 
     boost::asio::io_service io_service;
 
-    std::shared_ptr<boost::asio::io_service::work> work(new boost::asio::io_service::work(io_service));
-    boost::thread(boost::bind(&boost::asio::io_service::run, &io_service));
+    //std::shared_ptr<boost::asio::io_service::work> work(new boost::asio::io_service::work(io_service));
 
     std::shared_ptr<SharedEditor> client(new SharedEditor(io_service, host, port));
+
+    boost::thread io_thread(boost::bind(&boost::asio::io_service::run, &io_service));
 
     std::for_each(toInsert.begin(), toInsert.end(), [&client](std::pair<int, char> pair) -> void {
         client->localInsert(pair.first, pair.second);

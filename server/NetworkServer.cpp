@@ -4,6 +4,7 @@
 
 #include <spdlog/spdlog.h>
 #include <fstream>
+#include <boost/thread.hpp>
 #include "NetworkServer.h"
 
 NetworkServer::NetworkServer(boost::asio::io_service& io_service, unsigned short port)
@@ -41,6 +42,11 @@ void NetworkServer::handle_accept(const boost::system::error_code& e, connection
         conn->async_write(buffers[idGenerator].second,
                           boost::bind(&NetworkServer::handle_write, this,
                                       boost::asio::placeholders::error, idGenerator));
+
+        //Start a thread to dispatch messages
+        if(connections.size() == 2)
+            boost::thread(boost::bind(&NetworkServer::dispatch, this));
+
 
         idGenerator++;
 
@@ -211,24 +217,27 @@ void NetworkServer::handle_write(const boost::system::error_code& e, int connId)
 }
 
 void NetworkServer::dispatch() {
-    std::lock_guard<std::mutex> guard1(this->queueMutex);
 
-    for(int i=0, size=this->messages.size(); i<size; i++) {
+    while(connections.size() >= 2) {
 
-        auto msg = this->messages.front();
-        std::lock_guard<std::mutex> guard2(this->connectionMapMutex);
+        std::lock_guard<std::mutex> guard1(this->queueMutex);
 
-        for(std::pair<int, std::pair<std::string,connection_ptr>> pair : connections) {
+        for(int i=0, size=this->messages.size(); i<size; i++) {
 
-            if(pair.first != msg->getEditorId() && pair.second.second->socket().is_open())
-                pair.second.second->async_write(msg,
-                        boost::bind(&NetworkServer::handle_write, this,
-                                boost::asio::placeholders::error, pair.first));
+            auto msg = this->messages.front();
+            std::lock_guard<std::mutex> guard2(this->connectionMapMutex);
+
+            for(std::pair<int, std::pair<std::string,connection_ptr>> pair : connections) {
+
+                if(pair.first != msg->getEditorId() && pair.second.second->socket().is_open())
+                    pair.second.second->async_write(msg,
+                                                    boost::bind(&NetworkServer::handle_write, this,
+                                                                boost::asio::placeholders::error, pair.first));
+            }
+
+            this->messages.pop();
         }
-
-        this->messages.pop();
     }
-
 }
 
 void NetworkServer::writeOnFile(std::string& filename) {
@@ -246,9 +255,9 @@ void NetworkServer::restoreFromFile(std::string& filename) {
 void NetworkServer::loadAllFileNames() {
 
     boost::filesystem::recursive_directory_iterator it(boost::filesystem::current_path());
-    boost::filesystem::recursive_directory_iterator endit;
+    boost::filesystem::recursive_directory_iterator end;
 
-    while(it != endit) {
+    while(it != end) {
 
         if(boost::filesystem::is_regular_file(*it) && it->path().extension() == ".crdt") {
             std::string toAdd = it->path().filename().string();

@@ -20,11 +20,10 @@ int main() {
     //Setting LogLevel=debug
     spdlog::set_level(spdlog::level::debug);
 
-    //Starting Server
     boost::asio::io_service io_service;
-    std::shared_ptr<boost::asio::io_service::work> work(new boost::asio::io_service::work(io_service));
-    boost::thread t(boost::bind(&boost::asio::io_service::run, &io_service));
+
     std::shared_ptr<NetworkServer> server(new NetworkServer(io_service, port));
 
-    while(1) server->dispatch();
+    //Starting Server
+    io_service.run();
 }
