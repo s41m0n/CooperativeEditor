@@ -14,6 +14,8 @@ Once installed, create a default conan profile:
 Remind to change the value `compiler.libcxx=libstdc` to:
 
 ```bash
+~/.conan/profile/default
+------------------------------------------------------------------------------------------------------------------------
 [settings]
  os=Linux
  os_build=Linux
