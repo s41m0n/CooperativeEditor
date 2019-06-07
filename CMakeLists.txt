@@ -1,6 +1,11 @@
 cmake_minimum_required(VERSION 3.14)
 project(CooperativeEditor)
 
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTOUIC ON)
+set(CMAKE_AUTORCC ON)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
 
 if(CMAKE_VERSION VERSION_LESS 3.0.0)
     include(CheckCXXCompilerFlag)
@@ -12,18 +17,25 @@ if(CMAKE_VERSION VERSION_LESS 3.0.0)
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
     endif()
 else()
-    SET(CMAKE_CXX_STANDARD 11)
+    SET(CMAKE_CXX_STANDARD 17)
     SET(CMAKE_CXX_STANDARD_REQUIRED ON)
 endif()
 
 include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
 conan_basic_setup()
 
+find_package(Qt5Widgets REQUIRED)
+find_package(Qt5Core REQUIRED)
+
+#Set the client executable
 add_executable(CooperativeEditor mainclient.cpp  client/SharedEditor.cpp
         components/Symbol.cpp components/Identifier.cpp components/Message.h crdtAlgorithm/CrdtAlgorithm.cpp)
 
+#Set the server executable
 add_executable(CooperativeServer mainserver.cpp  server/NetworkServer.cpp
         components/Symbol.cpp components/Identifier.cpp components/Message.h crdtAlgorithm/CrdtAlgorithm.cpp)
 
+#Add libraries to compile the client
 target_link_libraries(CooperativeEditor ${CONAN_LIBS})
+#Add libraries to compile the server
 target_link_libraries(CooperativeServer ${CONAN_LIBS})
