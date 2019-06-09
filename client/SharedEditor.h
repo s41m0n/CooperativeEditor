@@ -29,8 +29,6 @@ private:
     std::vector<Symbol> symbols;
     ///The actual file used
     std::string currentFile;
-    boost::shared_ptr<BasicMessage> bufferOut;
-    boost::shared_ptr<BasicMessage> bufferIn;
     ///The unique digit generator
     unsigned int digitGenerator;
     ///Since there is no guys, used to wait until all "automated" operations are performed
@@ -49,9 +47,9 @@ public:
     void handle_connect(const boost::system::error_code& e,
                                       boost::asio::ip::tcp::resolver::iterator endpoint_iterator);
     ///Method to be called once something has been written on socket
-    void handle_write(const boost::system::error_code& e);
+    void handle_write(const boost::system::error_code& e, BasicMessage* msg);
     ///Method to be called once something has been read on socket
-    void handle_read(const boost::system::error_code& e);
+    void handle_read(const boost::system::error_code& e, BasicMessage* msg);
 
     ///Crdt local method to insert a symbol
     void localInsert(int index, char value);
