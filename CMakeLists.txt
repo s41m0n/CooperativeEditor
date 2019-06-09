@@ -32,7 +32,7 @@ add_executable(CooperativeEditor mainclient.cpp  client/SharedEditor.cpp
         components/Symbol.cpp components/Identifier.cpp components/Message.h crdtAlgorithm/CrdtAlgorithm.cpp)
 
 #Set the server executable
-add_executable(CooperativeServer mainserver.cpp  server/NetworkServer.cpp
+add_executable(CooperativeServer mainserver.cpp server/controller/Controller.cpp server/model/Model.cpp
         components/Symbol.cpp components/Identifier.cpp components/Message.h crdtAlgorithm/CrdtAlgorithm.cpp)
 
 #Add libraries to compile the client

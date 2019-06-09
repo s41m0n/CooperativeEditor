@@ -2,8 +2,8 @@
 // Created by s41m0n on 20/05/19.
 //
 
-#ifndef COOPERATIVEEDITOR_NETWORKSERVER_H
-#define COOPERATIVEEDITOR_NETWORKSERVER_H
+#ifndef COOPERATIVEEDITOR_CONTROLLER_H
+#define COOPERATIVEEDITOR_CONTROLLER_H
 
 
 #include <queue>
@@ -23,7 +23,7 @@
  *
  * @author Simone Magnani - s41m0n
  */
-class NetworkServer {
+class Controller {
 
 private:
     std::map<int, std::pair<boost::shared_ptr<BasicMessage>, boost::shared_ptr<BasicMessage>>> buffers;
@@ -48,10 +48,10 @@ private:
 
 public:
     ///Class constructor, given an io_service and a port
-    NetworkServer(boost::asio::io_service &io_service, unsigned short port);
+    Controller(boost::asio::io_service &io_service, unsigned short port);
 
     ///Class destructor (actually used to debug)
-    ~NetworkServer();
+    ~Controller();
 
     ///Method to dispatch messages
     void dispatch();
@@ -76,4 +76,4 @@ public:
 
 };
 
-#endif //COOPERATIVEEDITOR_NETWORKSERVER_H
+#endif //COOPERATIVEEDITOR_CONTROLLER_H

@@ -5,9 +5,9 @@
 #include <spdlog/spdlog.h>
 #include <fstream>
 #include <boost/thread.hpp>
-#include "NetworkServer.h"
+#include "Controller.h"
 
-NetworkServer::NetworkServer(boost::asio::io_service& io_service, unsigned short port)
+Controller::Controller(boost::asio::io_service& io_service, unsigned short port)
 : acceptor_(io_service,
         boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), port)), openedFiles(), idGenerator(0) {
 
@@ -18,15 +18,15 @@ NetworkServer::NetworkServer(boost::asio::io_service& io_service, unsigned short
     //Create new connection and start listening asynchronously
     connection_ptr new_conn(new Connection(acceptor_.get_io_service()));
     acceptor_.async_accept(new_conn->socket(),
-        boost::bind(&NetworkServer::handle_accept, this,
+        boost::bind(&Controller::handle_accept, this,
                     boost::asio::placeholders::error, new_conn));
 }
 
-NetworkServer::~NetworkServer() {
+Controller::~Controller() {
     spdlog::debug("NetworkServer::Destroyed");
 }
 
-void NetworkServer::handle_accept(const boost::system::error_code& e, connection_ptr& conn)
+void Controller::handle_accept(const boost::system::error_code& e, connection_ptr& conn)
 {
     if (!e) {
 
@@ -40,12 +40,12 @@ void NetworkServer::handle_accept(const boost::system::error_code& e, connection
         spdlog::debug("NetworkServer::Connected Shared Editor{}", idGenerator);
         buffers[idGenerator].second = boost::make_shared<BasicMessage>(Type::CONNECT, idGenerator);
         conn->async_write(buffers[idGenerator].second,
-                          boost::bind(&NetworkServer::handle_write, this,
+                          boost::bind(&Controller::handle_write, this,
                                       boost::asio::placeholders::error, idGenerator));
 
         //Start a thread to dispatch messages
         if(connections.size() == 2)
-            boost::thread(boost::bind(&NetworkServer::dispatch, this));
+            boost::thread(boost::bind(&Controller::dispatch, this));
 
 
         idGenerator++;
@@ -53,7 +53,7 @@ void NetworkServer::handle_accept(const boost::system::error_code& e, connection
         // Start an accept operation for a new connection.
         connection_ptr new_conn(new Connection(acceptor_.get_io_service()));
         acceptor_.async_accept(new_conn->socket(),
-                               boost::bind(&NetworkServer::handle_accept, this,
+                               boost::bind(&Controller::handle_accept, this,
                                            boost::asio::placeholders::error, new_conn));
     }
     else
@@ -61,7 +61,7 @@ void NetworkServer::handle_accept(const boost::system::error_code& e, connection
 
 }
 
-void NetworkServer::handle_read(const boost::system::error_code& e, int connId) {
+void Controller::handle_read(const boost::system::error_code& e, int connId) {
 
     if (!e) {
         spdlog::debug("NetworkServer::Received Message (type={}) from SharedEditor{}", buffers[connId].first->getMsgType(), connId);
@@ -101,7 +101,7 @@ void NetworkServer::handle_read(const boost::system::error_code& e, int connId) 
 
                     buffers[connId].second = boost::make_shared<RequestMessage>(Type::FILEKO, connId, filename);
                     connections[connId].second->async_write(buffers[connId].second,
-                            boost::bind(&NetworkServer::handle_write, this,
+                            boost::bind(&Controller::handle_write, this,
                                     boost::asio::placeholders::error, connId));
                 } else {
 
@@ -112,7 +112,7 @@ void NetworkServer::handle_read(const boost::system::error_code& e, int connId) 
 
                     buffers[connId].second = boost::make_shared<RequestMessage>(Type::FILEOK, connId, connections[connId].first);
                     connections[connId].second->async_write(buffers[connId].second,
-                            boost::bind(&NetworkServer::handle_write, this,
+                            boost::bind(&Controller::handle_write, this,
                                     boost::asio::placeholders::error, connId));
                 }
 
@@ -131,13 +131,13 @@ void NetworkServer::handle_read(const boost::system::error_code& e, int connId) 
                     connections[connId].first = filename;
                     buffers[connId].second = boost::make_shared<RequestMessage>(Type::FILEOK, connId, filename);
                     connections[connId].second->async_write(buffers[connId].second,
-                            boost::bind(&NetworkServer::handle_write, this,
+                            boost::bind(&Controller::handle_write, this,
                                     boost::asio::placeholders::error, connId));
                 } else {
 
                     buffers[connId].second = boost::make_shared<RequestMessage>(Type::FILEKO, connId, filename);
                     connections[connId].second->async_write(buffers[connId].second,
-                            boost::bind(&NetworkServer::handle_write, this,
+                            boost::bind(&Controller::handle_write, this,
                                     boost::asio::placeholders::error, connId));
                 }
                 return;
@@ -149,7 +149,7 @@ void NetworkServer::handle_read(const boost::system::error_code& e, int connId) 
 
         buffers[connId].first = boost::make_shared<CrdtMessage>();
         connections[connId].second->async_read(buffers[connId].first,
-                boost::bind(&NetworkServer::handle_read, this,
+                boost::bind(&Controller::handle_read, this,
                         boost::asio::placeholders::error, connId));
     } else {
 
@@ -159,7 +159,7 @@ void NetworkServer::handle_read(const boost::system::error_code& e, int connId) 
     }
 }
 
-void NetworkServer::handle_write(const boost::system::error_code& e, int connId)
+void Controller::handle_write(const boost::system::error_code& e, int connId)
 {
 
     if(!e) {
@@ -171,35 +171,35 @@ void NetworkServer::handle_write(const boost::system::error_code& e, int connId)
             case Type::CONNECT : {
                 buffers[connId].second = boost::make_shared<FilesListingMessage>(Type::LISTING, connId, availableFiles);
                 connections[connId].second->async_write(buffers[connId].second,
-                        boost::bind(&NetworkServer::handle_write, this,
+                        boost::bind(&Controller::handle_write, this,
                                 boost::asio::placeholders::error, connId));
                 break;
             }
             case Type::LISTING : {
                 buffers[connId].first = boost::make_shared<RequestMessage>();
                 connections[connId].second->async_read(buffers[connId].first,
-                        boost::bind(&NetworkServer::handle_read, this,
+                        boost::bind(&Controller::handle_read, this,
                                 boost::asio::placeholders::error, connId));
                 break;
             }
             case Type::FILEOK : {
                 buffers[connId].second = boost::make_shared<FileContentMessage>(Type::CONTENT, connId, openedFiles[connections[connId].first]);
                 connections[connId].second->async_write(buffers[connId].second ,
-                        boost::bind(&NetworkServer::handle_write, this,
+                        boost::bind(&Controller::handle_write, this,
                                 boost::asio::placeholders::error, connId));
                 break;
             }
             case Type::FILEKO : {
                 buffers[connId].first = boost::make_shared<RequestMessage>();
                 connections[connId].second->async_read(buffers[connId].first,
-                        boost::bind(&NetworkServer::handle_read, this,
+                        boost::bind(&Controller::handle_read, this,
                                 boost::asio::placeholders::error, connId));
                 break;
             }
             case Type::CONTENT : {
                 buffers[connId].first = boost::make_shared<CrdtMessage>();
                 connections[connId].second->async_read(buffers[connId].first,
-                        boost::bind(&NetworkServer::handle_read, this,
+                        boost::bind(&Controller::handle_read, this,
                                 boost::asio::placeholders::error, connId));
 
                 break;
@@ -216,7 +216,7 @@ void NetworkServer::handle_write(const boost::system::error_code& e, int connId)
 
 }
 
-void NetworkServer::dispatch() {
+void Controller::dispatch() {
 
     while(connections.size() >= 2) {
 
@@ -231,7 +231,7 @@ void NetworkServer::dispatch() {
 
                 if(pair.first != msg->getEditorId() && pair.second.second->socket().is_open())
                     pair.second.second->async_write(msg,
-                                                    boost::bind(&NetworkServer::handle_write, this,
+                                                    boost::bind(&Controller::handle_write, this,
                                                                 boost::asio::placeholders::error, pair.first));
             }
 
@@ -240,19 +240,19 @@ void NetworkServer::dispatch() {
     }
 }
 
-void NetworkServer::writeOnFile(std::string& filename) {
+void Controller::writeOnFile(std::string& filename) {
     std::ofstream file{filename + ".crdt"};
     boost::archive::text_oarchive oa{file};
     oa << openedFiles[filename];
 }
 
-void NetworkServer::restoreFromFile(std::string& filename) {
+void Controller::restoreFromFile(std::string& filename) {
     std::ifstream file{filename + ".crdt"};
     boost::archive::text_iarchive oa{file};
     oa >> openedFiles[filename];
 }
 
-void NetworkServer::loadAllFileNames() {
+void Controller::loadAllFileNames() {
 
     boost::filesystem::recursive_directory_iterator it(boost::filesystem::current_path());
     boost::filesystem::recursive_directory_iterator end;
