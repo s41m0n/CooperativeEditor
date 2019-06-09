@@ -1,9 +1,8 @@
-#include <iostream>
 #include <boost/serialization/export.hpp>
-#include <spdlog/spdlog.h>
 #include <boost/lexical_cast.hpp>
-#include <boost/thread.hpp>
-#include "server/NetworkServer.h"
+#include <spdlog/spdlog.h>
+#include "server/controller/Controller.h"
+#include "server/model/Model.h"
 
 
 BOOST_CLASS_EXPORT(CrdtMessage)
@@ -20,10 +19,9 @@ int main() {
     //Setting LogLevel=debug
     spdlog::set_level(spdlog::level::debug);
 
-    boost::asio::io_service io_service;
+    auto model = new Model();
+    auto controller = new Controller(model, port);
 
-    std::shared_ptr<NetworkServer> server(new NetworkServer(io_service, port));
+    return controller->start();
 
-    //Starting Server
-    io_service.run();
 }
