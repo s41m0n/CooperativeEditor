@@ -14,9 +14,9 @@ BOOST_CLASS_EXPORT(FileContentMessage)
 BOOST_CLASS_EXPORT(FilesListingMessage)
 
 int main(int argc, char** argv) {
-    QApplication app(argc, argv);
-    QLabel* label = new QLabel("HELLO QT");
-    label->show();
+    //QApplication app(argc, argv);
+    //QLabel* label = new QLabel("HELLO QT");
+    //label->show();
 
     const std::string host("127.0.0.1");
     const std::string port("3000");
@@ -38,7 +38,7 @@ int main(int argc, char** argv) {
 
     boost::thread io_thread(boost::bind(&boost::asio::io_service::run, &io_service));
 
-    return app.exec();
+//    return app.exec();
 
     std::for_each(toInsert.begin(), toInsert.end(), [&client](std::pair<int, char> pair) -> void {
         client->localInsert(pair.first, pair.second);
@@ -47,5 +47,5 @@ int main(int argc, char** argv) {
     std::for_each(toDelete.begin(), toDelete.end(), [&client](int index) -> void {
         client->localErase(index);
     });
-
+    while(true);
 }
