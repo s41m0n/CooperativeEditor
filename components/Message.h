@@ -18,16 +18,15 @@
 
 // Forward declaration of class boost::serialization::access
 #pragma once
-namespace boost {
-    namespace serialization {
-        class access;
-    }
+namespace boost::serialization {
+    class access;
 }
 
 ///Enumeration to identify the type of the message
 enum Type {
     CONNECT, LISTING, FILEOK, FILEKO, CONTENT,
-    CREATE, OPEN, INSERT, ERASE
+    CREATE, OPEN, INSERT, ERASE,
+    UNKNOWN
 };
 
 /**
@@ -55,7 +54,7 @@ public:
     ///Constructor used in case of Connect Message
     BasicMessage(Type msgType, unsigned int editorId) : editorId(editorId), msgType(msgType){};
     ///Constructor used to create a message to be filled
-    BasicMessage() = default;
+    BasicMessage() : editorId(0), msgType(UNKNOWN){};
     virtual ~BasicMessage() = default;
     ///Return the editor ID
     const int getEditorId() const {return editorId;};
