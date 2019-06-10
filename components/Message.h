@@ -78,7 +78,7 @@ private:
 
 public:
     ///Classic constructor with all parameters
-    CrdtMessage (Type msgType, Symbol& symbol, int editorId) : BasicMessage(msgType, editorId), symbol(symbol){};
+    CrdtMessage (Type msgType, const Symbol& symbol, int editorId) : BasicMessage(msgType, editorId), symbol(symbol){};
     ///Constructor used to create a message to be filled
     CrdtMessage () = default;
     ///Return the Symbol contained in the Message
