@@ -2,65 +2,68 @@
 // Created by s41m0n on 20/05/19.
 //
 
-#ifndef COOPERATIVEEDITOR_SHAREDEDITOR_H
-#define COOPERATIVEEDITOR_SHAREDEDITOR_H
+#ifndef COOPERATIVEEDITOR_CONTROLLER_H
+#define COOPERATIVEEDITOR_CONTROLLER_H
 
-#include <set>
 #include <string>
 #include <boost/asio.hpp>
-#include <boost/shared_ptr.hpp>
 #include "network/Connection.h"
 #include "components/Message.h"
-#include "crdtAlgorithm/CrdtAlgorithm.h"
+#include "../view/View.h"
+#include "../model/Model.h"
 
+class View;
 /**
  * SharedEditor class, the client of this architecture
  *
  * @autor Simone Magnani - s41m0n
  */
-class SharedEditor {
+class Controller {
 
 private:
+
+    ///The instance of the model
+    Model* model;
+
+    ///The instance of the view
+    View* view;
+
+    ///The IO service
+    boost::asio::io_service io_service;
+
     ///Connection to the server
     Connection conn;
-    ///The specific editor ID
-    unsigned int editorId;
-    ///The vector of symbol, which composes the text
-    std::vector<Symbol> symbols;
-    ///The actual file used
-    std::string currentFile;
-    ///The unique digit generator
-    unsigned int digitGenerator;
+
     ///Since there is no guys, used to wait until all "automated" operations are performed
-    bool ready = false;
-    ///Method to generate a symbol
-    Symbol generateSymbol(int index, char value);
+    std::atomic_bool ready = false;
 
 public:
+
     ///Classic constructor with all parameters
-    SharedEditor(boost::asio::io_service& io_service,
-                               const std::string& host, const std::string& service);
+    Controller(const std::string& host, const std::string& service);
+
     ///Destructor used for debug purpose only by now
-    ~SharedEditor();
+    ~Controller();
 
     ///Method to be called once connected to the server
     void handle_connect(const boost::system::error_code& e,
                                       boost::asio::ip::tcp::resolver::iterator endpoint_iterator);
     ///Method to be called once something has been written on socket
     void handle_write(const boost::system::error_code& e, BasicMessage* msg);
+
     ///Method to be called once something has been read on socket
     void handle_read(const boost::system::error_code& e, BasicMessage* msg);
 
-    ///Crdt local method to insert a symbol
-    void localInsert(int index, char value);
-    ///Crdt local method to erase a symbol
-    void localErase(int index);
-    ///Method to perform the tostring on file
-    void writeOnFile();
-    ///Method to return the sequence of characters
-    std::string to_string();
+    void handle_insert(int index, char value);
+
+    void handle_erase(int index);
+
+    ///Method to start the controller (Which will start the view)
+    void setView(View* newView);
+
+    int start();
 
 };
 
 
-#endif //COOPERATIVEEDITOR_SHAREDEDITOR_H
+#endif //COOPERATIVEEDITOR_CONTROLLER_H

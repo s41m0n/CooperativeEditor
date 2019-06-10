@@ -3,211 +3,186 @@
 //
 
 #include <spdlog/spdlog.h>
+#include <boost/thread.hpp>
 #include <fstream>
-#include "SharedEditor.h"
+#include "Controller.h"
 
-SharedEditor::SharedEditor(boost::asio::io_service& io_service,
-const std::string& host, const std::string& service)
-: conn(io_service), editorId(0), digitGenerator(0), currentFile() {
+Controller::Controller(const std::string& host, const std::string& service)
+: model(new Model()), view(), conn(io_service) {
 
-    // Resolve the host name into an IP address.
-    boost::asio::ip::tcp::resolver resolver(io_service);
-    boost::asio::ip::tcp::resolver::query query(host, service);
-    boost::asio::ip::tcp::resolver::iterator endpoint_iterator = resolver.resolve(query);
-    boost::asio::ip::tcp::endpoint endpoint = *endpoint_iterator;
+  // Resolve the host name into an IP address.
+  boost::asio::ip::tcp::resolver resolver(io_service);
+  boost::asio::ip::tcp::resolver::query query(host, service);
+  boost::asio::ip::tcp::resolver::iterator endpoint_iterator = resolver.resolve(query);
+  boost::asio::ip::tcp::endpoint endpoint = *endpoint_iterator;
 
-    //Connect asynchronously
-    conn.socket().async_connect(endpoint,
-            boost::bind(&SharedEditor::handle_connect, this,
-        boost::asio::placeholders::error, ++endpoint_iterator));
-    spdlog::debug("SharedEditor{}::Created", editorId);
+  //Connect asynchronously
+  conn.socket().async_connect(endpoint,
+                              boost::bind(&Controller::handle_connect, this,
+                                          boost::asio::placeholders::error, ++endpoint_iterator));
+  spdlog::debug("SharedEditor::Created Controller");
 }
 
 
-SharedEditor::~SharedEditor() {
-    spdlog::debug("SharedEditor{0:d}::Destroyed", editorId);
+Controller::~Controller() {
+  spdlog::debug("SharedEditor{0:d}::Destroyed Controller", model->getEditorId());
 }
 
 /// Handle completion of a connect operation.
-void SharedEditor::handle_connect(const boost::system::error_code& e,
+void Controller::handle_connect(const boost::system::error_code& e,
                     boost::asio::ip::tcp::resolver::iterator endpoint_iterator) {
     if (!e) {
 
-        //Successfully connect, receive editor ID
-        auto msg = new BasicMessage();
-        conn.async_read(*msg,
-                boost::bind(&SharedEditor::handle_read, this,
-                        boost::asio::placeholders::error, msg));
+      //Successfully connect, receive editor ID
+      auto msg = new BasicMessage();
+      conn.async_read(*msg,
+                      boost::bind(&Controller::handle_read, this,
+                                  boost::asio::placeholders::error, msg));
 
 
-    }
-    else if (endpoint_iterator != boost::asio::ip::tcp::resolver::iterator()) {
-        // Try to reconnect to next endpoint
-        conn.socket().close();
-        boost::asio::ip::tcp::endpoint endpoint = *endpoint_iterator;
-        conn.socket().async_connect(endpoint,
-                boost::bind(&SharedEditor::handle_connect, this,
-                        boost::asio::placeholders::error, ++endpoint_iterator));
-    }
-    else {
-        //Error while connecting
-        spdlog::error("SharedEditor::Connect error -> {}", e.message());
+    } else if (endpoint_iterator != boost::asio::ip::tcp::resolver::iterator()) {
+      // Try to reconnect to next endpoint
+      conn.socket().close();
+      boost::asio::ip::tcp::endpoint endpoint = *endpoint_iterator;
+      conn.socket().async_connect(endpoint,
+                                  boost::bind(&Controller::handle_connect, this,
+                                              boost::asio::placeholders::error, ++endpoint_iterator));
+    } else {
+      //Error while connecting
+      spdlog::error("SharedEditor::Connect error -> {}", e.message());
     }
 }
 
 /// Handle completion of a read operation.
-void SharedEditor::handle_read(const boost::system::error_code& e, BasicMessage* msg) {
+void Controller::handle_read(const boost::system::error_code& e, BasicMessage* msg) {
 
     if (!e) {
-        spdlog::debug("SharedEditor{}::Received Message (type={})", editorId, msg->getMsgType());
+      spdlog::debug("SharedEditor{}::Received Message (type={})", model->getEditorId(), msg->getMsgType());
 
-        switch (msg->getMsgType()) {
+      switch (msg->getMsgType()) {
 
-            case Type::CONNECT: {
-                this->editorId = msg->getEditorId();
-                auto newMsg = new FilesListingMessage();
-                conn.async_read(*newMsg,
-                        boost::bind(&SharedEditor::handle_read, this,
-                                boost::asio::placeholders::error, newMsg));
-                break;
-            }
-            case Type::LISTING : {
-                std::string availableFiles = dynamic_cast<FilesListingMessage*>(msg)->getFiles();
-
-                if(availableFiles.empty()) {
-
-                    currentFile = std::string("prova.txt");
-                    auto newMsg = new RequestMessage(Type::CREATE, editorId, currentFile);
-                    conn.async_write(*newMsg,
-                            boost::bind(&SharedEditor::handle_write, this,
-                                    boost::asio::placeholders::error, newMsg));
-                } else {
-
-                    currentFile = availableFiles.substr(0, availableFiles.find_last_of(';'));
-
-                    auto newMsg = new RequestMessage(Type::OPEN, editorId, currentFile);
-                    conn.async_write(*newMsg,
-                            boost::bind(&SharedEditor::handle_write, this,
-                                    boost::asio::placeholders::error, newMsg));
-                }
-                break;
-            }
-            case Type::FILEOK: {
-                auto newMsg = new FileContentMessage();
-                conn.async_read(*newMsg,
-                        boost::bind(&SharedEditor::handle_read, this,
-                                        boost::asio::placeholders::error, newMsg));
-                break;
-            }
-            case Type::CONTENT: {
-                symbols = dynamic_cast<FileContentMessage*>(msg)->getSymbols();
-                spdlog::debug("Received content -> {}", to_string());
-                ready = true;
-                break;
-            }
-            case Type::FILEKO : {
-                throw std::runtime_error("SharedEditor::Unable to create file");
-            }
-            case Type::INSERT : {
-                CrdtAlgorithm::remoteInsert(dynamic_cast<CrdtMessage*>(msg)->getSymbol(), symbols);
-                writeOnFile();
-                auto newMsg = new CrdtMessage();
-                conn.async_read(*newMsg,
-                              boost::bind(&SharedEditor::handle_read, this,
-                                          boost::asio::placeholders::error, newMsg));
-                break;
-            }
-            case Type::ERASE : {
-                CrdtAlgorithm::remoteErase(dynamic_cast<CrdtMessage*>(msg)->getSymbol(), symbols);
-                writeOnFile();
-                auto newMsg = new CrdtMessage();
-                conn.async_read(*newMsg,
-                              boost::bind(&SharedEditor::handle_read, this,
-                                          boost::asio::placeholders::error, newMsg));
-                break;
-            }
-            default:
-                throw std::runtime_error("SharedEditor::Bad message received from server");
+        case Type::CONNECT: {
+          model->setEditorId(msg->getEditorId());
+          auto newMsg = new FilesListingMessage();
+          conn.async_read(*newMsg,
+                          boost::bind(&Controller::handle_read, this,
+                                      boost::asio::placeholders::error, newMsg));
+          break;
         }
+        case Type::LISTING : {
+          std::string availableFiles = dynamic_cast<FilesListingMessage *>(msg)->getFiles();
+          std::string newFile;
+          Type type;
+
+          if (availableFiles.empty()) {
+            newFile = "prova.txt";
+            type = Type::CREATE;
+          } else {
+            newFile = availableFiles.substr(0, availableFiles.find_last_of(';'));
+            type = Type::OPEN;
+          }
+
+          model->setCurrentFile(newFile);
+          auto newMsg = new RequestMessage(type, model->getEditorId(), newFile);
+          conn.async_write(*newMsg,
+                           boost::bind(&Controller::handle_write, this,
+                                       boost::asio::placeholders::error, newMsg));
+          break;
+        }
+        case Type::FILEOK: {
+          auto newMsg = new FileContentMessage();
+          conn.async_read(*newMsg,
+                          boost::bind(&Controller::handle_read, this,
+                                      boost::asio::placeholders::error, newMsg));
+          break;
+        }
+        case Type::CONTENT: {
+          model->setCurrentFileContent(dynamic_cast<FileContentMessage *>(msg)->getSymbols());
+          spdlog::debug("Received content -> {}", model->to_string());
+          ready = true;
+          break;
+        }
+        case Type::FILEKO : {
+          throw std::runtime_error("SharedEditor::Unable to create file");
+        }
+        case Type::INSERT : {
+          model->remoteInsert(dynamic_cast<CrdtMessage *>(msg)->getSymbol());
+          auto newMsg = new CrdtMessage();
+          conn.async_read(*newMsg,
+                          boost::bind(&Controller::handle_read, this,
+                                      boost::asio::placeholders::error, newMsg));
+          break;
+        }
+        case Type::ERASE : {
+          model->remoteErase(dynamic_cast<CrdtMessage *>(msg)->getSymbol());
+          auto newMsg = new CrdtMessage();
+          conn.async_read(*newMsg,
+                          boost::bind(&Controller::handle_read, this,
+                                      boost::asio::placeholders::error, newMsg));
+          break;
+        }
+        default:
+          throw std::runtime_error("SharedEditor::Bad message received from server");
+      }
 
     }
-    else
-        //Error while reading (may be also socket shutdown)
-        spdlog::error("SharedEditor::Read error -> {}", e.message());
+    else {
+      //Error while reading (may be also socket shutdown)
+      spdlog::error("SharedEditor::Read error -> {}", e.message());
+    }
     delete msg;
 }
 
-void SharedEditor::handle_write(const boost::system::error_code& e, BasicMessage* msg)
+void Controller::handle_write(const boost::system::error_code& e, BasicMessage* msg)
 {
     if(!e) {
 
-        spdlog::debug("SharedEditor{}::Sent Message (type={})", editorId, msg->getMsgType());
+      spdlog::debug("SharedEditor{}::Sent Message (type={})", model->getEditorId(), msg->getMsgType());
 
-        if(msg->getMsgType() == Type::CREATE || msg->getMsgType() == Type::OPEN) {
-            auto newMsg = new RequestMessage();
-            conn.async_read(*newMsg,
-                    boost::bind(&SharedEditor::handle_read, this,
-                            boost::asio::placeholders::error, newMsg));
-        }
-
-    } else
-        // Error while writing (same).
-        spdlog::error("SharedEditor::Write error -> {}", e.message());
+      if (msg->getMsgType() == Type::CREATE || msg->getMsgType() == Type::OPEN) {
+        auto newMsg = new RequestMessage();
+        conn.async_read(*newMsg,
+                        boost::bind(&Controller::handle_read, this,
+                                    boost::asio::placeholders::error, newMsg));
+      }
+    } else {
+      // Error while writing (same).
+      spdlog::error("SharedEditor::Write error -> {}", e.message());
+    }
     delete msg;
 }
 
-void SharedEditor::writeOnFile() {
-    std::ofstream outfile;
-    std::string filename = "SE" + std::to_string(editorId) + currentFile ;
-    outfile.open(filename);
-    outfile << to_string() << std::endl;
-}
+void Controller::handle_insert(int index, char value) {
 
-std::string SharedEditor::to_string() {
-    std::string str;
-    std::for_each(symbols.begin(), symbols.end(), [&str](Symbol s){
-        str += s.getChar();
-    });
-    return str;
-}
+  while(!ready);
 
-void SharedEditor::localInsert(int index, char value) {
+  const Symbol* symbol = model->localInsert(index, value);
 
-    while(!ready);
-
-    symbols.insert(symbols.begin() + index, generateSymbol(index, value));
-
-    writeOnFile();
-
-    auto newMsg = new CrdtMessage(Type::INSERT, symbols[index], editorId);
+  if(symbol != nullptr) {
+    auto newMsg = new CrdtMessage(Type::INSERT, *symbol, model->getEditorId());
     conn.async_write(*newMsg,
-            boost::bind(&SharedEditor::handle_write, this,
-                    boost::asio::placeholders::error, newMsg));
+                     boost::bind(&Controller::handle_write, this,
+                                 boost::asio::placeholders::error, newMsg));
+  }
 }
 
-void SharedEditor::localErase(int index) {
-    auto s = (index < symbols.size() && index >= 0) ? &symbols[index] : nullptr;
+void Controller::handle_erase(int index) {
+  while(!ready);
 
-    if (s != nullptr) {
+  const Symbol *symbol = model->localErase(index);
 
-        while(!ready);
-
-        symbols.erase(symbols.begin() + index);
-
-        writeOnFile();
-
-        auto newMsg = new CrdtMessage(Type::ERASE, *s, editorId);
-        conn.async_write(*newMsg,
-                boost::bind(&SharedEditor::handle_write, this,
-                        boost::asio::placeholders::error, newMsg));
-    }
+  if(symbol != nullptr) {
+    auto newMsg = new CrdtMessage(Type::ERASE, *symbol, model->getEditorId());
+    conn.async_write(*newMsg,
+                     boost::bind(&Controller::handle_write, this,
+                                 boost::asio::placeholders::error, newMsg));
+  }
 }
 
-Symbol SharedEditor::generateSymbol(int index, char value) {
-    auto symbolBefore = (index-1 < symbols.size() && index - 1 >= 0 && !symbols[index - 1].getPos().empty()) ? &symbols[index - 1] : nullptr;
-    auto symbolAfter = (index < symbols.size() && index >= 0 && !symbols[index].getPos().empty()) ? &symbols[index] : nullptr;
-    std::vector<int> newPos;
-    CrdtAlgorithm::generatePosBetween(symbolBefore, symbolAfter, &newPos);
-    Symbol s(value, editorId, digitGenerator++, newPos);
-    return s;
+void Controller::setView(View* newView){
+  view = newView;
+}
+
+int Controller::start() {
+  return io_service.run();
 }
