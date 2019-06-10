@@ -2,10 +2,9 @@
 #include <boost/serialization/export.hpp>
 #include <spdlog/spdlog.h>
 #include <boost/lexical_cast.hpp>
-#include <boost/thread.hpp>
-#include "client/SharedEditor.h"
-#include <QApplication>
-#include <QLabel>
+#include "client/controller/Controller.h"
+#include "client/view/View.h"
+#include "client/model/Model.h"
 
 
 BOOST_CLASS_EXPORT(CrdtMessage)
@@ -14,38 +13,21 @@ BOOST_CLASS_EXPORT(FileContentMessage)
 BOOST_CLASS_EXPORT(FilesListingMessage)
 
 int main(int argc, char** argv) {
-    //QApplication app(argc, argv);
-    //QLabel* label = new QLabel("HELLO QT");
-    //label->show();
 
-    const std::string host("127.0.0.1");
-    const std::string port("3000");
+  const std::string host("127.0.0.1");
+  const std::string port("3000");
 
-    std::vector<std::pair<int, char>> toInsert({{0,'c'}, {1, 'i'}, {2, 'a'}, {3, 'o'}, {4, ' '},
-                                                       {5,'s'}, {6, 'i'}, {7, 'm'}, {8, 'o'},
-                                                       {4, ' '}, {5, 's'}, {6, 'c'}, {7, 'u'}, {8, 's'}, {9, 'a'}});
-    std::vector<int> toDelete;
+  //Setting LogLevel=debug
+  spdlog::set_level(spdlog::level::debug);
 
-    //Setting LogLevel=debug
-    spdlog::set_level(spdlog::level::debug);
+  auto controller = new Controller(host, port);
+  auto view = new View(controller, argc, argv);
 
+  controller->setView(view);
+  std::thread t([controller]()-> int{
+      return controller->start();
+  });
+  t.detach();
 
-    boost::asio::io_service io_service;
-
-    //std::shared_ptr<boost::asio::io_service::work> work(new boost::asio::io_service::work(io_service));
-
-    std::shared_ptr<SharedEditor> client(new SharedEditor(io_service, host, port));
-
-    boost::thread io_thread(boost::bind(&boost::asio::io_service::run, &io_service));
-
-//    return app.exec();
-
-    std::for_each(toInsert.begin(), toInsert.end(), [&client](std::pair<int, char> pair) -> void {
-        client->localInsert(pair.first, pair.second);
-    });
-
-    std::for_each(toDelete.begin(), toDelete.end(), [&client](int index) -> void {
-        client->localErase(index);
-    });
-    while(true);
+  return view->init();
 }
