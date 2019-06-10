@@ -28,7 +28,7 @@ find_package(Qt5Widgets REQUIRED)
 find_package(Qt5Core REQUIRED)
 
 #Set the client executable
-add_executable(CooperativeEditor mainclient.cpp  client/SharedEditor.cpp
+add_executable(CooperativeEditor mainclient.cpp client/controller/Controller.cpp client/model/Model.cpp client/view/View.cpp
         components/Symbol.cpp components/Identifier.cpp components/Message.h crdtAlgorithm/CrdtAlgorithm.cpp)
 
 #Set the server executable

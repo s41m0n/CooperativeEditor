@@ -9,9 +9,9 @@
 #include <string>
 #include <boost/asio.hpp>
 #include <boost/shared_ptr.hpp>
-#include "../network/Connection.h"
-#include "../components/Message.h"
-#include "../crdtAlgorithm/CrdtAlgorithm.h"
+#include "network/Connection.h"
+#include "components/Message.h"
+#include "crdtAlgorithm/CrdtAlgorithm.h"
 
 /**
  * SharedEditor class, the client of this architecture
