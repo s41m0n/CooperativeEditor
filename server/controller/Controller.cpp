@@ -10,11 +10,11 @@
 
 Controller::Controller(Model *model, unsigned short port) : model(model),
     acceptor_(io_service, boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), port)) {
-  spdlog::debug("NetworkServer::Created NetworkServer");
+  spdlog::debug("NetworkServer::Created Controller");
 }
 
 Controller::~Controller() {
-  spdlog::debug("NetworkServer::Destroyed");
+  spdlog::debug("NetworkServer::Destroyed Controller");
 }
 
 void Controller::handle_accept(const boost::system::error_code &e, connection_ptr &conn) {

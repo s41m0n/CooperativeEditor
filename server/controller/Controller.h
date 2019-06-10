@@ -10,7 +10,6 @@
 #include <map>
 #include <string>
 #include <boost/asio.hpp>
-#include <boost/shared_ptr.hpp>
 #include "components/Message.h"
 #include "network/Connection.h"
 #include "../model/Model.h"
