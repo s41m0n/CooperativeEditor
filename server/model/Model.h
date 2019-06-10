@@ -17,7 +17,7 @@ private:
     std::map<std::string, std::vector<Symbol>> openedFiles;
 
     ///The mutexes for the opened files
-    std::map<std::string, std::mutex> openedFilesMutexes;
+    std::map<std::string, std::unique_ptr<std::mutex>> openedFilesMutexes;
 
     ///The mutex for the files mutex map
     std::mutex openedFilesMapMutex;

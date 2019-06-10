@@ -55,7 +55,7 @@ void Model::userInsert(int connId, Symbol symbol) {
 
   auto filename = usersFile[connId];
 
-  std::lock_guard<std::mutex> guard(openedFilesMutexes[filename]);
+  std::lock_guard<std::mutex> guard(*openedFilesMutexes[filename]);
 
   CrdtAlgorithm::remoteInsert(std::move(symbol), openedFiles[filename]);
 
@@ -66,7 +66,7 @@ void Model::userErase(int connId, Symbol symbol) {
 
   std::string filename = usersFile[connId];
 
-  std::lock_guard<std::mutex> guard(openedFilesMutexes[filename]);
+  std::lock_guard<std::mutex> guard(*openedFilesMutexes[filename]);
 
   CrdtAlgorithm::remoteErase(std::move(symbol), openedFiles[filename]);
 
@@ -83,7 +83,7 @@ bool Model::createFileByUser(int connId, std::string& filename) {
     availableFiles.append(filename + ";");
     usersFile[connId] = filename;
     openedFiles.emplace(filename, std::vector<Symbol>());
-    openedFilesMutexes.emplace(filename, std::mutex());
+    openedFilesMutexes.emplace(filename, std::make_unique<std::mutex>());
     return true;
   }
 }
@@ -97,7 +97,7 @@ bool Model::openFileByUser(int connId, std::string& filename) {
     usersFile[connId] = filename;
     if(openedFiles.find(filename) == openedFiles.end()) {
       openedFiles.emplace(filename, std::vector<Symbol>());
-      openedFilesMutexes.emplace(filename, std::mutex());
+      openedFilesMutexes.emplace(filename, std::make_unique<std::mutex>());
       loadFileSymbols(filename);
     }
     return true;
