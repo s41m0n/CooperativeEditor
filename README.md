@@ -1,5 +1,5 @@
 # CooperativeEditor
-* *System and Device Programming project* * - Cooperative multiuser editor.
+*System and Device Programming project* - Cooperative multiuser editor.
 
 The aim of this project is to implement, using client-server architecture, a cooperative editor thanks to many user can work on the same file.
 
@@ -42,8 +42,9 @@ Finally, if the command successfully creates the file `conanbuildinfo.cmake` you
 
 ## Authors
 
-**Simone Magnani** a.k.a. **s41m0n** [Linkedin](1)
-**Riccardo Marchi** a.k.a. **richiMarchi** [Linkedin](https://www.linkedin.com/in/riccardo-marchi4/)
+**Simone Magnani**, [@s41m0n](https://github.com/s41m0n) [Linkedin](https://www.linkedin.com/in/simone-magnani-564830151/)
+
+**Riccardo Marchi**, [@richiMarchi](https://github.com/richiMarchi) [Linkedin](https://www.linkedin.com/in/riccardo-marchi4/)
 
 ## License
 
