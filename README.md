@@ -1,5 +1,5 @@
 # CooperativeEditor
-System and Device programming project - Cooperative multiuser editor.
+* *System and Device Programming project* * - Cooperative multiuser editor.
 
 The aim of this project is to implement, using client-server architecture, a cooperative editor thanks to many user can work on the same file.
 
@@ -7,11 +7,11 @@ The aim of this project is to implement, using client-server architecture, a coo
 
 If you do not want to manually download all dependencies, you can download `conan` which is a very powerful Dependency Manager Python module.
 
-Once installed, create a default conan profile:
+Once installed, create a default conan profile under `~/.conan/profiles/default`:
 
-`╰─ conan config`
+`╰─ conan profile new default --detect`
 
-Remind to change the value `compiler.libcxx=libstdc` to:
+Remind to change the value `compiler.libcxx` and `compiler.version` according to your current version. The final configuration should be similar to this one:
 
 ```bash
 ~/.conan/profile/default
@@ -22,7 +22,7 @@ Remind to change the value `compiler.libcxx=libstdc` to:
  arch=x86_64
  arch_build=x86_64
  compiler=gcc
- compiler.version=8
+ compiler.version=9.1
  compiler.libcxx=libstdc++11
  build_type=Release
  [options]
@@ -38,9 +38,12 @@ Before compiling the project with CMake, install all the dependencied by typing 
 
 `╰─ conan install . -s build_type=Debug --install-folder=cmake-build-debug --build missing`
 
-## Author
+Finally, if the command successfully creates the file `conanbuildinfo.cmake` you can proceed compiling the project using CMake.
 
-**Simone Magnani** * *System and Device Programming project* * [Linkedin](https://www.linkedin.com/in/simone-magnani-564830151/)
+## Authors
+
+**Simone Magnani** a.k.a. **s41m0n** [Linkedin](1)
+**Riccardo Marchi** a.k.a. **richiMarchi** [Linkedin](https://www.linkedin.com/in/riccardo-marchi4/)
 
 ## License
 
