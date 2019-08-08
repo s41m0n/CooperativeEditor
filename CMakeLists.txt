@@ -21,6 +21,8 @@ else()
     SET(CMAKE_CXX_STANDARD_REQUIRED ON)
 endif()
 
+include_directories(src)
+
 include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
 conan_basic_setup()
 
@@ -28,12 +30,12 @@ find_package(Qt5Widgets REQUIRED)
 find_package(Qt5Core REQUIRED)
 
 #Set the client executable
-add_executable(CooperativeEditor mainclient.cpp client/controller/Controller.cpp client/model/Model.cpp client/view/View.cpp
-        components/Symbol.cpp components/Identifier.cpp components/Message.h crdtAlgorithm/CrdtAlgorithm.cpp)
+add_executable(CooperativeEditor src/mainclient.cpp src/client/controller/Controller.cpp src/client/model/Model.cpp src/client/view/View.cpp
+        src/components/Symbol.cpp src/components/Identifier.cpp src/components/Message.h src/crdtAlgorithm/CrdtAlgorithm.cpp)
 
 #Set the server executable
-add_executable(CooperativeServer mainserver.cpp server/controller/Controller.cpp server/model/Model.cpp
-        components/Symbol.cpp components/Identifier.cpp components/Message.h crdtAlgorithm/CrdtAlgorithm.cpp)
+add_executable(CooperativeServer src/mainserver.cpp src/server/controller/Controller.cpp src/server/model/Model.cpp
+        src/components/Symbol.cpp src/components/Identifier.cpp src/components/Message.h src/crdtAlgorithm/CrdtAlgorithm.cpp)
 
 #Add libraries to compile the client
 target_link_libraries(CooperativeEditor ${CONAN_LIBS})
