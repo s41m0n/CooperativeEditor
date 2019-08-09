@@ -7,7 +7,7 @@
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
 #include "Model.h"
-#include "crdtAlgorithm/CrdtAlgorithm.h"
+#include "src/utility/CrdtAlgorithm.h"
 
 Model::Model() : idGenerator(0){
 

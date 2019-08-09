@@ -5,7 +5,7 @@
 #ifndef COOPERATIVEEDITOR_CRDTALGORITHM_H
 #define COOPERATIVEEDITOR_CRDTALGORITHM_H
 
-#include "../components/Symbol.h"
+#include "src/components/Symbol.h"
 
 namespace CrdtAlgorithm {
     ///Static variable to space between the position generation

@@ -11,7 +11,7 @@
 #include <string>
 #include <boost/asio.hpp>
 #include "components/Message.h"
-#include "network/Connection.h"
+#include "src/utility/Connection.h"
 #include "../model/Model.h"
 
 /**

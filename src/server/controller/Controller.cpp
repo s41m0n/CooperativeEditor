@@ -5,7 +5,7 @@
 #include <spdlog/spdlog.h>
 #include <fstream>
 #include <boost/thread.hpp>
-#include <crdtAlgorithm/CrdtAlgorithm.h>
+#include <src/utility/CrdtAlgorithm.h>
 #include "Controller.h"
 
 Controller::Controller(Model *model, unsigned short port) : model(model),

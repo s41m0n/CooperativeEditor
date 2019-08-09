@@ -7,7 +7,7 @@
 
 #include <string>
 #include <boost/asio.hpp>
-#include "network/Connection.h"
+#include "src/utility/Connection.h"
 #include "components/Message.h"
 #include "../view/View.h"
 #include "../model/Model.h"

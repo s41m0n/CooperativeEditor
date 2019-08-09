@@ -7,7 +7,7 @@
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
 #include "Model.h"
-#include "../../crdtAlgorithm/CrdtAlgorithm.h"
+#include "src/utility/CrdtAlgorithm.h"
 
 Model::Model() : editorId(-1), digitGenerator(0), currentFile() {
   spdlog::debug("SharedEditor::Created Model");
