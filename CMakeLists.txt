@@ -31,11 +31,11 @@ find_package(Qt5Core REQUIRED)
 
 #Set the client executable
 add_executable(CooperativeEditor src/mainclient.cpp src/client/controller/Controller.cpp src/client/model/Model.cpp src/client/view/View.cpp
-        src/components/Symbol.cpp src/components/Identifier.cpp src/components/Message.h src/utility/CrdtAlgorithm.cpp)
+        src/components/Symbol.cpp src/components/Identifier.cpp src/components/Message.cpp src/utility/CrdtAlgorithm.cpp)
 
 #Set the server executable
 add_executable(CooperativeServer src/mainserver.cpp src/server/controller/Controller.cpp src/server/model/Model.cpp
-        src/components/Symbol.cpp src/components/Identifier.cpp src/components/Message.h src/utility/CrdtAlgorithm.cpp)
+        src/components/Symbol.cpp src/components/Identifier.cpp src/components/Message.cpp src/utility/CrdtAlgorithm.cpp)
 
 #Add libraries to compile the client
 target_link_libraries(CooperativeEditor ${CONAN_LIBS})

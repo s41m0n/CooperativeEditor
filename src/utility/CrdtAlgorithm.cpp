@@ -21,7 +21,7 @@ int CrdtAlgorithm::findPositionErase(Symbol s, std::vector<Symbol> &symbols) {
 
   // binary search
   while (left + 1 < right) {
-    mid = std::floor(left + static_cast<char>(right - left) / 2.0);
+    mid = std::floor(left + static_cast<double>(right - left) / 2.0);
 
     int comp = s.compareTo(symbols[mid]);
     if (comp == 0)
