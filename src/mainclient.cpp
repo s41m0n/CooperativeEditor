@@ -1,33 +1,29 @@
 #include <iostream>
-#include <boost/serialization/export.hpp>
 #include <spdlog/spdlog.h>
-#include <boost/lexical_cast.hpp>
+#include <QApplication>
+
 #include "client/controller/Controller.h"
 #include "client/view/View.h"
 #include "client/model/Model.h"
 
-
-BOOST_CLASS_EXPORT(CrdtMessage)
-BOOST_CLASS_EXPORT(RequestMessage)
-BOOST_CLASS_EXPORT(FileContentMessage)
-BOOST_CLASS_EXPORT(FilesListingMessage)
-
 int main(int argc, char** argv) {
 
-  const std::string host("127.0.0.1");
-  const std::string port("3000");
+  if(argc != 3) {
+    std::cout << "Usage: ./client <serverIp> <serverPort>" << std::endl;
+    exit(-1);
+  }
 
   //Setting LogLevel=debug
   spdlog::set_level(spdlog::level::debug);
 
-  auto controller = new Controller(host, port);
-  auto view = new View(controller, argc, argv);
+  QApplication app(argc, argv);
 
-  controller->setView(view);
-  std::thread t([controller]()-> int{
-      return controller->start();
-  });
-  t.detach();
+  Model model;
+  Controller controller(&model, argv[1], std::stoi(argv[2]));
+  View view(&controller);
 
-  return view->init();
+  controller.setView(&view);
+  view.init();
+
+  return app.exec();
 }
