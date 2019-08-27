@@ -6,62 +6,55 @@
 #define COOPERATIVEEDITOR_CONTROLLER_H
 
 #include <string>
-#include <boost/asio.hpp>
-#include "src/utility/Connection.h"
-#include "components/Message.h"
-#include "../view/View.h"
-#include "../model/Model.h"
+#include <QTcpSocket>
+#include <QMainWindow>
 
+#include "components/Message.h"
+#include "client/view/View.h"
+#include "client/model/Model.h"
+
+//Forward class declaration
 class View;
+
 /**
- * SharedEditor class, the client of this architecture
+ * Controller class for the client
  *
  * @autor Simone Magnani - s41m0n
  */
-class Controller {
+class Controller : QMainWindow {
+
+Q_OBJECT
 
 private:
-
     ///The instance of the model
-    Model* model;
+    Model *model;
 
     ///The instance of the view
-    View* view;
+    View *view;
 
-    ///The IO service
-    boost::asio::io_service io_service;
-
-    ///Connection to the server
-    Connection conn;
-
-    ///Since there is no guys, used to wait until all "automated" operations are performed
-    std::atomic_bool ready = false;
+    ///The QTcpSOcket
+    QTcpSocket _socket;
 
 public:
-
-    ///Classic constructor with all parameters
-    Controller(const std::string& host, const std::string& service);
+    ///Classic constructor
+    Controller(Model *model, const std::string &host, int port);
 
     ///Destructor used for debug purpose only by now
     ~Controller();
 
-    ///Method to be called once connected to the server
-    void handle_connect(const boost::system::error_code& e,
-                                      boost::asio::ip::tcp::resolver::iterator endpoint_iterator);
-    ///Method to be called once something has been written on socket
-    void handle_write(const boost::system::error_code& e, BasicMessage* msg);
-
-    ///Method to be called once something has been read on socket
-    void handle_read(const boost::system::error_code& e, BasicMessage* msg);
-
+    ///Method to handle a CrdtMessage - symbol inserted
     void handle_insert(int index, char value);
 
+    ///Method to handle a CrdtMessage - symbol erased
     void handle_erase(int index);
 
     ///Method to start the controller (Which will start the view)
-    void setView(View* newView);
+    void setView(View *newView);
 
-    int start();
+public slots:
+
+    ///Method to be called once something has been read on socket
+    void onReadyRead();
 
 };
 
