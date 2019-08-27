@@ -7,153 +7,189 @@
 
 
 #include <spdlog/spdlog.h>
-#include <set>
 #include <string>
-#include <boost/serialization/set.hpp>
-#include <boost/serialization/string.hpp>
-#include <boost/serialization/shared_ptr.hpp>
-#include <boost/serialization/level_enum.hpp>
-#include <boost/archive/text_oarchive.hpp>
+#include <utility>
+
 #include "Symbol.h"
 
-// Forward declaration of class boost::serialization::access
-#pragma once
-namespace boost::serialization {
-    class access;
-}
-
 ///Enumeration to identify the type of the message
-enum Type {
-    CONNECT, LISTING, FILEOK, FILEKO, CONTENT,
-    CREATE, OPEN, INSERT, ERASE,
-    UNKNOWN
+enum class Type {
+    CONNECT = 0, LISTING = 1, CREATE = 2, OPEN = 3, FILEOK = 4, FILEKO = 5,
+    CONTENT = 6, INSERT = 7, ERASE = 8, UNKNOWN = -1,
 };
 
 /**
- * Message class, represents the messages between client-server
+ * BasicMessage class, represents a basic message between client-server
  *
  * @author Simone Magnani - s41m0n
  */
 class BasicMessage {
 
-private:
-    ///The editor specific ID
-    unsigned int editorId;
+protected:
     ///The type of the message
     Type msgType;
-    ///Class to access Boost to serialize this class
-    friend class boost::serialization::access;
-    ///Method called by Boost to serialize
-    template<typename Archive>
-    void serialize(Archive& ar, const unsigned version) {
-        ar & editorId;
-        ar & msgType;
-    }
+
+    ///The editor specific ID
+    unsigned int editorId;
 
 public:
     ///Constructor used in case of Connect Message
-    BasicMessage(Type msgType, unsigned int editorId) : editorId(editorId), msgType(msgType){};
+    BasicMessage(Type msgType, unsigned int editorId);
+
     ///Constructor used to create a message to be filled
-    BasicMessage() : editorId(0), msgType(UNKNOWN){};
-    virtual ~BasicMessage() = default;
+    BasicMessage();
+
     ///Return the editor ID
-    const int getEditorId() const {return editorId;};
+    unsigned int getEditorId();
+
     ///Return the type of the Message
-    const Type getMsgType() {return msgType;};
+    Type getMsgType();
 
-};
+    ///Method to print in human-readable format the message
+    virtual std::string toString(int level);
+    virtual std::string toString();
 
-class CrdtMessage : public BasicMessage{
-private:
-    ///The symbol contained in the message (can be empty)
-    Symbol symbol;
-    ///Class to access Boost to serialize this class
-    friend class boost::serialization::access;
-    ///Method called by Boost to serialize
-    template<typename Archive>
-    void serialize(Archive& ar, const unsigned version) {
-        ar & boost::serialization::base_object<BasicMessage>(*this);
-        ar & symbol;
+    ///Operator overload '<<' for BasicMessage when using QDataStream for serialization
+    friend QDataStream &operator<<(QDataStream &stream, const BasicMessage &val) {
+      stream << static_cast<quint32>(val.msgType) << val.editorId;
+      return stream;
     }
 
-public:
-    ///Classic constructor with all parameters
-    CrdtMessage (Type msgType, const Symbol& symbol, int editorId) : BasicMessage(msgType, editorId), symbol(symbol){};
-    ///Constructor used to create a message to be filled
-    CrdtMessage () = default;
-    ///Return the Symbol contained in the Message
-    const Symbol getSymbol() {return symbol;};
-
+    ///Operator overload '>>' for BasicMessage when using QDataStream for serialization
+    friend QDataStream &operator>>(QDataStream &stream, BasicMessage &val) {
+      stream >> reinterpret_cast<quint32 &>(val.msgType) >> val.editorId;
+      return stream;
+    };
 };
 
+/**
+ * RequestMessage class, represents some initial setup messages between client-server
+ *
+ * @author Simone Magnani - s41m0n
+ */
 class RequestMessage : public BasicMessage {
 
 private:
     ///The name of the requested file
     std::string filename;
-    ///Class to access Boost to serialize this class
-    friend class boost::serialization::access;
-    ///Method called by Boost to serialize
-    template<typename Archive>
-    void serialize(Archive& ar, const unsigned version) {
-        ar & boost::serialization::base_object<BasicMessage>(*this);
-        ar & filename;
-    }
 
 public:
-    ///Constructor used to create a message to be filled
-    RequestMessage() = default;
     ///Classic constructor with all parameters given
-    RequestMessage(Type msgType, int editorId, std::string& filename) : BasicMessage(msgType, editorId), filename(filename){};
+    RequestMessage(Type msgType, unsigned int editorId, std::string &filename);
+
+    ///Method build a RequestMessage from a BasicMessage
+    explicit RequestMessage(BasicMessage &&msg);
+
     ///Return the requested filename
-    const std::string getFilename() {return filename;};
-};
+    std::string getFilename();
 
-class FilesListingMessage : public BasicMessage {
+    ///Method to print in human-readable format the message
+    std::string toString(int level) override;
+    std::string toString() override;
 
-private:
-    ///The set of available files in the server
-    std::string files;
-    ///Class to access Boost to serialize this class
-    friend class boost::serialization::access;
-    ///Method called by Boost to serialize
-    template<typename Archive>
-    void serialize(Archive& ar, const unsigned version) {
-        ar & boost::serialization::base_object<BasicMessage>(*this);
-        ar & files;
+    ///Operator overload '<<' for RequestMessage when using QDataStream for serialization
+    friend QDataStream &operator<<(QDataStream &stream, const RequestMessage &val) {
+      stream << static_cast<const BasicMessage &>(val) << val.filename.c_str();
+      return stream;
     }
 
-public:
-    ///Constructor used to create a message to be filled
-    FilesListingMessage() = default;
-    ///Classic constructor with all parameters
-    FilesListingMessage(Type msgType, int editorId, std::string& files) : BasicMessage(msgType, editorId), files(files){};
-    ///Return the set of available files
-    const std::string getFiles() {return files;};
-
+    ///Operator overload '>>' for RequestMessage when using QDataStream for serialization
+    friend QDataStream &operator>>(QDataStream &stream, RequestMessage &val) {
+      char *tmp;
+      stream >> tmp;
+      if (tmp)
+        val.filename = std::string(tmp);
+      delete[] tmp;
+      return stream;
+    };
 };
 
-class FileContentMessage : public BasicMessage{
+/**
+ * FileContentMessage class, represents a File content transfer message between client-server
+ *
+ * @author Simone Magnani - s41m0n
+ */
+class FileContentMessage : public BasicMessage {
 
 private:
     ///Vector of symbols for the previous established files
     std::vector<Symbol> symbols;
-    ///Class to access Boost to serialize this class
-    friend class boost::serialization::access;
-    ///Method called by Boost to serialize
-    template<typename Archive>
-    void serialize(Archive& ar, const unsigned version) {
-        ar & boost::serialization::base_object<BasicMessage>(*this);
-        ar & symbols;
-    }
 
 public:
-    ///Constructor used to create a message to be filled
-    FileContentMessage() = default;
     ///Classic constructor with all parameters
-    FileContentMessage(Type msgType, int editorId, std::vector<Symbol>& symbols) : BasicMessage(msgType, editorId), symbols(symbols){};
+    FileContentMessage(Type msgType, unsigned int editorId, std::vector<Symbol> &symbols);
+
+    ///Method build a FileContentMessage from a BasicMessage
+    explicit FileContentMessage(BasicMessage &&msg);
+
     ///Return all the symbols
-    const std::vector<Symbol> getSymbols() {return symbols;};
+    std::vector<Symbol> getSymbols();
+
+    ///Method to print in human-readable format the message
+    std::string toString(int level) override;
+    std::string toString() override;
+
+    ///Operator overload '<<' for FileContentMessage when using QDataStream for serialization
+    friend QDataStream &operator<<(QDataStream &stream, const FileContentMessage &val) {
+      stream << static_cast<const BasicMessage &>(val) << static_cast<quint32>(val.symbols.size());
+      for (auto &tmp: val.symbols)
+        stream << tmp;
+      return stream;
+    }
+
+    ///Operator overload '>>' for FileContentMessage when using QDataStream for serialization
+    friend QDataStream &operator>>(QDataStream &stream, FileContentMessage &val) {
+      quint32 size;
+      stream >> size;
+      Symbol tmp;
+      for (quint32 i = 0; i < size; i++) {
+        stream >> tmp;
+        val.symbols.emplace_back(tmp);
+      }
+      return stream;
+    };
+
+};
+
+/**
+ * CrdtMessage class, represents a Symbol-exchange message between client-server
+ *
+ * @author Simone Magnani - s41m0n
+ */
+class CrdtMessage : public BasicMessage {
+
+private:
+    ///The symbol contained in the message (can be empty)
+    Symbol symbol;
+
+public:
+    ///Classic constructor with all parameters
+    CrdtMessage(Type msgType, Symbol symbol, unsigned int editorId);
+
+    ///Method build a CrdtMessage from a BasicMessage
+    explicit CrdtMessage(BasicMessage &&msg);
+
+    ///Constructor used to create a message to be filled
+    CrdtMessage() = default;
+
+    ///Return the Symbol contained in the Message
+    Symbol getSymbol();
+
+    ///Method to print in human-readable format the message
+    std::string toString(int level) override;
+    std::string toString() override;
+
+    ///Operator overload '<<' for CrdtMessage when using QDataStream for serialization
+    friend QDataStream &operator<<(QDataStream &stream, const CrdtMessage &val) {
+      stream << static_cast<const BasicMessage &>(val) << val.symbol;
+      return stream;
+    }
+
+    ///Operator overload '>>' for CrdtMessage when using QDataStream for serialization
+    friend QDataStream &operator>>(QDataStream &stream, CrdtMessage &val) {
+      stream >> val.symbol;
+      return stream;
+    };
 };
 
 #endif //COOPERATIVEEDITOR_MESSAGE_H
