@@ -7,14 +7,19 @@
 
 #include <string>
 #include <vector>
-#include "../../components/Symbol.h"
 
+#include "components/Symbol.h"
+
+/**Model class for the client
+ *
+ * @author Simone Magnani - s41m0n
+ */
 class Model {
 
 private:
 
     ///The specific editor ID
-    int editorId;
+    unsigned int editorId;
 
     ///The vector of symbol, which composes the text
     std::vector<Symbol> symbols;
@@ -26,30 +31,32 @@ private:
     unsigned int digitGenerator;
 
     ///Method to generate a symbol
-    const Symbol generateSymbol(int index, char value);
-
-    ///Method to perform the tostring on file
-    void writeOnFile();
+    Symbol generateSymbol(int index, char value);
 
 public:
+    ///Constructor
     Model();
+
+    //Destructor
     ~Model();
 
     ///Crdt local method to insert a symbol
-    const Symbol* localInsert(int index, char value);
+    Symbol* localInsert(int index, char value);
 
     ///Crdt local method to erase a symbol
-    const Symbol* localErase(int index);
+    Symbol* localErase(int index);
 
+    ///Method to update the list of symbol after a remote insertion
     void remoteInsert(Symbol symbol);
 
+    ///Method to update the list of symbol after a remote deletion
     void remoteErase(Symbol symbol);
 
     ///Method to return the editorId
-    const int getEditorId();
+    unsigned int getEditorId();
 
     ///Method to set the editorId once received by the server
-    void setEditorId(int newEditorId);
+    void setEditorId(unsigned int newEditorId);
 
     ///Method to set the current opened file name
     void setCurrentFile(std::string& filename);
@@ -57,7 +64,7 @@ public:
     void setCurrentFileContent(std::vector<Symbol> newContent);
 
     ///Method to return the sequence of characters
-    const std::string to_string();
+    std::string textify();
 
 };
 
