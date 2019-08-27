@@ -1,27 +1,24 @@
-#include <boost/serialization/export.hpp>
-#include <boost/lexical_cast.hpp>
+#include <iostream>
 #include <spdlog/spdlog.h>
+#include <QApplication>
+
 #include "server/controller/Controller.h"
 #include "server/model/Model.h"
 
+int main(int argc, char **argv) {
 
-BOOST_CLASS_EXPORT(CrdtMessage)
-BOOST_CLASS_EXPORT(RequestMessage)
-BOOST_CLASS_EXPORT(FileContentMessage)
-BOOST_CLASS_EXPORT(FilesListingMessage)
+  QApplication app(argc, argv);
 
+  if (argc != 2) {
+    std::cout << "Usage: ./server <port_number>" << std::endl;
+    return -1;
+  }
 
-int main() {
-    const std::string host("127.0.0.1");
-    const std::string service("3000");
-    auto port = boost::lexical_cast<unsigned short>(service);
+  //Setting LogLevel=debug
+  spdlog::set_level(spdlog::level::debug);
 
-    //Setting LogLevel=debug
-    spdlog::set_level(spdlog::level::debug);
+  Model model;
+  Controller controller(&model, std::stoi(argv[1]));
 
-    auto model = new Model();
-    auto controller = new Controller(model, port);
-
-    return controller->start();
-
+  return app.exec();
 }
