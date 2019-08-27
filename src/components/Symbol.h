@@ -6,17 +6,10 @@
 #define COOPERATIVEEDITOR_SYMBOL_H
 
 #include <vector>
-#include <boost/serialization/vector.hpp>
+#include <QtCore/QDataStream>
+#include <string>
+
 #include "Identifier.h"
-
-// Forward declaration of class boost::serialization::access
-#pragma once
-namespace boost {
-    namespace serialization {
-        class access;
-    }
-}
-
 
 /**
  * Symbol class, to identify each inserted character
@@ -28,32 +21,44 @@ class Symbol {
 private:
     ///The character represented
     char character;
+
     ///The symbol identifier
     Identifier id;
+
     ///The position of this symbol
     std::vector<int> position;
-    ///Class to access Boost to serialize this class
-    friend class boost::serialization::access;
-
-    ///Method called by Boost to serialize
-    template<typename Archive>
-    void serialize(Archive& ar, const unsigned version) {
-        ar & character & id & position;
-    }
 
 public:
     ///Classic constructor with all parameters
-    Symbol(char character, int siteId, int digit, std::vector<int> &position);
+    Symbol(char character, unsigned int siteId, unsigned int digit, std::vector<int> &position);
+
     ///Constructor to create a non-valid symbol to be filled
-    Symbol() = default;
+    Symbol();
+
     ///Method to compare two symbols
-    const int compareTo(const Symbol &s);
+    int compareTo(const Symbol &s);
+
     ///Method to get the character
-    const char getChar();
+    char getChar();
+
     ///Method to get the position
-    const std::vector<int> getPos();
+    std::vector<int> &getPos();
+
+    ///Method to print in human-readable format the symbol
+    std::string toString(int level = 0);
+
+    ///Overload of the operators '<<' for QDataStream using Symbol for serialization
+    friend QDataStream &operator<<(QDataStream &stream, const Symbol &val);
+
+    ///Overload of the operators '>>' for QDataStream using Symbol for serialization
+    friend QDataStream &operator>>(QDataStream &stream, Symbol &val);
+
+    ///Overload of the operators '<<' for QDataStream using vector of Symbol for serialization
+    friend QDataStream &operator<<(QDataStream &stream, const std::vector<Symbol> &val);
+
+    ///Overload of the operators '>>' for QDataStream using vector of Symbol for serialization
+    friend QDataStream &operator>>(QDataStream &stream, std::vector<Symbol> &val);
 
 };
-
 
 #endif //COOPERATIVEEDITOR_SYMBOL_H
