@@ -8,7 +8,7 @@
 #include <vector>
 #include <map>
 #include <string>
-#include "../../components/Symbol.h"
+#include "components/Symbol.h"
 
 class Model {
 
@@ -23,10 +23,10 @@ private:
     std::mutex openedFilesMapMutex;
 
     ///The map of the current file for each user
-    std::map<int, std::string> usersFile;
+    std::map<unsigned int, std::string> usersFile;
 
     ///Editor Id unique generator
-    std::atomic<int> idGenerator;
+    std::atomic<unsigned int> idGenerator;
 
     ///Set of all available files
     std::string availableFiles;
@@ -47,21 +47,21 @@ public:
     ///Method to generate a new editor id
     unsigned int generateEditorId();
 
-    void userInsert(int connId, Symbol symbol);
+    void userInsert(unsigned int connId, Symbol symbol);
 
-    void userErase(int connId, Symbol symbol);
+    void userErase(unsigned int connId, Symbol symbol);
 
     ///Method called when a user requests to create a file
-    bool createFileByUser(int connId, std::string& filename);
+    bool createFileByUser(unsigned int connId, std::string& filename);
 
     ///Method called when a user requests to open a file
-    bool openFileByUser(int connId, std::string& filename);
+    bool openFileByUser(unsigned int connId, std::string& filename);
 
     ///Returns the list (string) of all available files
-    const std::string getAvailableFiles();
+    std::string& getAvailableFiles();
 
     ///Returns the list of symbols for the file the user connId has requested
-    const std::vector<Symbol> getFileSymbolList(int connId);
+    std::vector<Symbol> getFileSymbolList(unsigned int connId);
 
 };
 

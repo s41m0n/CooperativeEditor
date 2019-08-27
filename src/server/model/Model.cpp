@@ -3,55 +3,64 @@
 //
 
 #include <spdlog/spdlog.h>
-#include <boost/filesystem.hpp>
-#include <boost/archive/text_oarchive.hpp>
-#include <boost/archive/text_iarchive.hpp>
+#include <filesystem>
+#include <algorithm>
+#include <QFile>
+
 #include "Model.h"
 #include "src/utility/CrdtAlgorithm.h"
 
-Model::Model() : idGenerator(0){
+Model::Model() : idGenerator(1){
 
-  spdlog::debug("NetworkServer::Created Model");
+  spdlog::debug("Created Model");
 
   //Loading all files name in the directory
-  boost::filesystem::recursive_directory_iterator it(boost::filesystem::current_path());
-  boost::filesystem::recursive_directory_iterator end;
-
-  while(it != end) {
-
-    if(boost::filesystem::is_regular_file(*it) && it->path().extension() == ".crdt") {
-      std::string toAdd = it->path().filename().string();
-      size_t index = toAdd.find_last_of('.');
-      toAdd = toAdd.substr(0, index);
-      availableFiles.append(toAdd + ";");
+  for(auto& p: std::filesystem::directory_iterator(".")) {
+    auto filename = p.path().string();
+    auto pos = filename.find(".crdt");
+    if (pos != std::string::npos) {
+      filename.erase(pos, filename.length());
+      filename.erase(filename.begin(), filename.begin() + 2);
+      availableFiles += filename + ";";
     }
-    ++it;
   }
 }
 
 Model::~Model() {
 
-  spdlog::debug("NetworkServer::Destroyed Model");
+  spdlog::debug("Destroyed Model");
 
 }
+
 
 void Model::storeFileSymbols(std::string& filename) {
-  std::ofstream file{filename + ".crdt"};
-  boost::archive::text_oarchive oa{file};
-  oa << openedFiles[filename];
+  QFile file((filename + ".crdt").c_str());
+
+  if(!file.open(QIODevice::WriteOnly)) {
+    throw std::runtime_error("Unable to open file");
+  }
+
+  QDataStream ds(&file);
+  ds << openedFiles[filename];
 }
 
+
 void Model::loadFileSymbols(std::string& filename) {
-  std::ifstream file{filename + ".crdt"};
-  boost::archive::text_iarchive oa{file};
-  oa >> openedFiles[filename];
+  QFile file((filename + ".crdt").c_str());
+
+  if(!file.open(QIODevice::ReadOnly)) {
+    throw std::runtime_error("Unable to load file");
+  }
+
+  QDataStream ds(&file);
+  ds >> openedFiles[filename];
 }
 
 unsigned int Model::generateEditorId() {
   return idGenerator++;
 }
 
-void Model::userInsert(int connId, Symbol symbol) {
+void Model::userInsert(unsigned int connId, Symbol symbol) {
 
   auto filename = usersFile[connId];
 
@@ -62,7 +71,7 @@ void Model::userInsert(int connId, Symbol symbol) {
   storeFileSymbols(filename);
 }
 
-void Model::userErase(int connId, Symbol symbol) {
+void Model::userErase(unsigned int connId, Symbol symbol) {
 
   std::string filename = usersFile[connId];
 
@@ -74,7 +83,7 @@ void Model::userErase(int connId, Symbol symbol) {
 
 }
 
-bool Model::createFileByUser(int connId, std::string& filename) {
+bool Model::createFileByUser(unsigned int connId, std::string& filename) {
   std::lock_guard<std::mutex> guard(openedFilesMapMutex);
 
   if (availableFiles.find(filename) != std::string::npos) {
@@ -88,12 +97,12 @@ bool Model::createFileByUser(int connId, std::string& filename) {
   }
 }
 
-bool Model::openFileByUser(int connId, std::string& filename) {
+bool Model::openFileByUser(unsigned int connId, std::string& filename) {
   std::lock_guard<std::mutex> guard(openedFilesMapMutex);
 
-  if(availableFiles.empty() || availableFiles.find(filename))
+  if(availableFiles.empty() || availableFiles.find(filename)) {
     return false;
-  else {
+  } else {
     usersFile[connId] = filename;
     if(openedFiles.find(filename) == openedFiles.end()) {
       openedFiles.emplace(filename, std::vector<Symbol>());
@@ -104,10 +113,10 @@ bool Model::openFileByUser(int connId, std::string& filename) {
   }
 }
 
-const std::string Model::getAvailableFiles() {
+std::string& Model::getAvailableFiles() {
   return availableFiles;
 }
 
-const std::vector<Symbol> Model::getFileSymbolList(int connId) {
+std::vector<Symbol> Model::getFileSymbolList(unsigned int connId) {
   return openedFiles[usersFile[connId]];
 }
