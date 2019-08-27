@@ -3,192 +3,132 @@
 //
 
 #include <spdlog/spdlog.h>
-#include <fstream>
-#include <boost/thread.hpp>
-#include <src/utility/CrdtAlgorithm.h>
+#include <memory>
+#include <QHostAddress>
+#include <QAbstractSocket>
+
+#include "utility/CrdtAlgorithm.h"
 #include "Controller.h"
 
-Controller::Controller(Model *model, unsigned short port) : model(model),
-    acceptor_(io_service, boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), port)) {
-  spdlog::debug("NetworkServer::Created Controller");
+Controller::Controller(Model *model, unsigned short port) : model(model), _server(this) {
+  spdlog::debug("Created Controller");
+  _server.listen(QHostAddress::Any, port);
+  connect(&_server, SIGNAL(newConnection()), this, SLOT(onNewConnection()));
 }
 
 Controller::~Controller() {
-  spdlog::debug("NetworkServer::Destroyed Controller");
+  spdlog::debug("Destroyed Controller");
 }
 
-void Controller::handle_accept(const boost::system::error_code &e, connection_ptr &conn) {
+void Controller::onNewConnection() {
 
-  if (!e) {
+  auto clientSocket = _server.nextPendingConnection();
+  auto clientId = model->generateEditorId();
 
-    auto id = model->generateEditorId();
+  spdlog::debug("Connected Editor{0:d}", clientId);
 
+  connect(clientSocket, SIGNAL(readyRead()), this, SLOT(onReadyRead()));
+  connect(clientSocket, SIGNAL(stateChanged(QAbstractSocket::SocketState)), this,
+          SLOT(onSocketStateChanged(QAbstractSocket::SocketState)));
+
+  std::lock_guard<std::mutex> guard(connectionsMutex);
+  connections.insert(std::pair<QTcpSocket *, unsigned int>(clientSocket, clientId));
+
+  //Sending Connect and FileListing Message
+  BasicMessage msg(Type::CONNECT, clientId);
+  RequestMessage msg2(Type::LISTING, clientId, model->getAvailableFiles());
+  QDataStream ds(clientSocket);
+  ds << msg << msg2;
+  spdlog::debug("Sent Message:\n" + msg.toString());
+  spdlog::debug("Sent Message:\n" + msg2.toString());
+}
+
+void Controller::onSocketStateChanged(QAbstractSocket::SocketState socketState) {
+  if (socketState == QAbstractSocket::UnconnectedState) {
+    auto sender = dynamic_cast<QTcpSocket *>(QObject::sender());
     std::lock_guard<std::mutex> guard(connectionsMutex);
-    connections.insert(std::pair<int, connection_ptr>(id, conn));
-
-    //Connected successfully, send editorId and start reading & listening recursively
-    spdlog::debug("NetworkServer::Connected Shared Editor{}", id);
-    auto msg = new BasicMessage(Type::CONNECT, id);
-    conn->async_write(*msg,
-                      boost::bind(&Controller::handle_write, this,
-                                  boost::asio::placeholders::error, id, msg));
-
-    //Start a thread to dispatch messages
-    if (connections.size() == 2)
-      boost::thread(boost::bind(&Controller::dispatch, this));
-
-    // Start an accept operation for a new connection.
-    connection_ptr new_conn(new Connection(acceptor_.get_io_service()));
-    acceptor_.async_accept(new_conn->socket(),
-                           boost::bind(&Controller::handle_accept, this,
-                                       boost::asio::placeholders::error, new_conn));
-  } else {
-    spdlog::error("NetworkServer::Connect error -> {}", e.message());
+    connections.erase(sender);
   }
 }
 
-void Controller::handle_read(const boost::system::error_code &e, int connId, BasicMessage* msg) {
+void Controller::onReadyRead() {
+  auto sender = dynamic_cast<QTcpSocket *>(QObject::sender());
+  auto clientId = connections[sender];
+  QDataStream ds(sender);
+  BasicMessage base;
+  ds >> base;
 
-  if (!e) {
 
-    spdlog::debug("NetworkServer::Received Message (type={}) from SharedEditor{}", msg->getMsgType(), connId);
+  switch (base.getMsgType()) {
 
-    switch (msg->getMsgType()) {
+    case Type::INSERT : {
+      CrdtMessage msg(std::move(base));
+      ds >> msg;
+      spdlog::debug("Received Message!\n"+ msg.toString());
 
-      case Type::INSERT : {
-        auto converted = dynamic_cast<CrdtMessage*>(msg);
-
-        model->userInsert(connId, converted->getSymbol());
-
-        std::lock_guard<std::mutex> guard2(queueMutex);
-        messages.push(converted);
-
-        auto newMsg = new CrdtMessage();
-        connections[connId]->async_read(*newMsg,
-                boost::bind(&Controller::handle_read, this,
-                        boost::asio::placeholders::error, connId, newMsg));
-        return;
-      }
-      case Type::ERASE : {
-        auto converted = dynamic_cast<CrdtMessage*>(msg);
-
-        model->userErase(connId, converted->getSymbol());
-
-        std::lock_guard<std::mutex> guard2(queueMutex);
-        messages.push(converted);
-
-        auto newMsg = new CrdtMessage();
-        connections[connId]->async_read(*newMsg,
-                boost::bind(&Controller::handle_read, this,
-                        boost::asio::placeholders::error, connId, newMsg));
-        return;
-      }
-      case Type::CREATE : {
-        std::string filename = dynamic_cast<RequestMessage*>(msg)->getFilename();
-
-        if (model->createFileByUser(connId, filename)) {
-
-          auto newMsg = new RequestMessage(Type::FILEOK, connId, filename);
-          connections[connId]->async_write(*newMsg,
-                                           boost::bind(&Controller::handle_write, this,
-                                                       boost::asio::placeholders::error, connId, newMsg));
-        } else {
-
-          auto newMsg = new RequestMessage(Type::FILEKO, connId, filename);
-          connections[connId]->async_write(*newMsg,
-                                           boost::bind(&Controller::handle_write, this,
-                                                       boost::asio::placeholders::error, connId, newMsg));
-        }
-
-        break;
-      }
-      case Type::OPEN : {
-        std::string filename = dynamic_cast<RequestMessage*>(msg)->getFilename();
-
-        if (model->openFileByUser(connId, filename)) {
-
-          auto newMsg = new RequestMessage(Type::FILEOK, connId, filename);
-          connections[connId]->async_write(*newMsg,
-                  boost::bind(&Controller::handle_write, this,
-                          boost::asio::placeholders::error, connId, newMsg));
-        } else {
-
-          auto newMsg = new RequestMessage(Type::FILEKO, connId, filename);
-          connections[connId]->async_write(*newMsg,
-                  boost::bind(&Controller::handle_write, this,
-                          boost::asio::placeholders::error, connId, newMsg));
-        }
-        break;
-      }
-      default :
-        throw std::runtime_error("NetworkServer::Should never read different types of Message");
+      model->userInsert(clientId, msg.getSymbol());
+      std::lock_guard<std::mutex> guard2(queueMutex);
+      messages.push(msg);
+      break;
     }
-  } else {
-    std::lock_guard<std::mutex> guard2(connectionsMutex);
-    connections.erase(connId);
-    spdlog::error("NetworkServer::Read error -> {}", e.message());
-  }
+    case Type::ERASE : {
+      CrdtMessage msg(std::move(base));
+      ds >> msg;
+      spdlog::debug("Received Message!\n"+ msg.toString());
 
-  delete msg;
-}
-
-void Controller::handle_write(const boost::system::error_code &e, int connId, BasicMessage* msg) {
-
-  if (!e) {
-
-    spdlog::debug("NetworkServer::Sent Message (type={}) to SharedEditor{}", msg->getMsgType(), connId);
-
-    switch (msg->getMsgType()) {
-
-      case Type::CONNECT : {
-        auto fileList = model->getAvailableFiles();
-        auto newMsg = new FilesListingMessage(Type::LISTING, connId, fileList);
-        connections[connId]->async_write(*newMsg,
-                boost::bind(&Controller::handle_write, this,
-                        boost::asio::placeholders::error, connId, newMsg));
-        break;
-      }
-      case Type::LISTING : {
-        auto newMsg = new RequestMessage();
-        connections[connId]->async_read(*newMsg,
-                boost::bind(&Controller::handle_read, this,
-                        boost::asio::placeholders::error, connId, newMsg));
-        break;
-      }
-      case Type::FILEOK : {
-        auto symbolList = model->getFileSymbolList(connId);
-        auto newMsg = new FileContentMessage(Type::CONTENT, connId, symbolList);
-        connections[connId]->async_write(*newMsg,
-                boost::bind(&Controller::handle_write, this,
-                        boost::asio::placeholders::error, connId, newMsg));
-        break;
-      }
-      case Type::FILEKO : {
-        auto newMsg = new RequestMessage();
-        connections[connId]->async_read(*newMsg,
-                boost::bind(&Controller::handle_read, this,
-                        boost::asio::placeholders::error, connId, newMsg));
-        break;
-      }
-      case Type::CONTENT : {
-        auto newMsg = new CrdtMessage();
-        connections[connId]->async_read(*newMsg,
-                boost::bind(&Controller::handle_read, this,
-                        boost::asio::placeholders::error, connId, newMsg));
-        break;
-      }
-      case Type::INSERT : return;
-      case Type::ERASE : return;
-      default: throw std::runtime_error("NetworkServer::Should never write other types of Message");
+      model->userErase(clientId, msg.getSymbol());
+      std::lock_guard<std::mutex> guard2(queueMutex);
+      messages.push(msg);
+      break;
     }
-  } else {
-    std::lock_guard<std::mutex> guard2(connectionsMutex);
-    connections.erase(connId);
-    spdlog::error("NetworkServer::Write error -> {}", e.message());
-  }
+    case Type::CREATE : {
+      RequestMessage msg(std::move(base));
+      ds >> msg;
+      spdlog::debug("Received Message!\n"+ msg.toString());
 
-  delete msg;
+      auto filename = msg.getFilename();
+      if (model->createFileByUser(clientId, filename)) {
+        RequestMessage newMsg(Type::FILEOK, clientId, filename);
+        std::vector<Symbol> empty;
+        FileContentMessage newMsg2(Type::CONTENT, clientId, empty);
+        ds << newMsg << newMsg2;
+        spdlog::debug("Sent Message!\n"+ newMsg.toString());
+        spdlog::debug("Sent Message!\n"+ newMsg2.toString());
+      } else {
+        RequestMessage newMsg(Type::FILEKO, clientId, filename);
+        ds << newMsg;
+        spdlog::debug("Sent Message!\n"+ newMsg.toString());
+      }
+      break;
+    }
+    case Type::OPEN : {
+      RequestMessage msg(std::move(base));
+      ds >> msg;
+      spdlog::debug("Received Message!\n"+ msg.toString());
+
+      auto filename = msg.getFilename();
+
+      if (model->openFileByUser(clientId, filename)) {
+        auto symbolList = model->getFileSymbolList(clientId);
+        RequestMessage newMsg(Type::FILEOK, clientId, filename);
+        FileContentMessage newMsg2(Type::CONTENT, clientId, symbolList);
+        ds << newMsg << newMsg2;
+        spdlog::debug("Sent Message!\n"+ newMsg.toString());
+        spdlog::debug("Sent Message!\n"+ newMsg2.toString());
+      } else {
+        RequestMessage newMsg(Type::FILEKO, clientId, filename);
+        ds << newMsg;
+        spdlog::debug("Sent Message!\n{}", newMsg.toString());
+      }
+      break;
+    }
+    default :
+      throw std::runtime_error("Must never read different types of Message!!!");
+  }
+  if (sender->bytesAvailable())
+    onReadyRead();
 }
+
 
 void Controller::dispatch() {
 
@@ -201,26 +141,13 @@ void Controller::dispatch() {
       auto msg = this->messages.front();
       std::lock_guard<std::mutex> guard2(connectionsMutex);
 
-      for (auto& conn : connections) {
-
-        if (conn.first != msg->getEditorId())
-          conn.second->async_write(*msg,
-                  boost::bind(&Controller::handle_write, this,
-                          boost::asio::placeholders::error, conn.first, msg));
+      for (auto &conn : connections) {
+        if (conn.second != msg.getEditorId()) {
+          QDataStream ds(conn.first);
+          ds << msg;
+        }
       }
-
       this->messages.pop();
-      delete msg;
     }
   }
-}
-
-
-int Controller::start() {
-  //Create new connection and start listening asynchronously
-  connection_ptr new_conn(new Connection(acceptor_.get_io_service()));
-  acceptor_.async_accept(new_conn->socket(),
-                         boost::bind(&Controller::handle_accept, this,
-                                     boost::asio::placeholders::error, new_conn));
-  return io_service.run();
 }
