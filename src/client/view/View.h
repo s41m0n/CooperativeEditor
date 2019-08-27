@@ -5,26 +5,39 @@
 #ifndef COOPERATIVEEDITOR_VIEW_H
 #define COOPERATIVEEDITOR_VIEW_H
 
-#include <QApplication>
 #include <QLabel>
+#include <QMainWindow>
+
 #include "../controller/Controller.h"
 
+//Class forward declaration
 class Controller;
 
-class View{
+/**Class View, the responsible of the user interface
+ *
+ * @author Simone Magnani - s41m0n
+ */
+class View {
 
 private:
+    ///A reference to the Controller
+    Controller *controller;
 
-    Controller* controller;
+    ///The main window
+    QMainWindow mainWindow;
 
-    QApplication* app;
-    QLabel* label;
+    ///Test Label
+    QLabel *label;
 
 public:
+    ///Constructor which also assigns the controller
+    View(Controller *controller);
 
-    View(Controller* controller, int argc, char** argv);
+    ///Destructor, used for debug
     ~View();
-    int init();
+
+    ///Method to initialize the user interface
+    void init();
 
 };
 
