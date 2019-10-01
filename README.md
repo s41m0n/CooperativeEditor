@@ -1,9 +1,17 @@
 # CooperativeEditor
+
 *System and Device Programming project* - Cooperative multiuser editor.
 
-The aim of this project is to implement, using client-server architecture, a cooperative editor thanks to many user can work on the same file.
+The aim of this project is to implement, using client-server architecture, a C++ cooperative editor thanks to many user can work on the same file.
 
-## Installation
+## Dependencies
+
+The following libraries need to be installed in your system:
+
+* spdlog
+* qt
+
+## Automatic libraries installation
 
 If you do not want to manually download all dependencies, you can download `conan` which is a very powerful Dependency Manager Python module.
 
@@ -40,12 +48,8 @@ Before compiling the project with CMake, install all the dependencied by typing 
 
 Finally, if the command successfully creates the file `conanbuildinfo.cmake` you can proceed compiling the project using CMake.
 
-## Authors
+## Usage
 
-**Simone Magnani**, [@s41m0n](https://github.com/s41m0n) [Linkedin](https://www.linkedin.com/in/simone-magnani-564830151/)
+To launch the CooperativeEditor client: `./CooperativeClient <server_address> <server_port>`
 
-**Riccardo Marchi**, [@richiMarchi](https://github.com/richiMarchi) [Linkedin](https://www.linkedin.com/in/riccardo-marchi4/)
-
-## License
-
-This project is licensed under the **Polytechnic University of Turin**
+To launch the CooperativeEditor server: `./CooperativeServer <local_port>`
