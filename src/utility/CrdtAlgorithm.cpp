@@ -3,13 +3,14 @@
 //
 
 #include <cmath>
+
 #include "CrdtAlgorithm.h"
 
 int CrdtAlgorithm::generateIdBetween(int id1, int id2) {
   return (id2 + id1) / 2;
 }
 
-int CrdtAlgorithm::findPositionErase(Symbol s, std::vector<Symbol> &symbols) {
+int CrdtAlgorithm::findPositionErase(Symbol &s, std::vector<Symbol> &symbols) {
   int left = 0, mid;
   auto right = symbols.size() - 1;
 
@@ -34,7 +35,7 @@ int CrdtAlgorithm::findPositionErase(Symbol s, std::vector<Symbol> &symbols) {
   return -1;
 }
 
-int CrdtAlgorithm::findPositionInsert(Symbol s, std::vector<Symbol> &symbols) {
+int CrdtAlgorithm::findPositionInsert(Symbol &s, std::vector<Symbol> &symbols) {
   int left = 0;
   auto right = symbols.size() - 1;
   int mid, compareNum;
@@ -62,8 +63,9 @@ int CrdtAlgorithm::findPositionInsert(Symbol s, std::vector<Symbol> &symbols) {
     return right;
 }
 
-std::vector<int> *CrdtAlgorithm::generatePosBetween(Symbol *s1, Symbol *s2,
-                                                    std::vector<int> *newPos, int index1, int level, int index2) {
+void CrdtAlgorithm::generatePosBetween(Symbol *s1, Symbol *s2,
+                                       std::vector<int> &newPos, int index1,
+                                       int level, int index2) {
   int baseValue = (int) (std::pow(2, level) * CrdtAlgorithm::base);
   auto pos1 = s1 != nullptr ? s1->getPos() : std::vector<int>();
   auto pos2 = s2 != nullptr ? s2->getPos() : std::vector<int>();
@@ -72,34 +74,38 @@ std::vector<int> *CrdtAlgorithm::generatePosBetween(Symbol *s1, Symbol *s2,
 
   if (id2 - id1 > 1) {
     int newDigit = CrdtAlgorithm::generateIdBetween(id1, id2);
-    newPos->push_back(newDigit);
-    return newPos;
+    newPos.push_back(newDigit);
+    return;
   } else if (id2 - id1 == 1) {
-    newPos->push_back(id1);
-    return CrdtAlgorithm::generatePosBetween(s1, s2, newPos, index1 + 1, level + 1);
+    newPos.push_back(id1);
+    return CrdtAlgorithm::generatePosBetween(s1, s2, newPos, index1 + 1,
+                                             level + 1);
   } else if (id1 == id2) {
     int comp = s1->compareTo(*s2);
     if (comp > 0) {
-      newPos->push_back(id1);
-      return CrdtAlgorithm::generatePosBetween(s1, s2, newPos, index1 + 1, level + 1, -1);
+      newPos.push_back(id1);
+      return CrdtAlgorithm::generatePosBetween(s1, s2, newPos, index1 + 1,
+                                               level + 1, -1);
     } else if (comp == 0) {
-      newPos->push_back(id1);
-      return CrdtAlgorithm::generatePosBetween(s1, s2, newPos, index1 + 1, level + 1, index2 + 1);
+      newPos.push_back(id1);
+      return CrdtAlgorithm::generatePosBetween(s1, s2, newPos, index1 + 1,
+                                               level + 1, index2 + 1);
     } else {
-      newPos->push_back(id2);
-      return CrdtAlgorithm::generatePosBetween(s1, s2, newPos, index1 + 1, level + 1, index2 + 1);
+      newPos.push_back(id2);
+      return CrdtAlgorithm::generatePosBetween(s1, s2, newPos, index1 + 1,
+                                               level + 1, index2 + 1);
     }
   }
   throw std::runtime_error("Fix Position Sorting");
 }
 
-void CrdtAlgorithm::remoteErase(Symbol s, std::vector<Symbol> &symbols) {
-  int index = CrdtAlgorithm::findPositionErase(std::move(s), symbols);
+void CrdtAlgorithm::remoteErase(Symbol &s, std::vector<Symbol> &symbols) {
+  int index = CrdtAlgorithm::findPositionErase(s, symbols);
   if (index >= 0)
     symbols.erase(symbols.begin() + index);
 }
 
-void CrdtAlgorithm::remoteInsert(Symbol s, std::vector<Symbol> &symbols) {
+void CrdtAlgorithm::remoteInsert(Symbol &s, std::vector<Symbol> &symbols) {
   int index = CrdtAlgorithm::findPositionInsert(s, symbols);
 
   symbols.insert(symbols.begin() + index, std::move(s));

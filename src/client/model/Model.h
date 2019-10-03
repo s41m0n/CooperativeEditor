@@ -61,7 +61,7 @@ public:
     ///Method to set the current opened file name
     void setCurrentFile(std::string& filename);
 
-    void setCurrentFileContent(std::vector<Symbol> newContent);
+    void setCurrentFileContent(std::vector<Symbol> &newContent);
 
     ///Method to return the sequence of characters
     std::string textify();

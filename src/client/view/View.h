@@ -8,8 +8,6 @@
 #include <QLabel>
 #include <QMainWindow>
 
-#include "../controller/Controller.h"
-
 //Class forward declaration
 class Controller;
 
@@ -31,7 +29,7 @@ private:
 
 public:
     ///Constructor which also assigns the controller
-    View(Controller *controller);
+    explicit View(Controller *controller);
 
     ///Destructor, used for debug
     ~View();

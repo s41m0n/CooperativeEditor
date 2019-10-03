@@ -11,17 +11,17 @@
 #include <string>
 #include <QTcpServer>
 #include <QTcpSocket>
-#include <QMainWindow>
+#include <QObject>
 
 #include "components/Message.h"
-#include "../model/Model.h"
+#include "server/model/Model.h"
 
 /**
  * NetworkServer class, the server in this architecture
  *
  * @author Simone Magnani - s41m0n
  */
-class Controller : public QMainWindow {
+class Controller : public QObject {
 
 Q_OBJECT
 
@@ -55,6 +55,7 @@ public:
     ~Controller() override;
 
 public slots:
+
     ///Method called on new connection available in the Tcp server
     void onNewConnection();
 

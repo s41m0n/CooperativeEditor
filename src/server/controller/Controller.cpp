@@ -10,7 +10,8 @@
 #include "utility/CrdtAlgorithm.h"
 #include "Controller.h"
 
-Controller::Controller(Model *model, unsigned short port) : model(model), _server(this) {
+Controller::Controller(Model *model, unsigned short port) : model(model),
+                                                            _server(this) {
   spdlog::debug("Created Controller");
   _server.listen(QHostAddress::Any, port);
   connect(&_server, SIGNAL(newConnection()), this, SLOT(onNewConnection()));
@@ -28,11 +29,13 @@ void Controller::onNewConnection() {
   spdlog::debug("Connected Editor{0:d}", clientId);
 
   connect(clientSocket, SIGNAL(readyRead()), this, SLOT(onReadyRead()));
-  connect(clientSocket, SIGNAL(stateChanged(QAbstractSocket::SocketState)), this,
+  connect(clientSocket, SIGNAL(stateChanged(QAbstractSocket::SocketState)),
+          this,
           SLOT(onSocketStateChanged(QAbstractSocket::SocketState)));
 
   std::lock_guard<std::mutex> guard(connectionsMutex);
-  connections.insert(std::pair<QTcpSocket *, unsigned int>(clientSocket, clientId));
+  connections.insert(
+          std::pair<QTcpSocket *, unsigned int>(clientSocket, clientId));
 
   //Sending Connect and FileListing Message
   BasicMessage msg(Type::CONNECT, clientId);
@@ -43,7 +46,8 @@ void Controller::onNewConnection() {
   spdlog::debug("Sent Message:\n" + msg2.toString());
 }
 
-void Controller::onSocketStateChanged(QAbstractSocket::SocketState socketState) {
+void
+Controller::onSocketStateChanged(QAbstractSocket::SocketState socketState) {
   if (socketState == QAbstractSocket::UnconnectedState) {
     auto sender = dynamic_cast<QTcpSocket *>(QObject::sender());
     std::lock_guard<std::mutex> guard(connectionsMutex);
@@ -64,7 +68,7 @@ void Controller::onReadyRead() {
     case Type::INSERT : {
       CrdtMessage msg(std::move(base));
       ds >> msg;
-      spdlog::debug("Received Message!\n"+ msg.toString());
+      spdlog::debug("Received Message!\n" + msg.toString());
 
       model->userInsert(clientId, msg.getSymbol());
       std::lock_guard<std::mutex> guard2(queueMutex);
@@ -74,7 +78,7 @@ void Controller::onReadyRead() {
     case Type::ERASE : {
       CrdtMessage msg(std::move(base));
       ds >> msg;
-      spdlog::debug("Received Message!\n"+ msg.toString());
+      spdlog::debug("Received Message!\n" + msg.toString());
 
       model->userErase(clientId, msg.getSymbol());
       std::lock_guard<std::mutex> guard2(queueMutex);
@@ -84,7 +88,7 @@ void Controller::onReadyRead() {
     case Type::CREATE : {
       RequestMessage msg(std::move(base));
       ds >> msg;
-      spdlog::debug("Received Message!\n"+ msg.toString());
+      spdlog::debug("Received Message!\n" + msg.toString());
 
       auto filename = msg.getFilename();
       if (model->createFileByUser(clientId, filename)) {
@@ -92,19 +96,19 @@ void Controller::onReadyRead() {
         std::vector<Symbol> empty;
         FileContentMessage newMsg2(Type::CONTENT, clientId, empty);
         ds << newMsg << newMsg2;
-        spdlog::debug("Sent Message!\n"+ newMsg.toString());
-        spdlog::debug("Sent Message!\n"+ newMsg2.toString());
+        spdlog::debug("Sent Message!\n" + newMsg.toString());
+        spdlog::debug("Sent Message!\n" + newMsg2.toString());
       } else {
         RequestMessage newMsg(Type::FILEKO, clientId, filename);
         ds << newMsg;
-        spdlog::debug("Sent Message!\n"+ newMsg.toString());
+        spdlog::debug("Sent Message!\n" + newMsg.toString());
       }
       break;
     }
     case Type::OPEN : {
       RequestMessage msg(std::move(base));
       ds >> msg;
-      spdlog::debug("Received Message!\n"+ msg.toString());
+      spdlog::debug("Received Message!\n" + msg.toString());
 
       auto filename = msg.getFilename();
 
@@ -113,8 +117,8 @@ void Controller::onReadyRead() {
         RequestMessage newMsg(Type::FILEOK, clientId, filename);
         FileContentMessage newMsg2(Type::CONTENT, clientId, symbolList);
         ds << newMsg << newMsg2;
-        spdlog::debug("Sent Message!\n"+ newMsg.toString());
-        spdlog::debug("Sent Message!\n"+ newMsg2.toString());
+        spdlog::debug("Sent Message!\n" + newMsg.toString());
+        spdlog::debug("Sent Message!\n" + newMsg2.toString());
       } else {
         RequestMessage newMsg(Type::FILEKO, clientId, filename);
         ds << newMsg;
@@ -138,7 +142,8 @@ void Controller::dispatch() {
 
     for (int i = 0, size = this->messages.size(); i < size; i++) {
 
-      auto msg = this->messages.front();
+      auto &msg = this->messages.front();
+
       std::lock_guard<std::mutex> guard2(connectionsMutex);
 
       for (auto &conn : connections) {

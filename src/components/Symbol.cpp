@@ -4,8 +4,10 @@
 
 #include "Symbol.h"
 
-Symbol::Symbol(char character, unsigned int siteId, unsigned int digit, std::vector<int> &position)
-        : position(std::move(position)), id(siteId, digit), character(character) {
+Symbol::Symbol(char character, unsigned int siteId, unsigned int digit,
+               std::vector<int> &position)
+        : position(std::move(position)), id(siteId, digit),
+          character(character) {
 }
 
 Symbol::Symbol() : id(), character('\0'), position() {
@@ -43,7 +45,8 @@ int Symbol::compareTo(const Symbol &other) {
 std::string Symbol::toString(int level) {
   std::string tmp(std::string(level, '\t') + "Symbol{\n" +
                   id.toString(level + 1) + "\n" +
-                  std::string(level + 1, '\t') + "character: " + character + "\n" +
+                  std::string(level + 1, '\t') + "character: " + character +
+                  "\n" +
                   std::string(level + 1, '\t') + "position: [");
   for (auto val: position)
     tmp += std::to_string(val) + ", ";

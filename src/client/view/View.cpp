@@ -5,9 +5,10 @@
 
 #include <spdlog/spdlog.h>
 
-#include "View.h"
+#include "client/view/View.h"
 
-View::View(Controller *controller) : controller(controller), label(new QLabel(&mainWindow)) {
+View::View(Controller *controller) : controller(controller),
+                                     label(new QLabel(&mainWindow)) {
   spdlog::debug("Created View");
 }
 
@@ -17,5 +18,5 @@ View::~View() {
 
 void View::init() {
   label->setText("HELLO QT");
-  //mainWindow.show();
+  mainWindow.show();
 }

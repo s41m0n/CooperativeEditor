@@ -6,8 +6,8 @@
 #include <QHostAddress>
 #include <QAbstractSocket>
 
-#include "Controller.h"
-#include <components/Message.h>
+#include "client/controller/Controller.h"
+#include "components/Message.h"
 
 Controller::Controller(Model *model, const std::string &host, int port)
         : model(model), view(), _socket(this) {
@@ -70,9 +70,9 @@ void Controller::onReadyRead() {
       ds >> msg;
       spdlog::debug("Received Message!\n{}", msg.toString());
       model->setCurrentFileContent(msg.getSymbols());
-      std::vector<std::pair<int, char>> toInsert({{0, 'c'},
+      std::vector<std::pair<int, char>> toInsert({{0, 's'},
                                                   {1, 'i'},
-                                                  {2, 'a'},
+                                                  {2, 'm'},
                                                   {3, 'o'}});
       std::vector<int> toDelete({});
 
@@ -104,8 +104,10 @@ void Controller::onReadyRead() {
       throw std::runtime_error("Unknown message received");
   }
 
-  if (_socket.bytesAvailable())
+  if (_socket.bytesAvailable()) {
     onReadyRead();
+  }
+
 }
 
 void Controller::handle_insert(int index, char value) {

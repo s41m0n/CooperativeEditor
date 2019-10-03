@@ -30,7 +30,8 @@ private:
 
 public:
     ///Classic constructor with all parameters
-    Symbol(char character, unsigned int siteId, unsigned int digit, std::vector<int> &position);
+    Symbol(char character, unsigned int siteId, unsigned int digit,
+           std::vector<int> &position);
 
     ///Constructor to create a non-valid symbol to be filled
     Symbol();
@@ -54,10 +55,12 @@ public:
     friend QDataStream &operator>>(QDataStream &stream, Symbol &val);
 
     ///Overload of the operators '<<' for QDataStream using vector of Symbol for serialization
-    friend QDataStream &operator<<(QDataStream &stream, const std::vector<Symbol> &val);
+    friend QDataStream &
+    operator<<(QDataStream &stream, const std::vector<Symbol> &val);
 
     ///Overload of the operators '>>' for QDataStream using vector of Symbol for serialization
-    friend QDataStream &operator>>(QDataStream &stream, std::vector<Symbol> &val);
+    friend QDataStream &
+    operator>>(QDataStream &stream, std::vector<Symbol> &val);
 
 };
 

@@ -4,8 +4,9 @@
 
 #include <fstream>
 #include <spdlog/spdlog.h>
-#include "Model.h"
-#include "src/utility/CrdtAlgorithm.h"
+
+#include "client/model/Model.h"
+#include "utility/CrdtAlgorithm.h"
 
 Model::Model() : editorId(0), digitGenerator(0), currentFile() {
   spdlog::debug("SharedEditor::Created Model");
@@ -40,22 +41,24 @@ Symbol *Model::localErase(int index) {
 }
 
 void Model::remoteInsert(Symbol symbol) {
-  CrdtAlgorithm::remoteInsert(std::move(symbol), symbols);
+  CrdtAlgorithm::remoteInsert(symbol, symbols);
 }
 
 void Model::remoteErase(Symbol symbol) {
-  CrdtAlgorithm::remoteErase(std::move(symbol), symbols);
+  CrdtAlgorithm::remoteErase(symbol, symbols);
 }
 
 Symbol Model::generateSymbol(int index, char value) {
-  auto symbolBefore = (index - 1 < symbols.size() && index - 1 >= 0 && !symbols[index - 1].getPos().empty()) ? &symbols[
+  auto symbolBefore = (index - 1 < symbols.size() && index - 1 >= 0 &&
+                       !symbols[index - 1].getPos().empty()) ? &symbols[
           index - 1] : nullptr;
-  auto symbolAfter = (index < symbols.size() && index >= 0 && !symbols[index].getPos().empty()) ? &symbols[index]
-                                                                                                : nullptr;
+  auto symbolAfter = (index < symbols.size() && index >= 0 &&
+                      !symbols[index].getPos().empty()) ? &symbols[index]
+                                                        : nullptr;
   std::vector<int> newPos;
-  CrdtAlgorithm::generatePosBetween(symbolBefore, symbolAfter, &newPos);
-  Symbol s(value, editorId, digitGenerator++, newPos);
-  return s;
+  CrdtAlgorithm::generatePosBetween(symbolBefore, symbolAfter, newPos);
+
+  return Symbol(value, editorId, digitGenerator++, newPos);
 }
 
 unsigned int Model::getEditorId() {
@@ -70,6 +73,6 @@ void Model::setCurrentFile(std::string &filename) {
   currentFile = filename;
 }
 
-void Model::setCurrentFileContent(std::vector<Symbol> newContent) {
+void Model::setCurrentFileContent(std::vector<Symbol> &newContent) {
   symbols = std::move(newContent);
 }

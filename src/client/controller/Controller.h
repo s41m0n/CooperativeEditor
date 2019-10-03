@@ -7,10 +7,9 @@
 
 #include <string>
 #include <QTcpSocket>
-#include <QMainWindow>
+#include <QObject>
 
 #include "components/Message.h"
-#include "client/view/View.h"
 #include "client/model/Model.h"
 
 //Forward class declaration
@@ -21,7 +20,7 @@ class View;
  *
  * @autor Simone Magnani - s41m0n
  */
-class Controller : QMainWindow {
+class Controller : QObject {
 
 Q_OBJECT
 
@@ -40,7 +39,7 @@ public:
     Controller(Model *model, const std::string &host, int port);
 
     ///Destructor used for debug purpose only by now
-    ~Controller();
+    ~Controller() override;
 
     ///Method to handle a CrdtMessage - symbol inserted
     void handle_insert(int index, char value);

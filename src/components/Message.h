@@ -36,6 +36,12 @@ public:
     ///Constructor used in case of Connect Message
     BasicMessage(Type msgType, unsigned int editorId);
 
+    ///Copy constructor
+    BasicMessage(const BasicMessage &msg);
+
+    ///Move constructor
+    BasicMessage(BasicMessage &&msg) noexcept;
+
     ///Constructor used to create a message to be filled
     BasicMessage();
 
@@ -47,10 +53,12 @@ public:
 
     ///Method to print in human-readable format the message
     virtual std::string toString(int level);
+
     virtual std::string toString();
 
     ///Operator overload '<<' for BasicMessage when using QDataStream for serialization
-    friend QDataStream &operator<<(QDataStream &stream, const BasicMessage &val) {
+    friend QDataStream &
+    operator<<(QDataStream &stream, const BasicMessage &val) {
       stream << static_cast<quint32>(val.msgType) << val.editorId;
       return stream;
     }
@@ -85,10 +93,12 @@ public:
 
     ///Method to print in human-readable format the message
     std::string toString(int level) override;
+
     std::string toString() override;
 
     ///Operator overload '<<' for RequestMessage when using QDataStream for serialization
-    friend QDataStream &operator<<(QDataStream &stream, const RequestMessage &val) {
+    friend QDataStream &
+    operator<<(QDataStream &stream, const RequestMessage &val) {
       stream << static_cast<const BasicMessage &>(val) << val.filename.c_str();
       return stream;
     }
@@ -117,28 +127,33 @@ private:
 
 public:
     ///Classic constructor with all parameters
-    FileContentMessage(Type msgType, unsigned int editorId, std::vector<Symbol> &symbols);
+    FileContentMessage(Type msgType, unsigned int editorId,
+                       std::vector<Symbol> &symbols);
 
     ///Method build a FileContentMessage from a BasicMessage
     explicit FileContentMessage(BasicMessage &&msg);
 
     ///Return all the symbols
-    std::vector<Symbol> getSymbols();
+    std::vector<Symbol> &getSymbols();
 
     ///Method to print in human-readable format the message
     std::string toString(int level) override;
+
     std::string toString() override;
 
     ///Operator overload '<<' for FileContentMessage when using QDataStream for serialization
-    friend QDataStream &operator<<(QDataStream &stream, const FileContentMessage &val) {
-      stream << static_cast<const BasicMessage &>(val) << static_cast<quint32>(val.symbols.size());
+    friend QDataStream &
+    operator<<(QDataStream &stream, const FileContentMessage &val) {
+      stream << static_cast<const BasicMessage &>(val)
+             << static_cast<quint32>(val.symbols.size());
       for (auto &tmp: val.symbols)
         stream << tmp;
       return stream;
     }
 
     ///Operator overload '>>' for FileContentMessage when using QDataStream for serialization
-    friend QDataStream &operator>>(QDataStream &stream, FileContentMessage &val) {
+    friend QDataStream &
+    operator>>(QDataStream &stream, FileContentMessage &val) {
       quint32 size;
       stream >> size;
       Symbol tmp;
@@ -173,14 +188,16 @@ public:
     CrdtMessage() = default;
 
     ///Return the Symbol contained in the Message
-    Symbol getSymbol();
+    Symbol &getSymbol();
 
     ///Method to print in human-readable format the message
     std::string toString(int level) override;
+
     std::string toString() override;
 
     ///Operator overload '<<' for CrdtMessage when using QDataStream for serialization
-    friend QDataStream &operator<<(QDataStream &stream, const CrdtMessage &val) {
+    friend QDataStream &
+    operator<<(QDataStream &stream, const CrdtMessage &val) {
       stream << static_cast<const BasicMessage &>(val) << val.symbol;
       return stream;
     }

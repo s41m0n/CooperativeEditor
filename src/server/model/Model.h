@@ -8,6 +8,7 @@
 #include <vector>
 #include <map>
 #include <string>
+
 #include "components/Symbol.h"
 
 class Model {
@@ -32,10 +33,10 @@ private:
     std::string availableFiles;
 
     ///Method to write on file the respective sequence of symbols
-    void storeFileSymbols(std::string& filename);
+    void storeFileSymbols(std::string &filename);
 
     ///Method to restore from file the respective sequence of symbols
-    void loadFileSymbols(std::string& filename);
+    void loadFileSymbols(std::string &filename);
 
 public:
     ///Classic constructor
@@ -47,21 +48,21 @@ public:
     ///Method to generate a new editor id
     unsigned int generateEditorId();
 
-    void userInsert(unsigned int connId, Symbol symbol);
+    void userInsert(unsigned int connId, Symbol &symbol);
 
-    void userErase(unsigned int connId, Symbol symbol);
+    void userErase(unsigned int connId, Symbol &symbol);
 
     ///Method called when a user requests to create a file
-    bool createFileByUser(unsigned int connId, std::string& filename);
+    bool createFileByUser(unsigned int connId, std::string &filename);
 
     ///Method called when a user requests to open a file
-    bool openFileByUser(unsigned int connId, std::string& filename);
+    bool openFileByUser(unsigned int connId, std::string &filename);
 
     ///Returns the list (string) of all available files
-    std::string& getAvailableFiles();
+    std::string &getAvailableFiles();
 
     ///Returns the list of symbols for the file the user connId has requested
-    std::vector<Symbol> getFileSymbolList(unsigned int connId);
+    std::vector<Symbol> &getFileSymbolList(unsigned int connId);
 
 };
 
