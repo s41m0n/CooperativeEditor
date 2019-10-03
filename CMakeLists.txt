@@ -41,3 +41,6 @@ add_executable(CooperativeServer src/mainserver.cpp src/server/controller/Contro
 target_link_libraries(CooperativeClient ${CONAN_LIBS})
 #Add libraries to compile the server
 target_link_libraries(CooperativeServer ${CONAN_LIBS})
+if (CMAKE_G++_COMPILER_VERSION VERSION_LESS 9.0.0)
+    target_link_libraries(CooperativeServer "-lstdc++fs")
+endif()
