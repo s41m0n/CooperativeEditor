@@ -10,7 +10,7 @@
 #include <string>
 #include <utility>
 
-#include "Symbol.h"
+#include "components/Symbol.h"
 
 ///Enumeration to identify the type of the message
 enum class Type {
@@ -35,9 +35,6 @@ protected:
 public:
     ///Constructor used in case of Connect Message
     BasicMessage(Type msgType, unsigned int editorId);
-
-    ///Copy constructor
-    BasicMessage(const BasicMessage &msg);
 
     ///Move constructor
     BasicMessage(BasicMessage &&msg) noexcept;

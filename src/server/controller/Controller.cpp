@@ -72,7 +72,7 @@ void Controller::onReadyRead() {
 
       model->userInsert(clientId, msg.getSymbol());
       std::lock_guard<std::mutex> guard2(queueMutex);
-      messages.push(msg);
+      messages.push(std::move(msg));
       break;
     }
     case Type::ERASE : {
@@ -82,7 +82,7 @@ void Controller::onReadyRead() {
 
       model->userErase(clientId, msg.getSymbol());
       std::lock_guard<std::mutex> guard2(queueMutex);
-      messages.push(msg);
+      messages.push(std::move(msg));
       break;
     }
     case Type::CREATE : {

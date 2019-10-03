@@ -1,21 +1,13 @@
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "OCUnusedGlobalDeclarationInspection"
-#pragma ide diagnostic ignored "google-default-arguments"
 //
 // Created by s41m0n on 13/08/19.
 //
 
-#include "Message.h"
+#include "components/Message.h"
 
 //BASIC MESSAGE
 BasicMessage::BasicMessage(Type msgType, unsigned int editorId) : editorId(
         editorId), msgType(msgType) {
 }
-
-BasicMessage::BasicMessage(const BasicMessage &msg) : BasicMessage(msg.msgType,
-                                                                   msg.editorId) {
-}
-#pragma clang diagnostic pop
 
 BasicMessage::BasicMessage(BasicMessage &&msg) noexcept {
   editorId = msg.editorId;

@@ -9,7 +9,7 @@
 #include <QtCore/QDataStream>
 #include <string>
 
-#include "Identifier.h"
+#include "components/Identifier.h"
 
 /**
  * Symbol class, to identify each inserted character
