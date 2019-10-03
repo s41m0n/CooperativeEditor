@@ -22,7 +22,7 @@ Once installed, create a default conan profile under `~/.conan/profiles/default`
 Remind to change the value `compiler.libcxx` and `compiler.version` according to your current version. The final configuration should be similar to this one:
 
 ```bash
-~/.conan/profile/default
+~/.conan/profiles/default
 ------------------------------------------------------------------------------------------------------------------------
 [settings]
  os=Linux
