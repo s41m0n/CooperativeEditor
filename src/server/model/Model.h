@@ -1,7 +1,3 @@
-//
-// Created by s41m0n on 07/06/19.
-//
-
 #ifndef COOPERATIVEEDITOR_MODEL_H
 #define COOPERATIVEEDITOR_MODEL_H
 

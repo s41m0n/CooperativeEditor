@@ -1,7 +1,3 @@
-//
-// Created by s41m0n on 13/08/19.
-//
-
 #include "components/Message.h"
 
 //BASIC MESSAGE

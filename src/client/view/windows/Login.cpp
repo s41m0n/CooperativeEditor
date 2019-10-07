@@ -1,7 +1,3 @@
-//
-// Created by s41m0n on 07/10/19.
-//
-
 #include <QLabel>
 #include <QGroupBox>
 #include <QGridLayout>

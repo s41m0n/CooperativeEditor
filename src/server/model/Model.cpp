@@ -1,7 +1,3 @@
-//
-// Created by s41m0n on 07/06/19.
-//
-
 #include <spdlog/spdlog.h>
 #include <filesystem>
 #include <algorithm>

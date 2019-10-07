@@ -1,7 +1,3 @@
-//
-// Created by s41m0n on 17/05/19.
-//
-
 #include "components/Identifier.h"
 
 Identifier::Identifier(unsigned int editorId, unsigned int digit) : editorId(editorId), digit(digit) {}

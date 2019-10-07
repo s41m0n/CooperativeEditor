@@ -1,7 +1,3 @@
-//
-// Created by s41m0n on 07/10/19.
-//
-
 #ifndef COOPERATIVEEDITOR_LOGIN_H
 #define COOPERATIVEEDITOR_LOGIN_H
 

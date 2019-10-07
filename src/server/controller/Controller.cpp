@@ -1,7 +1,3 @@
-//
-// Created by s41m0n on 16/05/19.
-//
-
 #include <spdlog/spdlog.h>
 #include <memory>
 #include <QHostAddress>
@@ -39,11 +35,11 @@ void Controller::onNewConnection() {
 
   //Sending Connect and FileListing Message
   BasicMessage msg(Type::CONNECT, clientId);
-  RequestMessage msg2(Type::LISTING, clientId, model->getAvailableFiles());
+
   QDataStream ds(clientSocket);
-  ds << msg << msg2;
+  ds << msg;
   spdlog::debug("Sent Message:\n" + msg.toString());
-  spdlog::debug("Sent Message:\n" + msg2.toString());
+
 }
 
 void
@@ -62,11 +58,23 @@ void Controller::onReadyRead() {
   BasicMessage base;
   ds >> base;
 
-
   switch (base.getMsgType()) {
 
     case Type::LOGIN : {
-      //ASDASDASDASDASD
+      LoginMessage msg(std::move(base));
+      ds >> msg;
+      spdlog::debug("Received Message!\n" + msg.toString());
+      bool result;
+
+      //TEMPORARY METHOD TO CHECK USER LOGIN PERMISSION
+      result = msg.getUsername() == "ciao" && msg.getPassword() == "ciao";
+
+      ResultMessage newMsg(Type::LOGIN_RESULT, clientId, result);
+      RequestMessage newMsg2(Type::LISTING, clientId, model->getAvailableFiles());
+      ds << newMsg << newMsg2;
+      spdlog::debug("Sent Message!\n" + newMsg.toString());
+      spdlog::debug("Sent Message:\n" + newMsg2.toString());
+      break;
     }
     case Type::INSERT : {
       CrdtMessage msg(std::move(base));

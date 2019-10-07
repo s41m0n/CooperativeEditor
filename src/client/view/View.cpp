@@ -1,8 +1,3 @@
-//  controller->start();
-
-// Created by s41m0n on 10/06/19.
-//
-
 #include <spdlog/spdlog.h>
 
 #include "client/view/windows/Login.h"
