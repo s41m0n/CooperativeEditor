@@ -36,7 +36,7 @@ public slots:
     ///Method to be called once something has been read on socket
     void onReadyRead();
 
-    void onLoginRequest(std::string &username, std::string &password);
+    void onLoginRequest(std::string username, std::string password);
 
     ///Method to handle a CrdtMessage - symbol inserted
     void handle_insert(int index, char value);

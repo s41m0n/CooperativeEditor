@@ -124,7 +124,7 @@ void Controller::handle_erase(int index) {
   }
 }
 
-void Controller::onLoginRequest(std::string &username, std::string &password) {
+void Controller::onLoginRequest(std::string username, std::string password) {
 
   LoginMessage msg(model->getEditorId(), username, password);
   QDataStream ds(&_socket);

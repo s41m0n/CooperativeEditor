@@ -1,51 +1,66 @@
-#include <QLabel>
-#include <QGroupBox>
-#include <QGridLayout>
-#include <QLineEdit>
-#include <QPushButton>
 #include "Login.h"
+#include <QGridLayout>
 
-Login::Login(QWidget *parent) : QMainWindow(parent){
+Login::Login(QWidget *parent) : QMainWindow(parent) {
 
   //this->setFixedSize(355, 240);
   this->setWindowTitle("Login Form");
 
-  auto w = new QWidget(this);
-  auto layout = new QGridLayout(w);
+  mainWidget = new QWidget(this);
+  auto layout = new QGridLayout(mainWidget);
 
-  setCentralWidget(w);
-  w->setLayout(layout);
+  setCentralWidget(mainWidget);
+  mainWidget->setLayout(layout);
 
-  auto label = new QLabel(this);
-  label->setText("Welcome to Our Cooperative Editor!");
-  layout->addWidget(label, 0, 0);
+  title = new QLabel(this);
+  title->setText("Welcome to Our Cooperative Editor!");
+  layout->addWidget(title, 0, 0);
 
-  auto *b = new QGroupBox("Insert your Personal Data::", w);
-  b->setLayout(new QVBoxLayout());
-  layout->addWidget(b, 1, 0, 1, 2);
+  loginBox = new QGroupBox("Insert your Personal Data:", mainWidget);
+  loginBox->setLayout(new QVBoxLayout());
+  layout->addWidget(loginBox, 1, 0, 1, 2);
 
-  auto *user = new QLabel("Username:", b);
-  b->layout()->addWidget(user);
+  usernameLabel = new QLabel("Username:", loginBox);
+  loginBox->layout()->addWidget(usernameLabel);
 
-  auto *u = new QLineEdit();
-  b->layout()->addWidget(u);
+  usernameTextField = new QLineEdit();
+  loginBox->layout()->addWidget(usernameTextField);
 
-  auto *psswd = new QLabel("Password:", b);
-  b->layout()->addWidget(psswd);
+  passwordLabel = new QLabel("Password:", loginBox);
+  loginBox->layout()->addWidget(passwordLabel);
 
-  auto *p = new QLineEdit();
-  p->setEchoMode(p->Password);
-  p->setStyleSheet("lineedit-password-character: 42");
-  b->layout()->addWidget(p);
+  passwordTextField = new QLineEdit();
+  passwordTextField->setEchoMode(passwordTextField->Password);
+  passwordTextField->setStyleSheet("lineedit-password-character: 42");
+  loginBox->layout()->addWidget(passwordTextField);
 
-  auto* button1 = new QPushButton("Enter");
-  auto* button2 = new QPushButton("Cancel");
+  buttonEnter = new QPushButton("Enter");
+  buttonCancel = new QPushButton("Cancel");
 
-  layout->addWidget(button1, 2, 0);
-  layout->addWidget(button2, 3, 0);
+  layout->addWidget(buttonEnter, 2, 0);
+  layout->addWidget(buttonCancel, 3, 0);
 
+  QObject::connect(buttonEnter, SIGNAL(clicked()), this,
+                   SLOT(emitLoginSignal()));
+
+  QObject::connect(buttonCancel, SIGNAL(clicked()), this,
+                   SLOT(cancel()));
 }
 
 void Login::onLoginResponse(bool result) {
 
 }
+
+void Login::emitLoginSignal() {
+
+  std::string username = usernameTextField->text().toStdString();
+  std::string password = passwordTextField->text().toStdString();
+
+  emit loginRequest(username, password);
+}
+
+void Login::cancel() {
+  this->close();
+}
+
+
