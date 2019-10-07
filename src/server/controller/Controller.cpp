@@ -65,6 +65,9 @@ void Controller::onReadyRead() {
 
   switch (base.getMsgType()) {
 
+    case Type::LOGIN : {
+      //ASDASDASDASDASD
+    }
     case Type::INSERT : {
       CrdtMessage msg(std::move(base));
       ds >> msg;
@@ -90,16 +93,15 @@ void Controller::onReadyRead() {
       ds >> msg;
       spdlog::debug("Received Message!\n" + msg.toString());
 
-      auto filename = msg.getFilename();
-      if (model->createFileByUser(clientId, filename)) {
-        RequestMessage newMsg(Type::FILEOK, clientId, filename);
+      if (model->createFileByUser(clientId, msg.getFilename())) {
+        ResultMessage newMsg(Type::FILE_RESULT, clientId, true);
         std::vector<Symbol> empty;
-        FileContentMessage newMsg2(Type::CONTENT, clientId, empty);
+        FileContentMessage newMsg2(clientId, empty);
         ds << newMsg << newMsg2;
         spdlog::debug("Sent Message!\n" + newMsg.toString());
         spdlog::debug("Sent Message!\n" + newMsg2.toString());
       } else {
-        RequestMessage newMsg(Type::FILEKO, clientId, filename);
+        ResultMessage newMsg(Type::FILE_RESULT, clientId, false);
         ds << newMsg;
         spdlog::debug("Sent Message!\n" + newMsg.toString());
       }
@@ -110,17 +112,15 @@ void Controller::onReadyRead() {
       ds >> msg;
       spdlog::debug("Received Message!\n" + msg.toString());
 
-      auto filename = msg.getFilename();
-
-      if (model->openFileByUser(clientId, filename)) {
+      if (model->openFileByUser(clientId, msg.getFilename())) {
         auto symbolList = model->getFileSymbolList(clientId);
-        RequestMessage newMsg(Type::FILEOK, clientId, filename);
-        FileContentMessage newMsg2(Type::CONTENT, clientId, symbolList);
+        ResultMessage newMsg(Type::FILE_RESULT, clientId, true);
+        FileContentMessage newMsg2(clientId, symbolList);
         ds << newMsg << newMsg2;
         spdlog::debug("Sent Message!\n" + newMsg.toString());
         spdlog::debug("Sent Message!\n" + newMsg2.toString());
       } else {
-        RequestMessage newMsg(Type::FILEKO, clientId, filename);
+        ResultMessage newMsg(Type::FILE_RESULT, clientId, false);
         ds << newMsg;
         spdlog::debug("Sent Message!\n{}", newMsg.toString());
       }
@@ -129,8 +129,10 @@ void Controller::onReadyRead() {
     default :
       throw std::runtime_error("Must never read different types of Message!!!");
   }
-  if (sender->bytesAvailable())
+  //TEMPORARY SOLUTION
+  if (sender->bytesAvailable()) {
     onReadyRead();
+  }
 }
 
 

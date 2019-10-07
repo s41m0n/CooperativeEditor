@@ -14,8 +14,9 @@
 
 ///Enumeration to identify the type of the message
 enum class Type {
-    CONNECT = 0, LISTING = 1, CREATE = 2, OPEN = 3, FILEOK = 4, FILEKO = 5,
-    CONTENT = 6, INSERT = 7, ERASE = 8, UNKNOWN = -1,
+    CONNECT = 0, LISTING = 1, CREATE = 2, OPEN = 3, LOGIN = 4,
+    FILE_RESULT = 5, LOGIN_RESULT = 6,
+    CONTENT = 7, INSERT = 8, ERASE = 9, UNKNOWN = -1,
 };
 
 /**
@@ -63,6 +64,87 @@ public:
     ///Operator overload '>>' for BasicMessage when using QDataStream for serialization
     friend QDataStream &operator>>(QDataStream &stream, BasicMessage &val) {
       stream >> reinterpret_cast<quint32 &>(val.msgType) >> val.editorId;
+      return stream;
+    };
+};
+
+/**
+ * ResultMessage class, represents a result of a specific request (LOGIN, FILE)
+ */
+class ResultMessage : public BasicMessage {
+
+private:
+    bool result;
+
+public:
+    ResultMessage(Type msgType, unsigned editorId, bool result);
+
+    explicit ResultMessage(BasicMessage &&msg);
+
+    bool isPositive();
+
+    ///Method to print in human-readable format the message
+    std::string toString(int level) override;
+
+    std::string toString() override;
+
+    friend QDataStream &
+    operator<<(QDataStream &stream, const ResultMessage &val) {
+      stream << static_cast<const BasicMessage &>(val) << val.result;
+      return stream;
+    }
+
+    ///Operator overload '>>' for RequestMessage when using QDataStream for serialization
+    friend QDataStream &operator>>(QDataStream &stream, ResultMessage &val) {
+      stream >> val.result;
+      return stream;
+    };
+
+};
+
+class LoginMessage : public BasicMessage {
+
+private:
+    std::string username;
+    std::string password;
+
+public:
+    ///Classic constructor with all parameters given
+    LoginMessage(unsigned int editorId, std::string &username, std::string &password);
+
+    ///Method build a RequestMessage from a BasicMessage
+    explicit LoginMessage(BasicMessage &&msg);
+
+    ///Return the username
+    std::string &getUsername();
+
+    ///Return the password
+    std::string &getPassword();
+
+    ///Method to print in human-readable format the message
+    std::string toString(int level) override;
+
+    std::string toString() override;
+
+    ///Operator overload '<<' for RequestMessage when using QDataStream for serialization
+    friend QDataStream &
+    operator<<(QDataStream &stream, const LoginMessage &val) {
+      stream << static_cast<const BasicMessage &>(val) << val.username.c_str() << val.password.c_str();
+      return stream;
+    }
+
+    ///Operator overload '>>' for RequestMessage when using QDataStream for serialization
+    friend QDataStream &operator>>(QDataStream &stream, LoginMessage &val) {
+      char *tmp;
+      stream >> tmp;
+      if (tmp) {
+        val.username = std::string(tmp);
+      }
+      stream >> tmp;
+      if (tmp) {
+        val.password = std::string(tmp);
+      }
+      delete[] tmp;
       return stream;
     };
 };
@@ -124,7 +206,7 @@ private:
 
 public:
     ///Classic constructor with all parameters
-    FileContentMessage(Type msgType, unsigned int editorId,
+    FileContentMessage(unsigned int editorId,
                        std::vector<Symbol> &symbols);
 
     ///Method build a FileContentMessage from a BasicMessage

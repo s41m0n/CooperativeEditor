@@ -39,6 +39,64 @@ std::string BasicMessage::toString() {
   return toString(0);
 }
 
+//RESULT MESSAGE
+ResultMessage::ResultMessage(Type msgType, unsigned editorId, bool result) : BasicMessage(msgType, editorId), result(result){
+}
+
+ResultMessage::ResultMessage(BasicMessage &&msg) : BasicMessage(std::move(msg)){
+}
+
+bool ResultMessage::isPositive() {
+  return result;
+}
+
+std::string ResultMessage::toString(int level) {
+  return std::string(level, '\t') + "ResultMessage{\n" +
+         std::string(level + 1, '\t') + "msgType: " +
+         std::to_string(static_cast<int>(msgType)) + "\n" +
+         std::string(level + 1, '\t') + "editorId: " +
+         std::to_string(editorId) + "\n" +
+         std::to_string(result) + "\n" +
+         std::string(level, '\t') + "}";
+}
+
+std::string ResultMessage::toString() {
+  return toString(0);
+}
+
+//LOGIN MESSAGE
+
+LoginMessage::LoginMessage(unsigned editorId, std::string &username, std::string &password ) : BasicMessage(Type::LOGIN, editorId), username(username), password(password){
+}
+
+LoginMessage::LoginMessage(BasicMessage &&msg) : BasicMessage(std::move(msg)){
+}
+
+std::string &LoginMessage::getUsername() {
+  return username;
+}
+
+std::string &LoginMessage::getPassword() {
+return password;
+}
+
+std::string LoginMessage::toString(int level) {
+  return std::string(level, '\t') + "ResultMessage{\n" +
+         std::string(level + 1, '\t') + "msgType: " +
+         std::to_string(static_cast<int>(msgType)) + "\n" +
+         std::string(level + 1, '\t') + "editorId: " +
+         std::to_string(editorId) + "\n" +
+         std::string(level + 1, '\t') + "username: " +
+         username + "\n" +
+         std::string(level + 1, '\t') + "password: " +
+         password + "\n" +
+         std::string(level, '\t') + "}";
+}
+
+std::string LoginMessage::toString() {
+  return toString(0);
+}
+
 //CRDT MESSAGE
 CrdtMessage::CrdtMessage(Type msgType, Symbol symbol, unsigned int editorId)
         : BasicMessage(msgType, editorId),
@@ -96,9 +154,9 @@ std::string RequestMessage::toString() {
 }
 
 //FILE CONTENT MESSAGE
-FileContentMessage::FileContentMessage(Type msgType, unsigned int editorId,
+FileContentMessage::FileContentMessage(unsigned int editorId,
                                        std::vector<Symbol> &symbols)
-        : BasicMessage(msgType, editorId), symbols(symbols) {
+        : BasicMessage(Type::CONTENT, editorId), symbols(symbols) {
 }
 
 FileContentMessage::FileContentMessage(BasicMessage &&msg) : BasicMessage(

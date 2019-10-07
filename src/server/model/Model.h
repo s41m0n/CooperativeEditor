@@ -53,10 +53,10 @@ public:
     void userErase(unsigned int connId, Symbol &symbol);
 
     ///Method called when a user requests to create a file
-    bool createFileByUser(unsigned int connId, std::string &filename);
+    bool createFileByUser(unsigned int connId, std::string filename);
 
     ///Method called when a user requests to open a file
-    bool openFileByUser(unsigned int connId, std::string &filename);
+    bool openFileByUser(unsigned int connId, std::string filename);
 
     ///Returns the list (string) of all available files
     std::string &getAvailableFiles();

@@ -32,6 +32,15 @@ void Controller::onReadyRead() {
       model->setEditorId(base.getEditorId());
       break;
     }
+    case Type:: LOGIN_RESULT : {
+      ResultMessage msg(std::move(base));
+      ds >> msg;
+      spdlog::debug("Received Message!\n{}", msg.toString());
+      if(!msg.isPositive()) {
+        throw std::runtime_error("Login Failed");
+      }
+      break;
+    }
     case Type::LISTING : {
       RequestMessage msg(std::move(base));
       ds >> msg;
@@ -53,37 +62,20 @@ void Controller::onReadyRead() {
       ds << msgToSend;
       break;
     }
-    case Type::FILEOK : {
-      RequestMessage msg(std::move(base));
+    case Type::FILE_RESULT : {
+      ResultMessage msg(std::move(base));
       ds >> msg;
       spdlog::debug("Received Message!\n{}", msg.toString());
+      if(!msg.isPositive()) {
+        throw std::runtime_error("Unable to create file");
+      }
       break;
-    }
-    case Type::FILEKO : {
-      RequestMessage msg(std::move(base));
-      ds >> msg;
-      spdlog::debug("Received Message!\n{}", msg.toString());
-      throw std::runtime_error("Unable to create file");
     }
     case Type::CONTENT : {
       FileContentMessage msg(std::move(base));
       ds >> msg;
       spdlog::debug("Received Message!\n{}", msg.toString());
       model->setCurrentFileContent(msg.getSymbols());
-      std::vector<std::pair<int, char>> toInsert({{0, 's'},
-                                                  {1, 'i'},
-                                                  {2, 'm'},
-                                                  {3, 'o'}});
-      std::vector<int> toDelete({});
-
-      for (auto pair : toInsert) {
-        handle_insert(pair.first, pair.second);
-      }
-
-      for (auto pos : toDelete) {
-        handle_erase(pos);
-      }
-
       break;
     }
     case Type::INSERT : {
@@ -137,5 +129,10 @@ void Controller::handle_erase(int index) {
 }
 
 void Controller::onLoginRequest(std::string &username, std::string &password) {
+
+  LoginMessage msg(model->getEditorId(), username, password);
+  QDataStream ds(&_socket);
+  ds << msg;
+  spdlog::debug("Login Request sent!\n{}", msg.toString());
 
 }

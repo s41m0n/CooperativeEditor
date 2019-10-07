@@ -83,7 +83,7 @@ void Model::userErase(unsigned int connId, Symbol &symbol) {
 
 }
 
-bool Model::createFileByUser(unsigned int connId, std::string &filename) {
+bool Model::createFileByUser(unsigned int connId, std::string filename) {
   std::lock_guard<std::mutex> guard(openedFilesMapMutex);
 
   if (availableFiles.find(filename) != std::string::npos) {
@@ -97,7 +97,7 @@ bool Model::createFileByUser(unsigned int connId, std::string &filename) {
   }
 }
 
-bool Model::openFileByUser(unsigned int connId, std::string &filename) {
+bool Model::openFileByUser(unsigned int connId, std::string filename) {
   std::lock_guard<std::mutex> guard(openedFilesMapMutex);
 
   if (availableFiles.empty() || availableFiles.find(filename)) {
