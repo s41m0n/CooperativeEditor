@@ -17,7 +17,7 @@
  *
  * @autor Simone Magnani - s41m0n
  */
-class Controller : QObject {
+class Controller : public QObject {
 
 Q_OBJECT
 
@@ -35,18 +35,22 @@ public:
     ///Destructor used for debug purpose only by now
     ~Controller() override;
 
+public slots:
+
+    ///Method to be called once something has been read on socket
+    void onReadyRead();
+
+    void onLoginRequest(std::string &username, std::string &password);
+
     ///Method to handle a CrdtMessage - symbol inserted
     void handle_insert(int index, char value);
 
     ///Method to handle a CrdtMessage - symbol erased
     void handle_erase(int index);
 
-public slots:
-
-    ///Method to be called once something has been read on socket
-    void onReadyRead();
-
 signals:
+
+  void loginResponse(bool response);
 
 
 };

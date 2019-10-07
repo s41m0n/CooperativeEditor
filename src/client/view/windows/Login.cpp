@@ -49,3 +49,7 @@ Login::Login(QWidget *parent) : QMainWindow(parent){
   layout->addWidget(button2, 3, 0);
 
 }
+
+void Login::onLoginResponse(bool result) {
+
+}

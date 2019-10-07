@@ -135,3 +135,7 @@ void Controller::handle_erase(int index) {
     spdlog::debug("Current text: {}", model->textify());
   }
 }
+
+void Controller::onLoginRequest(std::string &username, std::string &password) {
+
+}

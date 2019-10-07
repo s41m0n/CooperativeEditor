@@ -16,6 +16,11 @@ class Login : public QMainWindow {
 public:
     explicit Login(QWidget *parent = nullptr);
 
+public slots:
+    void onLoginResponse(bool result);
+
+signals:
+    void loginRequest(std::string &username, std::string &password);
 };
 
 

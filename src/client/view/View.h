@@ -9,6 +9,7 @@
 #include <QMainWindow>
 
 #include "client/model/Model.h"
+#include "client/controller/Controller.h"
 
 /**Class View, the responsible of the user interface
  *
@@ -17,12 +18,14 @@
 class View {
 
 private:
-    ///A reference to the Controller
-    Model *controller;
+    ///A reference to the Model
+    Model *model;
+
+    Controller* controller;
 
 public:
     ///Constructor which also assigns the controller
-    explicit View(Model *controller);
+    explicit View(Model *model, Controller *controller);
 
     ///Destructor, used for debug
     ~View();
