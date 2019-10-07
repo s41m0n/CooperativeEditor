@@ -1,6 +1,7 @@
 #include <spdlog/spdlog.h>
 #include <QHostAddress>
 #include <QAbstractSocket>
+#include <QCryptographicHash>
 
 #include "components/Message.h"
 #include "client/controller/Controller.h"
@@ -28,11 +29,11 @@ void Controller::onReadyRead() {
       model->setEditorId(base.getEditorId());
       break;
     }
-    case Type:: LOGIN_RESULT : {
+    case Type::LOGIN_RESULT : {
       ResultMessage msg(std::move(base));
       ds >> msg;
       spdlog::debug("Received Message!\n{}", msg.toString());
-      if(!msg.isPositive()) {
+      if (!msg.isPositive()) {
         throw std::runtime_error("Login Failed");
       }
       break;
@@ -62,7 +63,7 @@ void Controller::onReadyRead() {
       ResultMessage msg(std::move(base));
       ds >> msg;
       spdlog::debug("Received Message!\n{}", msg.toString());
-      if(!msg.isPositive()) {
+      if (!msg.isPositive()) {
         throw std::runtime_error("Unable to create file");
       }
       break;
@@ -124,9 +125,15 @@ void Controller::handle_erase(int index) {
   }
 }
 
-void Controller::onLoginRequest(std::string username, std::string password) {
+void
+Controller::onLoginRequest(std::string username, const std::string &password) {
 
-  LoginMessage msg(model->getEditorId(), username, password);
+  QByteArray hashedPassword = QCryptographicHash::hash(
+          QByteArray::fromStdString(password), QCryptographicHash::Sha3_512);
+
+  auto stringHashedPassword = hashedPassword.toStdString(); //discuti con Simo su algoritmo da usare e se possono dare problemi caratteri dati da .toStdString
+
+  LoginMessage msg(model->getEditorId(), username, stringHashedPassword);
   QDataStream ds(&_socket);
   ds << msg;
   spdlog::debug("Login Request sent!\n{}", msg.toString());
