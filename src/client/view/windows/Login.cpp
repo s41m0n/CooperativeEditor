@@ -42,10 +42,10 @@ Login::Login(QWidget *parent) : QMainWindow(parent){
   p->setStyleSheet("lineedit-password-character: 42");
   b->layout()->addWidget(p);
 
-  auto* button1 = new QPushButton("Cancel");
-  auto* button2 = new QPushButton("Enter");
+  auto* button1 = new QPushButton("Enter");
+  auto* button2 = new QPushButton("Cancel");
 
   layout->addWidget(button1, 2, 0);
-  layout->addWidget(button2, 2, 1);
+  layout->addWidget(button2, 3, 0);
 
 }
