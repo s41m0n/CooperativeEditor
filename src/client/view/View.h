@@ -21,12 +21,6 @@ private:
     ///A reference to the Controller
     Controller *controller;
 
-    ///The main window
-    QMainWindow mainWindow;
-
-    ///Test Label
-    QLabel *label;
-
 public:
     ///Constructor which also assigns the controller
     explicit View(Controller *controller);

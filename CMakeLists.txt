@@ -30,7 +30,8 @@ find_package(Qt5Network REQUIRED)
 
 #Set the client executable
 add_executable(CooperativeClient src/mainclient.cpp src/client/controller/Controller.cpp src/client/model/Model.cpp src/client/view/View.cpp
-        src/components/Symbol.cpp src/components/Identifier.cpp src/components/Message.cpp src/utility/CrdtAlgorithm.cpp)
+        src/components/Symbol.cpp src/components/Identifier.cpp src/components/Message.cpp src/utility/CrdtAlgorithm.cpp
+        src/client/view/windows/LoginDialog.cpp)
 
 #Set the server executable
 add_executable(CooperativeServer src/mainserver.cpp src/server/controller/Controller.cpp src/server/model/Model.cpp

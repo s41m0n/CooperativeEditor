@@ -1,3 +1,5 @@
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "readability-static-accessed-through-instance"
 #include <iostream>
 #include <spdlog/spdlog.h>
 #include <QApplication>
@@ -10,7 +12,7 @@ int main(int argc, char **argv) {
   QApplication app(argc, argv);
 
   if (argc != 2) {
-    std::cout << "Usage: ./server <port_number>" << std::endl;
+    std::cout << "Usage: " << argv[0] << " <port_number>" << std::endl;
     return -1;
   }
 
@@ -22,3 +24,5 @@ int main(int argc, char **argv) {
 
   return app.exec();
 }
+
+#pragma clang diagnostic pop

@@ -5,10 +5,10 @@
 
 #include <spdlog/spdlog.h>
 
+#include "client/view/windows/LoginDialog.h"
 #include "client/view/View.h"
 
-View::View(Controller *controller) : controller(controller),
-                                     label(new QLabel(&mainWindow)) {
+View::View(Controller *controller) : controller(controller){
   spdlog::debug("Created View");
 }
 
@@ -17,6 +17,6 @@ View::~View() {
 }
 
 void View::init() {
-  label->setText("HELLO QT");
-  mainWindow.show();
+  auto login = new LoginDialog();
+  login->show();
 }
