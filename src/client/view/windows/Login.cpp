@@ -7,16 +7,17 @@
 #include <QGridLayout>
 #include <QLineEdit>
 #include <QPushButton>
-#include "LoginDialog.h"
+#include "Login.h"
 
-LoginDialog::LoginDialog(QWidget *parent) : QMainWindow(parent){
+Login::Login(QWidget *parent) : QMainWindow(parent){
 
   //this->setFixedSize(355, 240);
   this->setWindowTitle("Login Form");
 
   auto w = new QWidget(this);
-  auto *layout = new QGridLayout(w);
+  auto layout = new QGridLayout(w);
 
+  setCentralWidget(w);
   w->setLayout(layout);
 
   auto label = new QLabel(this);

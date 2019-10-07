@@ -5,7 +5,7 @@
 
 #include <spdlog/spdlog.h>
 
-#include "client/view/windows/LoginDialog.h"
+#include "client/view/windows/Login.h"
 #include "client/view/View.h"
 
 View::View(Model *controller) : controller(controller){
@@ -17,6 +17,6 @@ View::~View() {
 }
 
 void View::init() {
-  auto login = new LoginDialog();
+  auto login = new Login();
   login->show();
 }
