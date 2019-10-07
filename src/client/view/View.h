@@ -8,8 +8,7 @@
 #include <QLabel>
 #include <QMainWindow>
 
-//Class forward declaration
-class Controller;
+#include "client/model/Model.h"
 
 /**Class View, the responsible of the user interface
  *
@@ -19,11 +18,11 @@ class View {
 
 private:
     ///A reference to the Controller
-    Controller *controller;
+    Model *controller;
 
 public:
     ///Constructor which also assigns the controller
-    explicit View(Controller *controller);
+    explicit View(Model *controller);
 
     ///Destructor, used for debug
     ~View();

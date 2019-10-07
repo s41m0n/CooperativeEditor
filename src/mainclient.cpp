@@ -22,9 +22,8 @@ int main(int argc, char** argv) {
 
   Model model;
   Controller controller(&model, argv[1], std::stoi(argv[2]));
-  View view(&controller);
+  View view(&model);
 
-  controller.setView(&view);
   view.init();
 
   return app.exec();

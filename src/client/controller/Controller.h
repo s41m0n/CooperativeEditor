@@ -12,9 +12,6 @@
 #include "components/Message.h"
 #include "client/model/Model.h"
 
-//Forward class declaration
-class View;
-
 /**
  * Controller class for the client
  *
@@ -27,9 +24,6 @@ Q_OBJECT
 private:
     ///The instance of the model
     Model *model;
-
-    ///The instance of the view
-    View *view;
 
     ///The QTcpSOcket
     QTcpSocket _socket;
@@ -47,13 +41,13 @@ public:
     ///Method to handle a CrdtMessage - symbol erased
     void handle_erase(int index);
 
-    ///Method to start the controller (Which will start the view)
-    void setView(View *newView);
-
 public slots:
 
     ///Method to be called once something has been read on socket
     void onReadyRead();
+
+signals:
+
 
 };
 

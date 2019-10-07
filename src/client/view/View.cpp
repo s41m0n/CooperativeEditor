@@ -8,7 +8,7 @@
 #include "client/view/windows/LoginDialog.h"
 #include "client/view/View.h"
 
-View::View(Controller *controller) : controller(controller){
+View::View(Model *controller) : controller(controller){
   spdlog::debug("Created View");
 }
 

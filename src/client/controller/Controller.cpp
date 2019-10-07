@@ -6,11 +6,11 @@
 #include <QHostAddress>
 #include <QAbstractSocket>
 
-#include "client/controller/Controller.h"
 #include "components/Message.h"
+#include "client/controller/Controller.h"
 
 Controller::Controller(Model *model, const std::string &host, int port)
-        : model(model), view(), _socket(this) {
+        : model(model), _socket(this) {
   _socket.connectToHost(QHostAddress(host.c_str()), port);
   connect(&_socket, SIGNAL(readyRead()), this, SLOT(onReadyRead()));
   spdlog::debug("Created Controller");
@@ -135,8 +135,3 @@ void Controller::handle_erase(int index) {
     spdlog::debug("Current text: {}", model->textify());
   }
 }
-
-void Controller::setView(View *newView) {
-  view = newView;
-}
-

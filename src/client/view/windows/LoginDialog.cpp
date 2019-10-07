@@ -6,6 +6,6 @@
 #include "LoginDialog.h"
 
 LoginDialog::LoginDialog(QWidget *parent) : QDialog(parent){
-  QLabel label(this);
-  label.setText("Hello World");
+  auto label = new QLabel(this);
+  label->setText("Hello World");
 }
