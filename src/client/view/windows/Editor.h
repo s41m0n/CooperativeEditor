@@ -1,0 +1,8 @@
+//
+// Created by francesco on 07/10/19.
+//
+
+#ifndef COOPERATIVEEDITOR_EDITOR_H
+#define COOPERATIVEEDITOR_EDITOR_H
+
+#endif //COOPERATIVEEDITOR_EDITOR_H

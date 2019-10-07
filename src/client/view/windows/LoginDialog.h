@@ -7,8 +7,9 @@
 
 #include <QDialog>
 #include <QWidget>
+#include <QtWidgets/QMainWindow>
 
-class LoginDialog : public QDialog {
+class LoginDialog : public QMainWindow {
 
     Q_OBJECT
 
