@@ -22,6 +22,7 @@ else()
 endif()
 
 include_directories(src)
+include_directories(src/include/lib/)
 
 include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
 conan_basic_setup()
