@@ -1,5 +1,7 @@
 #include "components/Message.h"
 
+#include <utility>
+
 //BASIC MESSAGE
 BasicMessage::BasicMessage(Type msgType, unsigned int editorId) : editorId(
         editorId), msgType(msgType) {
@@ -62,7 +64,7 @@ std::string ResultMessage::toString() {
 
 //LOGIN MESSAGE
 
-LoginMessage::LoginMessage(unsigned editorId, std::string &username, std::string &password ) : BasicMessage(Type::LOGIN, editorId), username(username), password(password){
+LoginMessage::LoginMessage(unsigned editorId, std::string username, std::string password ) : BasicMessage(Type::LOGIN, editorId), username(std::move(username)), password(std::move(password)){
 }
 
 LoginMessage::LoginMessage(BasicMessage &&msg) : BasicMessage(std::move(msg)){

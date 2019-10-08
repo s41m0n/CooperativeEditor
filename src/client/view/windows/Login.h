@@ -6,6 +6,7 @@
 #include <QLineEdit>
 #include <QPushButton>
 #include <QMainWindow>
+#include <QString>
 
 class Login : public QMainWindow {
 
@@ -31,7 +32,7 @@ public slots:
     void cancel();
 
 signals:
-    void loginRequest(std::string username, std::string password);
+    void loginRequest(QString username, QString password);
 };
 
 

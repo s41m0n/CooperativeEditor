@@ -126,14 +126,11 @@ void Controller::handle_erase(int index) {
 }
 
 void
-Controller::onLoginRequest(std::string username, const std::string &password) {
+Controller::onLoginRequest(const QString& username, const QString& password) {
 
-  QByteArray hashedPassword = QCryptographicHash::hash(
-          QByteArray::fromStdString(password), QCryptographicHash::Sha3_512);
+  QByteArray hashedPassword = QCryptographicHash::hash(password.toUtf8(), QCryptographicHash::Sha512);
 
-  auto stringHashedPassword = hashedPassword.toStdString(); //discuti con Simo su algoritmo da usare e se possono dare problemi caratteri dati da .toStdString
-
-  LoginMessage msg(model->getEditorId(), username, stringHashedPassword);
+  LoginMessage msg(model->getEditorId(), username.toStdString(), QString(hashedPassword.toHex()).toStdString());
   QDataStream ds(&_socket);
   ds << msg;
   spdlog::debug("Login Request sent!\n{}", msg.toString());

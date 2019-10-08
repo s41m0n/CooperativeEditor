@@ -106,7 +106,7 @@ private:
 
 public:
     ///Classic constructor with all parameters given
-    LoginMessage(unsigned int editorId, std::string &username, std::string &password);
+    LoginMessage(unsigned int editorId, std::string username, std::string password);
 
     ///Method build a RequestMessage from a BasicMessage
     explicit LoginMessage(BasicMessage &&msg);

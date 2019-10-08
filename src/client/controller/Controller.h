@@ -4,6 +4,7 @@
 #include <string>
 #include <QTcpSocket>
 #include <QObject>
+#include <QString>
 
 #include "components/Message.h"
 #include "client/model/Model.h"
@@ -36,7 +37,7 @@ public slots:
     ///Method to be called once something has been read on socket
     void onReadyRead();
 
-    void onLoginRequest(std::string username, const std::string& password);
+    void onLoginRequest(const QString& username, const QString& password);
 
     ///Method to handle a CrdtMessage - symbol inserted
     void handle_insert(int index, char value);

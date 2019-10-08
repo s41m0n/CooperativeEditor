@@ -52,11 +52,7 @@ void Login::onLoginResponse(bool result) {
 }
 
 void Login::emitLoginSignal() {
-
-  std::string username = usernameTextField->text().toStdString();
-  std::string password = passwordTextField->text().toStdString();
-
-  emit loginRequest(username, password);
+  emit loginRequest(usernameTextField->text(), passwordTextField->text());
 }
 
 void Login::cancel() {
