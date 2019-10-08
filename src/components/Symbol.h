@@ -2,15 +2,13 @@
 #define COOPERATIVEEDITOR_SYMBOL_H
 
 #include <vector>
-#include <QtCore/QDataStream>
-#include <string>
+#include <QDataStream>
 
 #include "components/Identifier.h"
 
 /**
  * Symbol class, to identify each inserted character
  *
- * @author Simone Magnani - s41m0n
  */
 class Symbol {
 

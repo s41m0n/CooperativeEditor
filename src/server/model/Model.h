@@ -7,6 +7,9 @@
 
 #include "components/Symbol.h"
 
+/**
+ * Model server class
+ */
 class Model {
 
 private:
@@ -44,8 +47,10 @@ public:
     ///Method to generate a new editor id
     unsigned int generateEditorId();
 
+    ///Method to handle user remote insertion
     void userInsert(unsigned int connId, Symbol &symbol);
 
+    ///Method to handle user remote deletion
     void userErase(unsigned int connId, Symbol &symbol);
 
     ///Method called when a user requests to create a file

@@ -13,9 +13,8 @@
 #include "server/model/Model.h"
 
 /**
- * NetworkServer class, the server in this architecture
+ * Controller server class
  *
- * @author Simone Magnani - s41m0n
  */
 class Controller : public QObject {
 

@@ -8,7 +8,6 @@
 
 /**Model class for the client
  *
- * @author Simone Magnani - s41m0n
  */
 class Model {
 
@@ -33,14 +32,14 @@ public:
     ///Constructor
     Model();
 
-    //Destructor
+    ///Destructor
     ~Model();
 
     ///Crdt local method to insert a symbol
-    Symbol* localInsert(int index, char value);
+    Symbol *localInsert(int index, char value);
 
     ///Crdt local method to erase a symbol
-    Symbol* localErase(int index);
+    Symbol *localErase(int index);
 
     ///Method to update the list of symbol after a remote insertion
     void remoteInsert(Symbol symbol);
@@ -55,8 +54,9 @@ public:
     void setEditorId(unsigned int newEditorId);
 
     ///Method to set the current opened file name
-    void setCurrentFile(std::string& filename);
+    void setCurrentFile(std::string &filename);
 
+    ///Method to set the current opened file content
     void setCurrentFileContent(std::vector<Symbol> &newContent);
 
     ///Method to return the sequence of characters

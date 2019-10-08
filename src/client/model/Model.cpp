@@ -1,4 +1,3 @@
-#include <fstream>
 #include <spdlog/spdlog.h>
 
 #include "client/model/Model.h"

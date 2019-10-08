@@ -1,8 +1,6 @@
 #include "components/Message.h"
 
-#include <utility>
-
-//BASIC MESSAGE
+//@@@@@@@@ BASIC MESSAGE @@@@@@@@
 BasicMessage::BasicMessage(Type msgType, unsigned int editorId) : editorId(
         editorId), msgType(msgType) {
 }
@@ -37,11 +35,13 @@ std::string BasicMessage::toString() {
   return toString(0);
 }
 
-//RESULT MESSAGE
-ResultMessage::ResultMessage(Type msgType, unsigned editorId, bool result) : BasicMessage(msgType, editorId), result(result){
+//@@@@@@@@ RESULT MESSAGE @@@@@@@@
+ResultMessage::ResultMessage(Type msgType, unsigned editorId, bool result)
+        : BasicMessage(msgType, editorId), result(result) {
 }
 
-ResultMessage::ResultMessage(BasicMessage &&msg) : BasicMessage(std::move(msg)){
+ResultMessage::ResultMessage(BasicMessage &&msg) : BasicMessage(
+        std::move(msg)), result() {
 }
 
 bool ResultMessage::isPositive() {
@@ -62,12 +62,18 @@ std::string ResultMessage::toString() {
   return toString(0);
 }
 
-//LOGIN MESSAGE
+//@@@@@@@@ LOGIN MESSAGE @@@@@@@@
 
-LoginMessage::LoginMessage(unsigned editorId, std::string username, std::string password ) : BasicMessage(Type::LOGIN, editorId), username(std::move(username)), password(std::move(password)){
+LoginMessage::LoginMessage(unsigned editorId, std::string username,
+                           std::string password) : BasicMessage(Type::LOGIN,
+                                                                editorId),
+                                                   username(
+                                                           std::move(username)),
+                                                   password(std::move(
+                                                           password)) {
 }
 
-LoginMessage::LoginMessage(BasicMessage &&msg) : BasicMessage(std::move(msg)){
+LoginMessage::LoginMessage(BasicMessage &&msg) : BasicMessage(std::move(msg)) {
 }
 
 std::string &LoginMessage::getUsername() {
@@ -75,7 +81,7 @@ std::string &LoginMessage::getUsername() {
 }
 
 std::string &LoginMessage::getPassword() {
-return password;
+  return password;
 }
 
 std::string LoginMessage::toString(int level) {
@@ -95,7 +101,7 @@ std::string LoginMessage::toString() {
   return toString(0);
 }
 
-//CRDT MESSAGE
+//@@@@@@@@ CRDT MESSAGE @@@@@@@@
 CrdtMessage::CrdtMessage(Type msgType, Symbol symbol, unsigned int editorId)
         : BasicMessage(msgType, editorId),
           symbol(std::move(symbol)) {
@@ -122,7 +128,7 @@ std::string CrdtMessage::toString() {
   return toString(0);
 }
 
-//REQUEST MESSAGE
+//@@@@@@@@ REQUEST MESSAGE @@@@@@@@
 RequestMessage::RequestMessage(Type msgType, unsigned int editorId,
                                std::string &filename) : BasicMessage(msgType,
                                                                      editorId),
@@ -151,7 +157,7 @@ std::string RequestMessage::toString() {
   return toString(0);
 }
 
-//FILE CONTENT MESSAGE
+//@@@@@@@ FILE CONTENT MESSAGE @@@@@@@@
 FileContentMessage::FileContentMessage(unsigned int editorId,
                                        std::vector<Symbol> &symbols)
         : BasicMessage(Type::CONTENT, editorId), symbols(symbols) {

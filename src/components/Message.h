@@ -1,10 +1,7 @@
 #ifndef COOPERATIVEEDITOR_MESSAGE_H
 #define COOPERATIVEEDITOR_MESSAGE_H
 
-
-#include <spdlog/spdlog.h>
 #include <string>
-#include <utility>
 
 #include "components/Symbol.h"
 
@@ -18,7 +15,6 @@ enum class Type {
 /**
  * BasicMessage class, represents a basic message between client-server
  *
- * @author Simone Magnani - s41m0n
  */
 class BasicMessage {
 
@@ -45,9 +41,10 @@ public:
     ///Return the type of the Message
     Type getMsgType();
 
-    ///Method to print in human-readable format the message
+    ///Method to print in human-readable format the message using indent
     virtual std::string toString(int level);
 
+    ///Method to print in human-readable format the message using default indent
     virtual std::string toString();
 
     ///Operator overload '<<' for BasicMessage when using QDataStream for serialization
@@ -66,31 +63,38 @@ public:
 
 /**
  * ResultMessage class, represents a result of a specific request (LOGIN, FILE)
+ *
  */
 class ResultMessage : public BasicMessage {
 
 private:
+    ///The OK/KO answer
     bool result;
 
 public:
+    ///Constructor with also the type (it could index different msg)
     ResultMessage(Type msgType, unsigned editorId, bool result);
 
+    ///Movement constructor to build one from BasicMessage
     explicit ResultMessage(BasicMessage &&msg);
 
+    ///Method to return the answer
     bool isPositive();
 
-    ///Method to print in human-readable format the message
+    ///Method to print in human-readable format the message with indent
     std::string toString(int level) override;
 
+    ///Method to print in human-readable format the message with default indent
     std::string toString() override;
 
+    ///Operator overload '<<' for ResultMessage when using QDataStream for serialization
     friend QDataStream &
     operator<<(QDataStream &stream, const ResultMessage &val) {
       stream << static_cast<const BasicMessage &>(val) << val.result;
       return stream;
     }
 
-    ///Operator overload '>>' for RequestMessage when using QDataStream for serialization
+    ///Operator overload '>>' for ResultMessage when using QDataStream for serialization
     friend QDataStream &operator>>(QDataStream &stream, ResultMessage &val) {
       stream >> val.result;
       return stream;
@@ -98,17 +102,24 @@ public:
 
 };
 
+/**
+ * LoginMessage class to exchange login info
+ */
 class LoginMessage : public BasicMessage {
 
 private:
+    ///Username
     std::string username;
+
+    ///Password
     std::string password;
 
 public:
-    ///Classic constructor with all parameters given
-    LoginMessage(unsigned int editorId, std::string username, std::string password);
+    ///Classic constructor with all parameters given (Type is automatically set)
+    LoginMessage(unsigned int editorId, std::string username,
+                 std::string password);
 
-    ///Method build a RequestMessage from a BasicMessage
+    ///Method build a LoginMessage from a BasicMessage
     explicit LoginMessage(BasicMessage &&msg);
 
     ///Return the username
@@ -117,19 +128,21 @@ public:
     ///Return the password
     std::string &getPassword();
 
-    ///Method to print in human-readable format the message
+    ///Method to print in human-readable format the message with indent
     std::string toString(int level) override;
 
+    ///Method to print in human-readable format the message with default indent
     std::string toString() override;
 
-    ///Operator overload '<<' for RequestMessage when using QDataStream for serialization
+    ///Operator overload '<<' for LoginMessage when using QDataStream for serialization
     friend QDataStream &
     operator<<(QDataStream &stream, const LoginMessage &val) {
-      stream << static_cast<const BasicMessage &>(val) << val.username.c_str() << val.password.c_str();
+      stream << static_cast<const BasicMessage &>(val) << val.username.c_str()
+             << val.password.c_str();
       return stream;
     }
 
-    ///Operator overload '>>' for RequestMessage when using QDataStream for serialization
+    ///Operator overload '>>' for LoginMessage when using QDataStream for serialization
     friend QDataStream &operator>>(QDataStream &stream, LoginMessage &val) {
       char *tmp;
       stream >> tmp;
@@ -148,7 +161,6 @@ public:
 /**
  * RequestMessage class, represents some initial setup messages between client-server
  *
- * @author Simone Magnani - s41m0n
  */
 class RequestMessage : public BasicMessage {
 
@@ -166,9 +178,10 @@ public:
     ///Return the requested filename
     std::string getFilename();
 
-    ///Method to print in human-readable format the message
+    ///Method to print in human-readable format the message with indent
     std::string toString(int level) override;
 
+    ///Method to print in human-readable format the message with default indent
     std::string toString() override;
 
     ///Operator overload '<<' for RequestMessage when using QDataStream for serialization
@@ -192,7 +205,6 @@ public:
 /**
  * FileContentMessage class, represents a File content transfer message between client-server
  *
- * @author Simone Magnani - s41m0n
  */
 class FileContentMessage : public BasicMessage {
 
@@ -201,7 +213,7 @@ private:
     std::vector<Symbol> symbols;
 
 public:
-    ///Classic constructor with all parameters
+    ///Classic constructor with all parameters (Type is automatically set)
     FileContentMessage(unsigned int editorId,
                        std::vector<Symbol> &symbols);
 
@@ -211,9 +223,10 @@ public:
     ///Return all the symbols
     std::vector<Symbol> &getSymbols();
 
-    ///Method to print in human-readable format the message
+    ///Method to print in human-readable format the message with indent
     std::string toString(int level) override;
 
+    ///Method to print in human-readable format the message with default indent
     std::string toString() override;
 
     ///Operator overload '<<' for FileContentMessage when using QDataStream for serialization
@@ -244,7 +257,6 @@ public:
 /**
  * CrdtMessage class, represents a Symbol-exchange message between client-server
  *
- * @author Simone Magnani - s41m0n
  */
 class CrdtMessage : public BasicMessage {
 
@@ -265,9 +277,10 @@ public:
     ///Return the Symbol contained in the Message
     Symbol &getSymbol();
 
-    ///Method to print in human-readable format the message
+    ///Method to print in human-readable format the message with indent
     std::string toString(int level) override;
 
+    ///Method to print in human-readable format the message with default indent
     std::string toString() override;
 
     ///Operator overload '<<' for CrdtMessage when using QDataStream for serialization

@@ -7,8 +7,6 @@
 /**
  * Identifier class, used to identify a symbol
  *
- * @author Simone Magnani - s41m0n
- *
  */
 class Identifier {
 

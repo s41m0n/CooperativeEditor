@@ -1,6 +1,6 @@
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "readability-static-accessed-through-instance"
-#include <iostream>
+
 #include <spdlog/spdlog.h>
 #include <QApplication>
 
@@ -9,15 +9,20 @@
 
 int main(int argc, char **argv) {
 
-  QApplication app(argc, argv);
-
-  if (argc != 2) {
-    std::cout << "Usage: " << argv[0] << " <port_number>" << std::endl;
-    return -1;
+  if (argc < 2) {
+    spdlog::info("Usage: {} <port> [-d/--debug]", argv[0]);
+    exit(-1);
   }
 
-  //Setting LogLevel=debug
-  spdlog::set_level(spdlog::level::debug);
+  //Setting logging level
+  if (argc == 3 && (std::strncmp(argv[2], "-d", 2) == 0 ||
+                    std::strncmp(argv[2], "--debug", 7) == 0)) {
+    spdlog::set_level(spdlog::level::debug);
+  } else {
+    spdlog::set_level(spdlog::level::critical);
+  }
+
+  QApplication app(argc, argv);
 
   Model model;
   Controller controller(&model, std::stoi(argv[1]));
