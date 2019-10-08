@@ -25,6 +25,8 @@ private:
     QPushButton* buttonCancel;
     QMessageBox* errorMessageEmptyFields;
     QMessageBox* areYouSureQuit;
+    QMessageBox* errorNotConnected;
+    QMessageBox* errorNotLogged;
 
 public:
     explicit Login(QWidget *parent = nullptr);

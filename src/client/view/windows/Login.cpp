@@ -45,6 +45,12 @@ Login::Login(QWidget *parent) : QMainWindow(parent) {
   areYouSureQuit->setText("Are you sure you want to exit?");
   areYouSureQuit->setStandardButtons(QMessageBox::Yes | QMessageBox::No);
 
+  errorNotLogged = new QMessageBox();
+  errorNotLogged->setText("Username and Password are not correct.");
+
+  errorNotConnected = new QMessageBox();
+  errorNotConnected->setText("Sorry, the server is unreachable. Try later, please.");
+
   layout->addWidget(buttonEnter, 2, 0);
   layout->addWidget(buttonCancel, 3, 0);
 
@@ -56,14 +62,14 @@ Login::Login(QWidget *parent) : QMainWindow(parent) {
 }
 
 void Login::onServerUnreachable() {
-  spdlog::debug("Non connesso");
+  errorNotConnected->exec();
 }
 
 void Login::onLoginResponse(bool result) {
   if(result) {
     this->close();
   } else {
-    spdlog::debug("Non loggato");
+    errorNotLogged->exec();
   }
 }
 
