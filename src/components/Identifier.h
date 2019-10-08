@@ -42,6 +42,12 @@ public:
     ///Method to print in human-readable format the Identifier
     std::string toString(int level = 0);
 
+    ///Return editor identifier
+    unsigned int getEditorId();
+
+    ///Return digit
+    unsigned int getDigit();
+
 };
 
 

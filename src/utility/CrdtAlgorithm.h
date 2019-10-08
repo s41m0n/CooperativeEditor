@@ -8,11 +8,23 @@
 #include "components/Symbol.h"
 
 namespace CrdtAlgorithm {
+
+    ///Enumeration that defines the different position generation strategy
+    enum class Strategy {
+        PLUS, MINUS, RANDOM, ALTERNATE
+    };
+
     ///Static variable to space between the position generation
     const static int base = 32;
+    const static int boundary = 10;
+    const static Strategy strategy = Strategy::RANDOM;
+
+    ///True means '+', false means '-'
+    bool retrieveStrategy(int level);
 
     ///Method to generate and ID between the two given
-    int generateIdBetween(int id1, int id2);
+    unsigned int generateIdBetween(unsigned int id1, unsigned int id2,
+            bool boundaryStrategy);
 
     ///Method to find the position of the symbol to erase
     int findPositionErase(Symbol &s, std::vector<Symbol> &symbols);
@@ -21,9 +33,9 @@ namespace CrdtAlgorithm {
     int findPositionInsert(Symbol &s, std::vector<Symbol> &symbols);
 
     ///Method to generate a position between two symbols
-    void generatePosBetween(Symbol *s1, Symbol *s2,
-                            std::vector<int> &newPos, int index1 = 0,
-                            int level = 0, int index2 = 0);
+    std::vector<Identifier> generatePosBetween(std::vector<Identifier> pos1,
+            std::vector<Identifier> pos2, unsigned int editorId,
+            std::vector<Identifier> newPos = {}, int level = 0);
 
     ///Method to update the list of symbol after a remote insertion
     void remoteInsert(Symbol &s, std::vector<Symbol> &symbols);

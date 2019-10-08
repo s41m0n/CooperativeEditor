@@ -38,3 +38,11 @@ QDataStream &operator>>(QDataStream &stream, Identifier &val) {
   stream >> val.editorId >> val.digit;
   return stream;
 }
+
+unsigned int Identifier::getEditorId() {
+  return this->editorId;
+}
+
+unsigned int Identifier::getDigit() {
+  return this->digit;
+}

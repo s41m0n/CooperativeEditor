@@ -49,16 +49,15 @@ void Model::remoteErase(Symbol symbol) {
 }
 
 Symbol Model::generateSymbol(int index, char value) {
-  auto symbolBefore = (index - 1 < symbols.size() && index - 1 >= 0 &&
-                       !symbols[index - 1].getPos().empty()) ? &symbols[
-          index - 1] : nullptr;
-  auto symbolAfter = (index < symbols.size() && index >= 0 &&
-                      !symbols[index].getPos().empty()) ? &symbols[index]
-                                                        : nullptr;
-  std::vector<int> newPos;
-  CrdtAlgorithm::generatePosBetween(symbolBefore, symbolAfter, newPos);
+  auto pos1 = (index - 1 < symbols.size() && index - 1 >= 0 &&
+                       !symbols[index - 1].getPos().empty()) ? symbols[
+          index - 1].getPos() : std::vector<Identifier>();
+  auto pos2 = (index < symbols.size() && index >= 0 &&
+                      !symbols[index].getPos().empty()) ? symbols[
+                              index].getPos() : std::vector<Identifier>();
+  auto newPos = CrdtAlgorithm::generatePosBetween(pos1, pos2, getEditorId());
 
-  return Symbol(value, editorId, digitGenerator++, newPos);
+  return Symbol(value, editorId, newPos);
 }
 
 unsigned int Model::getEditorId() {

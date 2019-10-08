@@ -22,16 +22,16 @@ private:
     ///The character represented
     char character;
 
-    ///The symbol identifier
-    Identifier id;
+    ///The site identifier
+    unsigned int siteId;
 
     ///The position of this symbol
-    std::vector<int> position;
+    std::vector<Identifier> position;
 
 public:
     ///Classic constructor with all parameters
-    Symbol(char character, unsigned int siteId, unsigned int digit,
-           std::vector<int> &position);
+    Symbol(char character, unsigned int siteId,
+            std::vector<Identifier> &position);
 
     ///Constructor to create a non-valid symbol to be filled
     Symbol();
@@ -43,7 +43,7 @@ public:
     char getChar();
 
     ///Method to get the position
-    std::vector<int> &getPos();
+    std::vector<Identifier> &getPos();
 
     ///Method to print in human-readable format the symbol
     std::string toString(int level = 0);

@@ -3,11 +3,28 @@
 //
 
 #include <cmath>
+#include <random>
 
 #include "CrdtAlgorithm.h"
 
-int CrdtAlgorithm::generateIdBetween(int id1, int id2) {
-  return (id2 + id1) / 2;
+unsigned int CrdtAlgorithm::generateIdBetween(unsigned int id1,
+        unsigned int id2, bool boundaryStrategy) {
+  if ((id2 - id1) < CrdtAlgorithm::boundary) {
+    id1++;
+    id2--;
+  } else {
+    if (boundaryStrategy) {
+      id1++;
+      id2 = id1 + CrdtAlgorithm::boundary;
+    } else {
+      id2--;
+      id1 = id2 - CrdtAlgorithm::boundary;
+    }
+  }
+  std::random_device rd;
+  std::mt19937 gen(rd());
+  std::uniform_int_distribution<> distribution(id1, id2);
+  return distribution(gen);
 }
 
 int CrdtAlgorithm::findPositionErase(Symbol &s, std::vector<Symbol> &symbols) {
@@ -63,37 +80,53 @@ int CrdtAlgorithm::findPositionInsert(Symbol &s, std::vector<Symbol> &symbols) {
     return right;
 }
 
-void CrdtAlgorithm::generatePosBetween(Symbol *s1, Symbol *s2,
-                                       std::vector<int> &newPos, int index1,
-                                       int level, int index2) {
-  int baseValue = (int) (std::pow(2, level) * CrdtAlgorithm::base);
-  auto pos1 = s1 != nullptr ? s1->getPos() : std::vector<int>();
-  auto pos2 = s2 != nullptr ? s2->getPos() : std::vector<int>();
-  int id1 = index1 < pos1.size() ? pos1[index1] : 0;
-  int id2 = index2 < pos2.size() ? pos2[index2] : baseValue;
+std::vector<Identifier> CrdtAlgorithm::generatePosBetween(
+        std::vector<Identifier> pos1, std::vector<Identifier> pos2,
+        unsigned int editorId, std::vector<Identifier> newPos, int level) {
 
-  if (id2 - id1 > 1) {
-    int newDigit = CrdtAlgorithm::generateIdBetween(id1, id2);
-    newPos.push_back(newDigit);
-    return;
-  } else if (id2 - id1 == 1) {
+  int baseValue = (int) (std::pow(2, level) * CrdtAlgorithm::base);
+  bool boundaryStrategy = retrieveStrategy(level);
+
+  auto id1 = !pos1.empty() ? pos1[0] : Identifier(editorId, 0);
+  auto id2 = !pos2.empty() ? pos2[0] : Identifier(editorId, baseValue);
+
+  if (id2.getDigit() - id1.getDigit() > 1) {
+    auto newDigit = CrdtAlgorithm::generateIdBetween(id1.getDigit(),
+            id2.getDigit(), boundaryStrategy);
+    newPos.emplace_back(editorId, newDigit);
+    return newPos;
+  } else if (id2.getDigit() - id1.getDigit() == 1) {
     newPos.push_back(id1);
-    return CrdtAlgorithm::generatePosBetween(s1, s2, newPos, index1 + 1,
-                                             level + 1);
-  } else if (id1 == id2) {
-    int comp = s1->compareTo(*s2);
-    if (comp > 0) {
+    if (!pos1.empty()) {
+      pos1.erase(pos1.begin());
+    }
+    return CrdtAlgorithm::generatePosBetween(pos1, {}, editorId, newPos,
+            level + 1);
+  } else if (id1.getDigit() == id2.getDigit()) {
+    if (id1.getEditorId() < id2.getEditorId()) {
       newPos.push_back(id1);
-      return CrdtAlgorithm::generatePosBetween(s1, s2, newPos, index1 + 1,
-                                               level + 1, -1);
-    } else if (comp == 0) {
+      if (!pos1.empty()) {
+        pos1.erase(pos1.begin());
+      }
+      return CrdtAlgorithm::generatePosBetween(pos1, {}, editorId, newPos,
+              level + 1);
+    } else if (id1.getEditorId() == id2.getEditorId()) {
       newPos.push_back(id1);
-      return CrdtAlgorithm::generatePosBetween(s1, s2, newPos, index1 + 1,
-                                               level + 1, index2 + 1);
+      if (!pos1.empty()) {
+        pos1.erase(pos1.begin());
+      }
+      if (!pos2.empty()) {
+        pos2.erase(pos2.begin());
+      }
+      return CrdtAlgorithm::generatePosBetween(pos1, pos2, editorId, newPos,
+              level + 1);
     } else {
       newPos.push_back(id2);
-      return CrdtAlgorithm::generatePosBetween(s1, s2, newPos, index1 + 1,
-                                               level + 1, index2 + 1);
+      if (!pos2.empty()) {
+        pos2.erase(pos2.begin());
+      }
+      return CrdtAlgorithm::generatePosBetween({}, pos2, editorId, newPos,
+              level + 1);
     }
   }
   throw std::runtime_error("Fix Position Sorting");
@@ -109,4 +142,29 @@ void CrdtAlgorithm::remoteInsert(Symbol &s, std::vector<Symbol> &symbols) {
   int index = CrdtAlgorithm::findPositionInsert(s, symbols);
 
   symbols.insert(symbols.begin() + index, std::move(s));
+}
+
+bool CrdtAlgorithm::retrieveStrategy(int level) {
+
+  bool strategySelected;
+  switch (CrdtAlgorithm::strategy) {
+    case Strategy::PLUS:
+      strategySelected = true;
+      break;
+    case Strategy::MINUS:
+      strategySelected = false;
+      break;
+    case Strategy::RANDOM: {
+      std::random_device rd;
+      std::mt19937 gen(rd());
+      std::uniform_int_distribution<> distribution(0, 1);
+      strategySelected = distribution(gen) != 0;
+    }
+      break;
+    default:
+      strategySelected = ((level % 2) == 0);
+      break;
+  }
+
+  return strategySelected;
 }
