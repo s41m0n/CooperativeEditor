@@ -56,7 +56,7 @@ Login::Login(QWidget *parent) : QMainWindow(parent) {
 }
 
 void Login::onServerUnreachable() {
-
+  spdlog::debug("Non connesso");
 }
 
 void Login::onLoginResponse(bool result) {
