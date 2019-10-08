@@ -36,7 +36,14 @@ Login::Login(QWidget *parent) : QMainWindow(parent) {
   loginBox->layout()->addWidget(passwordTextField);
 
   buttonEnter = new QPushButton("Enter");
-  buttonCancel = new QPushButton("Cancel");
+  buttonCancel = new QPushButton("Exit");
+
+  errorMessageEmptyFields = new QMessageBox();
+  errorMessageEmptyFields->setText("Please insert username and password.");
+
+  areYouSureQuit = new QMessageBox();
+  areYouSureQuit->setText("Are you sure you want to exit?");
+  areYouSureQuit->setStandardButtons(QMessageBox::Yes | QMessageBox::No);
 
   layout->addWidget(buttonEnter, 2, 0);
   layout->addWidget(buttonCancel, 3, 0);
@@ -61,11 +68,27 @@ void Login::onLoginResponse(bool result) {
 }
 
 void Login::emitLoginSignal() {
-  emit loginRequest(usernameTextField->text(), passwordTextField->text());
+  if(!usernameTextField->text().isEmpty() && !passwordTextField->text().isEmpty()) {
+    emit loginRequest(usernameTextField->text(), passwordTextField->text());
+  }else {
+    errorMessageEmptyFields->exec();
+  }
 }
 
 void Login::cancel() {
-  this->close();
+  int result = areYouSureQuit->exec();
+
+  switch (result) {
+    case QMessageBox::Yes:
+      this->close();
+      break;
+    case QMessageBox::No:
+      areYouSureQuit->close();
+      break;
+    default:
+      //error, should never be reached
+      break;
+  }
 }
 
 

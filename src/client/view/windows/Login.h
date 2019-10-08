@@ -7,6 +7,7 @@
 #include <QPushButton>
 #include <QMainWindow>
 #include <QString>
+#include <QMessageBox>
 
 class Login : public QMainWindow {
 
@@ -22,6 +23,8 @@ private:
     QLineEdit* passwordTextField;
     QPushButton* buttonEnter;
     QPushButton* buttonCancel;
+    QMessageBox* errorMessageEmptyFields;
+    QMessageBox* areYouSureQuit;
 
 public:
     explicit Login(QWidget *parent = nullptr);
