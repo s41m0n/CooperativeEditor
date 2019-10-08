@@ -18,6 +18,9 @@ void View::init() {
   auto editor = new Editor();
   QObject::connect(login, &Login::loginRequest, controller, &Controller::onLoginRequest);
   QObject::connect(controller, &Controller::loginResponse, login, &Login::onLoginResponse);
+  QObject::connect(controller, &Controller::loginResponse, [editor](bool isLogged){
+      editor->show();
+  });
   login->show();
 
   /*
