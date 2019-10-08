@@ -22,13 +22,11 @@ else()
 endif()
 
 include_directories(src)
-include_directories(src/include/lib/)
-
-include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
-conan_basic_setup()
+include_directories(src/include/lib)
 
 find_package(Qt5Widgets REQUIRED)
 find_package(Qt5Core REQUIRED)
+find_package(Qt5Network REQUIRED)
 
 #Set the client executable
 add_executable(CooperativeClient src/mainclient.cpp src/client/controller/Controller.cpp src/client/model/Model.cpp src/client/view/View.cpp
@@ -39,9 +37,9 @@ add_executable(CooperativeServer src/mainserver.cpp src/server/controller/Contro
         src/components/Symbol.cpp src/components/Identifier.cpp src/components/Message.cpp src/utility/CrdtAlgorithm.cpp)
 
 #Add libraries to compile the client
-target_link_libraries(CooperativeClient ${CONAN_LIBS})
-#Add libraries to compile the server
-target_link_libraries(CooperativeServer ${CONAN_LIBS})
 if (CMAKE_G++_COMPILER_VERSION VERSION_LESS 9.0.0)
     target_link_libraries(CooperativeServer "-lstdc++fs")
 endif()
+
+target_link_libraries(CooperativeClient Qt5::Core Qt5::Network Qt5::Widgets)
+target_link_libraries(CooperativeServer Qt5::Core Qt5::Network Qt5::Widgets)
