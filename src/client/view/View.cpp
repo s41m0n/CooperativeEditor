@@ -1,6 +1,7 @@
 #include <spdlog/spdlog.h>
 
 #include "client/view/windows/Login.h"
+#include "client/view/windows/Editor.h"
 #include "client/view/View.h"
 #include "client/controller/Controller.h"
 
@@ -14,6 +15,7 @@ View::~View() {
 
 void View::init() {
   auto login = new Login();
+  auto editor = new Editor();
   QObject::connect(login, &Login::loginRequest, controller, &Controller::onLoginRequest);
   QObject::connect(controller, &Controller::loginResponse, login, &Login::onLoginResponse);
   login->show();
