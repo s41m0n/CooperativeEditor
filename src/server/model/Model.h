@@ -3,6 +3,9 @@
 
 #include <vector>
 #include <map>
+#include <mutex>
+#include <memory>
+#include <atomic>
 #include <string>
 
 #include "components/Symbol.h"
