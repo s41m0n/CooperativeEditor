@@ -40,10 +40,10 @@ public slots:
     void onLoginRequest(const QString& username, const QString& password);
 
     ///Method to handle a CrdtMessage - symbol inserted
-    void handle_insert(int index, char value);
+    void onCharInserted(int index, char value);
 
     ///Method to handle a CrdtMessage - symbol erased
-    void handle_erase(int index);
+    void onCharErased(int index);
 
 signals:
 
@@ -52,6 +52,10 @@ signals:
   void serverUnreachable();
 
   void fileListing(std::string files);
+
+  void fileResult(bool result);
+
+  void remoteUpdate(std::string text);
 
 
 };

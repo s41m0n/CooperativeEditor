@@ -2,7 +2,7 @@
 #include <sstream>
 #include "Editor.h"
 
-Editor::Editor(QWidget *parent)  : QMainWindow(parent) {
+Editor::Editor(QWidget *parent)  : QMainWindow(parent), model(model) {
 }
 
 void Editor::onFileListing(std::string files) {
@@ -17,5 +17,20 @@ void Editor::onFileListing(std::string files) {
 
   //Ora devo creare un interfaccia per far scegliere all'utente i file
 
+
+}
+
+void Editor::onFileResult(bool result) {
+  if(result) {
+    //Il file può essere aperto/creato
+    spdlog::debug("Action OK");
+  } else {
+    spdlog::debug("Action KO");
+  }
+}
+
+void Editor::onRemoteUpdate(std::string text) {
+  //RIAGGIORNARE LA VIEW CON IL NUOVO TESTO
+  spdlog::debug("Un nuovo Crdt message arrivato");
 
 }

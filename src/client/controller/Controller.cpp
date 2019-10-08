@@ -48,8 +48,8 @@ void Controller::onReadyRead() {
       ResultMessage msg(std::move(base));
       ds >> msg;
       spdlog::debug("Received Message!\n{}", msg.toString());
-      if (!msg.isPositive()) {
-        throw std::runtime_error("Unable to create file");
+      if(!msg.isPositive()) {
+        emit fileResult(false);
       }
       break;
     }
@@ -58,6 +58,7 @@ void Controller::onReadyRead() {
       ds >> msg;
       spdlog::debug("Received Message!\n{}", msg.toString());
       model->setCurrentFileContent(msg.getSymbols());
+      emit fileResult(true);
       break;
     }
     case Type::INSERT : {
@@ -65,6 +66,7 @@ void Controller::onReadyRead() {
       ds >> msg;
       spdlog::debug("Received Message!\n{}", msg.toString());
       model->remoteInsert(msg.getSymbol());
+      emit remoteUpdate(model->textify());
       break;
     }
     case Type::ERASE : {
@@ -84,7 +86,7 @@ void Controller::onReadyRead() {
 
 }
 
-void Controller::handle_insert(int index, char value) {
+void Controller::onCharInserted(int index, char value) {
 
   auto symbol = model->localInsert(index, value);
 
@@ -97,7 +99,7 @@ void Controller::handle_insert(int index, char value) {
   }
 }
 
-void Controller::handle_erase(int index) {
+void Controller::onCharErased(int index) {
 
   auto symbol = model->localErase(index);
 

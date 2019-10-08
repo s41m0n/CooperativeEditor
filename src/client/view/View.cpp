@@ -25,6 +25,8 @@ void View::init() {
       }
   });
   QObject::connect(controller, &Controller::fileListing, editor, &Editor::onFileListing);
+  QObject::connect(controller, &Controller::fileResult, editor, &Editor::onFileResult);
+  QObject::connect(controller, &Controller::remoteUpdate, editor, &Editor::onRemoteUpdate);
 
   login->show();
 
