@@ -27,6 +27,8 @@ private:
     QMessageBox* areYouSureQuit;
     QMessageBox* errorNotConnected;
     QMessageBox* errorNotLogged;
+void emitLoginSignal();
+    void cancel();
 
 public:
     explicit Login(QWidget *parent = nullptr);
@@ -34,8 +36,6 @@ public:
 public slots:
     void onServerUnreachable();
     void onLoginResponse(bool result);
-    void emitLoginSignal();
-    void cancel();
 
 signals:
     void loginRequest(QString username, QString password);

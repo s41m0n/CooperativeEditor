@@ -1,6 +1,6 @@
-#include "Login.h"
 #include <QGridLayout>
-#include <spdlog/spdlog.h>
+
+#include "Login.h"
 
 Login::Login(QWidget *parent) : QMainWindow(parent) {
 
@@ -49,16 +49,39 @@ Login::Login(QWidget *parent) : QMainWindow(parent) {
   errorNotLogged->setText("Username and Password are not correct.");
 
   errorNotConnected = new QMessageBox();
-  errorNotConnected->setText("Sorry, the server is unreachable. Try later, please.");
+  errorNotConnected->setText(
+          "Sorry, the server is unreachable. Try later, please.");
 
   layout->addWidget(buttonEnter, 2, 0);
   layout->addWidget(buttonCancel, 3, 0);
 
-  QObject::connect(buttonEnter, SIGNAL(clicked()), this,
-                   SLOT(emitLoginSignal()));
+  QObject::connect(buttonCancel, &QAbstractButton::clicked, this,
+                   [this]() {
+                       int result = areYouSureQuit->exec();
 
-  QObject::connect(buttonCancel, SIGNAL(clicked()), this,
-                   SLOT(cancel()));
+                       switch (result) {
+                         case QMessageBox::Yes:
+                           this->close();
+                           break;
+                         case QMessageBox::No:
+                           areYouSureQuit->close();
+                           break;
+                         default:
+                           //error, should never be reached
+                           break;
+                       }
+                   });
+
+  QObject::connect(buttonEnter, &QAbstractButton::clicked, this,
+                   [this]() {
+                       if (!usernameTextField->text().isEmpty() &&
+                           !passwordTextField->text().isEmpty()) {
+                         emit loginRequest(usernameTextField->text(),
+                                           passwordTextField->text());
+                       } else {
+                         errorMessageEmptyFields->exec();
+                       }
+                   });
 }
 
 void Login::onServerUnreachable() {
@@ -66,34 +89,10 @@ void Login::onServerUnreachable() {
 }
 
 void Login::onLoginResponse(bool result) {
-  if(result) {
+  if (result) {
     this->close();
   } else {
     errorNotLogged->exec();
-  }
-}
-
-void Login::emitLoginSignal() {
-  if(!usernameTextField->text().isEmpty() && !passwordTextField->text().isEmpty()) {
-    emit loginRequest(usernameTextField->text(), passwordTextField->text());
-  }else {
-    errorMessageEmptyFields->exec();
-  }
-}
-
-void Login::cancel() {
-  int result = areYouSureQuit->exec();
-
-  switch (result) {
-    case QMessageBox::Yes:
-      this->close();
-      break;
-    case QMessageBox::No:
-      areYouSureQuit->close();
-      break;
-    default:
-      //error, should never be reached
-      break;
   }
 }
 

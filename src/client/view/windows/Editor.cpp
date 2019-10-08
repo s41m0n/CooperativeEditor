@@ -2,7 +2,7 @@
 #include <sstream>
 #include "Editor.h"
 
-Editor::Editor(QWidget *parent)  : QMainWindow(parent), model(model) {
+Editor::Editor(QWidget *parent)  : QMainWindow(parent) {
 }
 
 void Editor::onFileListing(std::string files) {

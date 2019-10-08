@@ -48,7 +48,7 @@ void Controller::onReadyRead() {
       ResultMessage msg(std::move(base));
       ds >> msg;
       spdlog::debug("Received Message!\n{}", msg.toString());
-      if(!msg.isPositive()) {
+      if (!msg.isPositive()) {
         emit fileResult(false);
       }
       break;
@@ -113,17 +113,17 @@ void Controller::onCharErased(int index) {
 }
 
 void
-Controller::onLoginRequest(const QString& username, const QString& password) {
+Controller::onLoginRequest(const QString &username, const QString &password) {
 
-  if(_socket.state() == QTcpSocket::ConnectedState) {
+  if (_socket.state() == QTcpSocket::ConnectedState) {
     QByteArray hashedPassword = QCryptographicHash::hash(password.toUtf8(),
                                                          QCryptographicHash::Sha512);
-
     LoginMessage msg(model->getEditorId(), username.toStdString(),
                      QString(hashedPassword.toHex()).toStdString());
     QDataStream ds(&_socket);
     ds << msg;
     spdlog::debug("Login Request sent!\n{}", msg.toString());
+
   } else {
     emit serverUnreachable();
   }

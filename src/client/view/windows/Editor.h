@@ -15,8 +15,6 @@ class Editor : public QMainWindow {
 
 private:
 
-    Model *model;
-
 public:
     explicit Editor(QWidget *parent = nullptr);
 

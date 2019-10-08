@@ -5,7 +5,7 @@
 #include "client/view/View.h"
 #include "client/controller/Controller.h"
 
-View::View(Model *model, Controller *controller) : model(model), controller(controller){
+View::View(Controller *controller) :controller(controller){
   spdlog::debug("Created View");
 }
 
