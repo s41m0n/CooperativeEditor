@@ -22,7 +22,7 @@ else()
 endif()
 
 include_directories(src)
-include_directories(src/include/lib)
+include_directories(src/include/lib/)
 
 find_package(Qt5Widgets REQUIRED)
 find_package(Qt5Core REQUIRED)
