@@ -49,6 +49,10 @@ signals:
 
   void loginResponse(bool response);
 
+  void serverUnreachable();
+
+  void fileListing(std::string files);
+
 
 };
 

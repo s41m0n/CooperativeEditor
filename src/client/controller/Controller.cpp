@@ -33,9 +33,7 @@ void Controller::onReadyRead() {
       ResultMessage msg(std::move(base));
       ds >> msg;
       spdlog::debug("Received Message!\n{}", msg.toString());
-      if (!msg.isPositive()) {
-        throw std::runtime_error("Login Failed");
-      }
+      emit loginResponse(msg.isPositive());
       break;
     }
     case Type::LISTING : {
@@ -43,20 +41,7 @@ void Controller::onReadyRead() {
       ds >> msg;
       spdlog::debug("Received Message!\n{}", msg.toString());
 
-      auto availableFiles = msg.getFilename();
-      std::string fileToOpen;
-      Type type;
-
-      if (availableFiles.empty()) {
-        fileToOpen = "prova.txt";
-        type = Type::CREATE;
-      } else {
-        fileToOpen = availableFiles.substr(0, availableFiles.find_last_of(';'));
-        type = Type::OPEN;
-      }
-      model->setCurrentFile(fileToOpen);
-      RequestMessage msgToSend(type, model->getEditorId(), fileToOpen);
-      ds << msgToSend;
+      emit fileListing(msg.getFilename());
       break;
     }
     case Type::FILE_RESULT : {
@@ -128,11 +113,17 @@ void Controller::handle_erase(int index) {
 void
 Controller::onLoginRequest(const QString& username, const QString& password) {
 
-  QByteArray hashedPassword = QCryptographicHash::hash(password.toUtf8(), QCryptographicHash::Sha512);
+  if(_socket.state() == QTcpSocket::ConnectedState) {
+    QByteArray hashedPassword = QCryptographicHash::hash(password.toUtf8(),
+                                                         QCryptographicHash::Sha512);
 
-  LoginMessage msg(model->getEditorId(), username.toStdString(), QString(hashedPassword.toHex()).toStdString());
-  QDataStream ds(&_socket);
-  ds << msg;
-  spdlog::debug("Login Request sent!\n{}", msg.toString());
+    LoginMessage msg(model->getEditorId(), username.toStdString(),
+                     QString(hashedPassword.toHex()).toStdString());
+    QDataStream ds(&_socket);
+    ds << msg;
+    spdlog::debug("Login Request sent!\n{}", msg.toString());
+  } else {
+    emit serverUnreachable();
+  }
 
 }

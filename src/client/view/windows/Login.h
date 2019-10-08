@@ -27,6 +27,7 @@ public:
     explicit Login(QWidget *parent = nullptr);
 
 public slots:
+    void onServerUnreachable();
     void onLoginResponse(bool result);
     void emitLoginSignal();
     void cancel();

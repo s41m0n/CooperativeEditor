@@ -16,6 +16,10 @@ private:
 public:
     explicit Editor(QWidget *parent = nullptr);
 
+public slots:
+
+    void onFileListing(std::string files);
+
 };
 
 #endif //COOPERATIVEEDITOR_EDITOR_H

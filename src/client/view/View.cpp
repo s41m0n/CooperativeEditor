@@ -18,24 +18,14 @@ void View::init() {
   auto editor = new Editor();
   QObject::connect(login, &Login::loginRequest, controller, &Controller::onLoginRequest);
   QObject::connect(controller, &Controller::loginResponse, login, &Login::onLoginResponse);
+  QObject::connect(controller, &Controller::serverUnreachable, login, &Login::onServerUnreachable);
   QObject::connect(controller, &Controller::loginResponse, [editor](bool isLogged){
-      editor->show();
+      if(isLogged) {
+        editor->show();
+      }
   });
+  QObject::connect(controller, &Controller::fileListing, editor, &Editor::onFileListing);
+
   login->show();
 
-  /*
-   * std::vector<std::pair<int, char>> toInsert({{0, 's'},
-                                                  {1, 'i'},
-                                                  {2, 'm'},
-                                                  {3, 'o'}});
-      std::vector<int> toDelete({});
-
-      for (auto pair : toInsert) {
-        handle_insert(pair.first, pair.second);
-      }
-
-      for (auto pos : toDelete) {
-        handle_erase(pos);
-      }
-*/
 }

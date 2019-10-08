@@ -1,5 +1,6 @@
 #include "Login.h"
 #include <QGridLayout>
+#include <spdlog/spdlog.h>
 
 Login::Login(QWidget *parent) : QMainWindow(parent) {
 
@@ -47,8 +48,16 @@ Login::Login(QWidget *parent) : QMainWindow(parent) {
                    SLOT(cancel()));
 }
 
-void Login::onLoginResponse(bool result) {
+void Login::onServerUnreachable() {
 
+}
+
+void Login::onLoginResponse(bool result) {
+  if(result) {
+    this->close();
+  } else {
+    spdlog::debug("Non loggato");
+  }
 }
 
 void Login::emitLoginSignal() {
