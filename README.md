@@ -11,6 +11,17 @@ The following libraries need to be installed in your system:
 * spdlog
 * qt
 
+## Manual installation 
+
+To install Qt run the following command and follow the wizard:
+
+```bash
+wget http://download.qt.io/official_releases/qt/5.9/5.9.1/qt-opensource-linux-x64-5.9.1.run
+chmod +x qt-opensource-linux-x64-5.9.1.run
+./qt-opensource-linux-x64-5.9.1.run
+```
+To install spdlog please refer to [this guide](https://github.com/gabime/spdlog).
+
 ## Automatic libraries installation
 
 If you do not want to manually download all dependencies, you can download `conan` which is a very powerful Dependency Manager Python module.
@@ -47,6 +58,10 @@ Before compiling the project with CMake, install all the dependencied by typing 
 `╰─ conan install . -s build_type=Debug --install-folder=cmake-build-debug --build missing`
 
 Finally, if the command successfully creates the file `conanbuildinfo.cmake` you can proceed compiling the project using CMake.
+
+**NOTE:**
+
+In order to successfully compile, you must use the *CMakeListsConan.txt* and not the default one, since it has some command to setup the conan library inclusion.
 
 ## Usage
 
