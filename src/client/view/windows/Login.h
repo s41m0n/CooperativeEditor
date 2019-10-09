@@ -26,7 +26,7 @@ private:
     QLabel *passwordLabel;
     QLineEdit *passwordTextField;
     QPushButton *buttonEnter;
-    QPushButton *buttonCancel;
+    QPushButton *buttonExit;
     QMessageBox *errorMessageEmptyFields;
     QMessageBox *areYouSureQuit;
     QMessageBox *errorNotConnected;

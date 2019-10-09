@@ -36,7 +36,9 @@ Login::Login(QWidget *parent) : QMainWindow(parent) {
   loginBox->layout()->addWidget(passwordTextField);
 
   buttonEnter = new QPushButton("Enter");
-  buttonCancel = new QPushButton("Exit");
+  buttonEnter->setAutoDefault(true);
+  buttonExit = new QPushButton("Exit");
+  buttonExit->setAutoDefault(true);
 
   errorMessageEmptyFields = new QMessageBox();
   errorMessageEmptyFields->setText("Please insert username and password.");
@@ -53,9 +55,9 @@ Login::Login(QWidget *parent) : QMainWindow(parent) {
           "Sorry, the server is unreachable. Try later, please.");
 
   layout->addWidget(buttonEnter, 2, 0);
-  layout->addWidget(buttonCancel, 3, 0);
+  layout->addWidget(buttonExit, 3, 0);
 
-  QObject::connect(buttonCancel, &QAbstractButton::clicked, this,
+  QObject::connect(buttonExit, &QAbstractButton::clicked, this,
                    [this]() {
                        int result = areYouSureQuit->exec();
 
@@ -82,6 +84,7 @@ Login::Login(QWidget *parent) : QMainWindow(parent) {
                          errorMessageEmptyFields->exec();
                        }
                    });
+
 }
 
 void Login::onServerUnreachable() {

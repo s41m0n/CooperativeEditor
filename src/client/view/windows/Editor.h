@@ -2,6 +2,10 @@
 #define COOPERATIVEEDITOR_EDITOR_H
 
 #include <QMainWindow>
+#include <QLabel>
+#include <QPushButton>
+#include <QMessageBox>
+#include <QString>
 
 /**
  * Editor application windows
@@ -9,6 +13,12 @@
 class Editor : public QMainWindow {
 
 Q_OBJECT
+
+private:
+    QWidget *mainWidget;
+    QLabel *title;
+    QPushButton *buttonExit;
+    QMessageBox *areYouSureQuit;
 
 public:
     ///Constructor
