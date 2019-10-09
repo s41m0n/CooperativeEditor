@@ -1,4 +1,4 @@
-#include "components/Identifier.h"
+#include "Identifier.h"
 
 Identifier::Identifier(unsigned int editorId, unsigned int digit) : editorId(
         editorId), digit(digit) {}

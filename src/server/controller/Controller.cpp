@@ -2,7 +2,13 @@
 #include <QHostAddress>
 #include <QAbstractSocket>
 
-#include "utility/CrdtAlgorithm.h"
+#include "src/components/messages/BasicMessage.h"
+#include "src/components/messages/LoginMessage.h"
+#include "src/components/messages/RequestMessage.h"
+#include "src/components/messages/FileContentMessage.h"
+#include "src/components/messages/FileListingMessage.h"
+#include "src/components/messages/CrdtMessage.h"
+#include "src/components/messages/ResultMessage.h"
 #include "Controller.h"
 
 Controller::Controller(Model *model, unsigned short port) : model(model),
@@ -73,8 +79,8 @@ void Controller::onReadyRead() {
       spdlog::debug("Sent Message!\n" + newMsg.toString());
 
       if (result) {
-        RequestMessage newMsg2(Type::LISTING, clientId,
-                               model->getAvailableFiles());
+        FileListingMessage newMsg2(clientId,
+                                   model->getAvailableFiles());
         ds << newMsg2;
         spdlog::debug("Sent Message:\n" + newMsg2.toString());
       }

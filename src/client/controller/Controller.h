@@ -7,7 +7,7 @@
 #include <QObject>
 #include <QString>
 
-#include "components/Message.h"
+#include "src/components/messages/BasicMessage.h"
 #include "client/model/Model.h"
 
 /**
@@ -58,7 +58,7 @@ signals:
     void serverUnreachable();
 
     ///Signal to notify the view that the server has sent the list of files
-    void fileListing(std::string files);
+    void fileListing(std::vector<std::string> files);
 
     ///Signal to notify the view about the possibility to open/create a file
     void fileResult(bool result);

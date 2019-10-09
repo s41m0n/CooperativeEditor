@@ -9,7 +9,7 @@
 #include <QTcpSocket>
 #include <QObject>
 
-#include "components/Message.h"
+#include "components/messages/CrdtMessage.h"
 #include "server/model/Model.h"
 
 /**

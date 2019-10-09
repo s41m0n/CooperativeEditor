@@ -17,7 +17,7 @@ public:
 public slots:
 
     ///Slot to notify the editor that the list of files has been received
-    void onFileListing(std::string files);
+    void onFileListing(std::vector<std::string> files);
 
     ///Slot to notify the editor that the file can/cannot be opened/created
     void onFileResult(bool result);

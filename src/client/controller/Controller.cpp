@@ -2,8 +2,14 @@
 #include <QHostAddress>
 #include <QCryptographicHash>
 
-#include "components/Message.h"
-#include "client/controller/Controller.h"
+#include "src/components/messages/BasicMessage.h"
+#include "src/components/messages/LoginMessage.h"
+#include "src/components/messages/RequestMessage.h"
+#include "src/components/messages/FileContentMessage.h"
+#include "src/components/messages/FileListingMessage.h"
+#include "src/components/messages/CrdtMessage.h"
+#include "src/components/messages/ResultMessage.h"
+#include "Controller.h"
 
 Controller::Controller(Model *model, const std::string &host, int port)
         : model(model), _socket(this), ds(&_socket) {
@@ -36,11 +42,11 @@ void Controller::onReadyRead() {
       break;
     }
     case Type::LISTING : {
-      RequestMessage msg(std::move(base));
+      FileListingMessage msg(std::move(base));
       ds >> msg;
       spdlog::debug("Received Message!\n{}", msg.toString());
 
-      emit fileListing(msg.getFilename());
+      emit fileListing(msg.getFiles());
       break;
     }
     case Type::FILE_RESULT : {

@@ -1,4 +1,4 @@
-#include "components/Symbol.h"
+#include "Symbol.h"
 
 Symbol::Symbol(char character, unsigned int siteId,
         std::vector<Identifier> &position) : position(std::move(position)),
@@ -83,7 +83,7 @@ QDataStream &operator>>(QDataStream &stream, std::vector<Symbol> &val) {
   return stream;
 }
 
-QDataStream &operator<<(QDataStream &stream, const std::vector<Symbol> &val) {
+QDataStream &operator<<(QDataStream &stream, std::vector<Symbol> &val) {
   stream << static_cast<quint32>(val.size());
   for (const auto &v : val) {
     stream << v;

@@ -32,7 +32,7 @@ private:
     std::atomic<unsigned int> idGenerator;
 
     ///Set of all available files
-    std::string availableFiles;
+    std::vector<std::string> availableFiles;
 
     ///Method to write on file the respective sequence of symbols
     void storeFileSymbols(std::string &filename);
@@ -57,13 +57,13 @@ public:
     void userErase(unsigned int connId, Symbol &symbol);
 
     ///Method called when a user requests to create a file
-    bool createFileByUser(unsigned int connId, std::string filename);
+    bool createFileByUser(unsigned int connId, const std::string& filename);
 
     ///Method called when a user requests to open a file
     bool openFileByUser(unsigned int connId, std::string filename);
 
     ///Returns the list (string) of all available files
-    std::string &getAvailableFiles();
+    std::vector<std::string> &getAvailableFiles();
 
     ///Returns the list of symbols for the file the user connId has requested
     std::vector<Symbol> &getFileSymbolList(unsigned int connId);

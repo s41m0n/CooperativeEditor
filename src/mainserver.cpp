@@ -1,6 +1,3 @@
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "readability-static-accessed-through-instance"
-
 #include <spdlog/spdlog.h>
 #include <QApplication>
 
@@ -29,5 +26,3 @@ int main(int argc, char **argv) {
 
   return app.exec();
 }
-
-#pragma clang diagnostic pop

@@ -1,7 +1,7 @@
 #ifndef COOPERATIVEEDITOR_IDENTIFIER_H
 #define COOPERATIVEEDITOR_IDENTIFIER_H
 
-#include <QtCore/QDataStream>
+#include <QDataStream>
 #include <string>
 
 /**
