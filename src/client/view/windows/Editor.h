@@ -15,10 +15,6 @@ class Editor : public QMainWindow {
 Q_OBJECT
 
 private:
-    QWidget *mainWidget;
-    QLabel *title;
-    QPushButton *buttonExit;
-    QMessageBox *areYouSureQuit;
 
 public:
     ///Constructor
