@@ -84,7 +84,10 @@ std::vector<Identifier> CrdtAlgorithm::generatePosBetween(
         std::vector<Identifier> pos1, std::vector<Identifier> pos2,
         unsigned int editorId, std::vector<Identifier> newPos, int level) {
 
-  int baseValue = (int) (std::pow(2, level) * CrdtAlgorithm::base);
+  auto baseValue = (unsigned int) (std::pow(2, level) * CrdtAlgorithm::base);
+  if (!baseValue) {
+    baseValue = UINT_MAX;
+  }
   bool boundaryStrategy = retrieveStrategy(level);
 
   auto id1 = !pos1.empty() ? pos1[0] : Identifier(editorId, 0);
