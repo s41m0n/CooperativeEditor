@@ -32,9 +32,6 @@ public:
     ///Constructor
     Model();
 
-    ///Destructor
-    ~Model();
-
     ///Crdt local method to insert a symbol
     Symbol *localInsert(int index, char value);
 
@@ -47,11 +44,11 @@ public:
     ///Method to update the list of symbol after a remote deletion
     void remoteErase(Symbol symbol);
 
-    ///Method to return the editorId
-    unsigned int getEditorId();
-
     ///Method to set the editorId once received by the server
     void setEditorId(unsigned int newEditorId);
+
+    ///Method to get the editorId
+    unsigned getEditorId();
 
     ///Method to set the current opened file name
     void setCurrentFile(std::string &filename);

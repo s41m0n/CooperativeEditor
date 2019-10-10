@@ -7,11 +7,6 @@
 #include "client/controller/Controller.h"
 
 View::View(Controller *controller) : controller(controller) {
-  spdlog::debug("Created View");
-}
-
-View::~View() {
-  spdlog::debug("Destroyed View");
 }
 
 void View::init() {

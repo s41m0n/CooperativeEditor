@@ -16,9 +16,6 @@ public:
     ///Constructor which also assigns the controller
     explicit View(Controller *controller);
 
-    ///Destructor, used for debug
-    ~View();
-
     ///Method to initialize the user interface
     void init();
 

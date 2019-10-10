@@ -7,8 +7,9 @@
 #include <QObject>
 #include <QString>
 
-#include "src/components/messages/BasicMessage.h"
+#include "components/messages/BasicMessage.h"
 #include "client/model/Model.h"
+#include "common/TcpSocket.h"
 
 /**
  * Controller class for the client
@@ -22,18 +23,12 @@ private:
     ///The instance of the model
     Model *model;
 
-    ///The QTcpSocket
-    QTcpSocket _socket;
-
-    ///The data stream related to the socket
-    QDataStream ds;
+    ///The socket
+    TcpSocket socket;
 
 public:
     ///Classic constructor
     Controller(Model *model, const std::string &host, int port);
-
-    ///Destructor used for debug purpose only by now
-    ~Controller() override;
 
 public slots:
 

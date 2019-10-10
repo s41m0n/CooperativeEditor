@@ -10,13 +10,14 @@
 #include <QObject>
 
 #include "components/messages/CrdtMessage.h"
+#include "common/TcpSocket.h"
 #include "server/model/Model.h"
 
 /**
  * Controller server class
  *
  */
-class Controller : public QObject {
+class Controller : public QTcpServer {
 
 Q_OBJECT
 
@@ -24,11 +25,8 @@ private:
     ///The model instance
     Model *model;
 
-    ///The server
-    QTcpServer _server;
-
     ///Map of connection ID, filename required by user and QTcpSockets
-    std::map<QTcpSocket *, unsigned int> connections;
+    std::map<quint32, TcpSocket *> connections;
 
     ///The queue containing all the messages
     std::queue<CrdtMessage> messages;
@@ -44,10 +42,11 @@ private:
 
 public:
     ///Class constructor, given an io_service and a port
-    Controller(Model *model, unsigned short port);
+    Controller(Model *model, unsigned short port, QWidget *parent = nullptr);
 
-    ///Class destructor (actually used to debug)
-    ~Controller() override;
+
+protected:
+    void incomingConnection(qintptr handle) override;
 
 public slots:
 

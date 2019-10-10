@@ -5,7 +5,7 @@ Symbol::Symbol(char character, unsigned int siteId,
         siteId(siteId), character(character) {
 }
 
-Symbol::Symbol() : character('\0'), position() {
+Symbol::Symbol() : character('\0'), position(), siteId(-1) {
 }
 
 char Symbol::getChar() {

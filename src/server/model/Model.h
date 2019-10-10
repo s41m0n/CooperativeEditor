@@ -44,9 +44,6 @@ public:
     ///Classic constructor
     Model();
 
-    ///Classic destructor
-    ~Model();
-
     ///Method to generate a new editor id
     unsigned int generateEditorId();
 

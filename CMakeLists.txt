@@ -34,14 +34,17 @@ add_executable(CooperativeClient src/mainclient.cpp src/client/controller/Contro
         src/components/messages/LoginMessage.cpp src/components/messages/ResultMessage.cpp
         src/components/messages/FileContentMessage.cpp src/components/messages/RequestMessage.cpp
         src/components/messages/CrdtMessage.cpp src/components/messages/FileListingMessage.cpp
-        src/utility/CrdtAlgorithm.cpp src/client/view/View.cpp src/client/view/windows/Login.cpp src/client/view/windows/Editor.cpp)
+        src/common/CrdtAlgorithm.cpp src/client/view/View.cpp src/client/view/windows/Login.cpp
+        src/client/view/windows/FileVisualizer.cpp src/client/view/windows/Editor.cpp
+        src/common/TcpSocket.cpp)
 
 #Set the server executable
 add_executable(CooperativeServer src/mainserver.cpp src/server/controller/Controller.cpp src/server/model/Model.cpp
         src/components/Symbol.cpp src/components/Identifier.cpp src/components/messages/BasicMessage.cpp
         src/components/messages/LoginMessage.cpp src/components/messages/ResultMessage.cpp
         src/components/messages/FileContentMessage.cpp src/components/messages/RequestMessage.cpp
-        src/components/messages/CrdtMessage.cpp src/components/messages/FileListingMessage.cpp src/utility/CrdtAlgorithm.cpp)
+        src/components/messages/CrdtMessage.cpp src/components/messages/FileListingMessage.cpp src/common/CrdtAlgorithm.cpp
+        src/common/TcpSocket.cpp)
 
 #Add libraries to compile the client
 if (CMAKE_G++_COMPILER_VERSION VERSION_LESS 9.0.0)

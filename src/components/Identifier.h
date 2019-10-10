@@ -22,7 +22,7 @@ public:
     Identifier(unsigned int editorId, unsigned int digit);
 
     ///Constructor used to create a non-valid Identifier to be filled
-    Identifier() = default;
+    Identifier();
 
     ///Method to compare two identifier by their private variables
     int compareTo(Identifier other);

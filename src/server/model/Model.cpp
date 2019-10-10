@@ -3,12 +3,10 @@
 #include <algorithm>
 #include <QFile>
 
-#include "utility/CrdtAlgorithm.h"
+#include "common/CrdtAlgorithm.h"
 #include "Model.h"
 
 Model::Model() : idGenerator(1) {
-
-  spdlog::debug("Created Model");
 
   //Loading all files name in the directory
   for (auto &p: std::filesystem::directory_iterator(".")) {
@@ -22,13 +20,6 @@ Model::Model() : idGenerator(1) {
   }
 
 }
-
-Model::~Model() {
-
-  spdlog::debug("Destroyed Model");
-
-}
-
 
 void Model::storeFileSymbols(std::string &filename) {
   QFile file((filename + ".crdt").c_str());
