@@ -20,6 +20,8 @@ public:
     ///Method build a RequestMessage from a BasicMessage
     explicit RequestMessage(BasicMessage &&msg);
 
+    RequestMessage() = default;
+
     ///Return the requested filename
     std::string getFilename();
 

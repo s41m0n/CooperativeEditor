@@ -24,6 +24,8 @@ public:
     ///Method build a LoginMessage from a BasicMessage
     explicit LoginMessage(BasicMessage &&msg);
 
+    LoginMessage() = default;
+
     ///Return the username
     std::string &getUsername();
 

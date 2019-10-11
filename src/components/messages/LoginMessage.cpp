@@ -21,7 +21,7 @@ std::string &LoginMessage::getPassword() {
 }
 
 std::string LoginMessage::toString(int level) {
-  return std::string(level, '\t') + "ResultMessage{\n" +
+  return std::string(level, '\t') + "LoginMessage{\n" +
          std::string(level + 1, '\t') + "msgType: " +
          std::to_string(static_cast<int>(msgType)) + "\n" +
          std::string(level + 1, '\t') + "editorId: " +

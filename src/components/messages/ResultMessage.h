@@ -20,6 +20,8 @@ public:
     ///Movement constructor to build one from BasicMessage
     explicit ResultMessage(BasicMessage &&msg);
 
+    ResultMessage() = default;
+
     ///Method to return the answer
     bool isPositive();
 

@@ -22,6 +22,8 @@ public:
     ///Method build a FileContentMessage from a BasicMessage
     explicit FileContentMessage(BasicMessage &&msg);
 
+    FileContentMessage() = default;
+
     ///Return all the symbols
     std::vector<Symbol> &getSymbols();
 

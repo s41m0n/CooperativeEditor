@@ -18,6 +18,7 @@ std::string ResultMessage::toString(int level) {
          std::to_string(static_cast<int>(msgType)) + "\n" +
          std::string(level + 1, '\t') + "editorId: " +
          std::to_string(editorId) + "\n" +
+         std::string(level + 1, '\t') + "result: " +
          std::to_string(result) + "\n" +
          std::string(level, '\t') + "}";
 }

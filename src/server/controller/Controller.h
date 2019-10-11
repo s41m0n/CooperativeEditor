@@ -29,7 +29,7 @@ private:
     std::map<quint32, TcpSocket *> connections;
 
     ///The queue containing all the messages
-    std::queue<CrdtMessage> messages;
+    std::queue<CrdtMessage*> messages;
 
     ///The mutex used for the message queue
     std::mutex queueMutex;

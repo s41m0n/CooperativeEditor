@@ -44,7 +44,7 @@ void Controller::onNewConnection() {
 
   BasicMessage msg(Type::CONNECT, clientId);
 
-  *clientSocket << msg;
+  clientSocket->sendMsg(msg);
   spdlog::debug("Sent Message:\n" + msg.toString());
 
 }
@@ -64,90 +64,88 @@ void Controller::onReadyRead() {
   auto sender = dynamic_cast<TcpSocket *>(QObject::sender());
   auto clientId = sender->socketDescriptor();
 
-  BasicMessage base;
-  *sender >> base;
+  BasicMessage *base = sender->readMsg();
 
-  switch (base.getMsgType()) {
+  switch (base->getMsgType()) {
 
     case Type::LOGIN : {
-      LoginMessage msg(std::move(base));
-      *sender >> msg;
-      spdlog::debug("Received Message!\n" + msg.toString());
+      auto derived = dynamic_cast<LoginMessage*>(base);
+      spdlog::debug("Received Message!\n" + derived->toString());
 
       //TEMPORARY METHOD TO CHECK USER LOGIN PERMISSION
-      bool result = msg.getUsername() == "hello" && msg.getPassword() ==
+      bool result = derived->getUsername() == "hello" && derived->getPassword() ==
                                                     "9b71d224bd62f3785d96d46ad3ea3d73319bfbc2890caadae2dff72519673ca72323c3d99ba5c11d7c7acc6e14b8c5da0c4663475c2e5c3adef46f73bcdec043";
 
       ResultMessage newMsg(Type::LOGIN_RESULT, clientId, result);
-      *sender << newMsg;
+      sender->sendMsg(newMsg);
       spdlog::debug("Sent Message!\n" + newMsg.toString());
 
       if (result) {
-        FileListingMessage newMsg2(clientId,
-                                   model->getAvailableFiles());
-        *sender << newMsg2;
+        FileListingMessage newMsg2(clientId, model->getAvailableFiles());
+        sender->sendMsg(newMsg2);
         spdlog::debug("Sent Message:\n" + newMsg2.toString());
       }
+      delete base;
       break;
     }
     case Type::INSERT : {
-      CrdtMessage msg(std::move(base));
-      *sender >> msg;
-      spdlog::debug("Received Message!\n" + msg.toString());
+      auto derived = dynamic_cast<CrdtMessage*>(base);
+      spdlog::debug("Received Message!\n" + derived->toString());
 
-      model->userInsert(clientId, msg.getSymbol());
+      model->userInsert(clientId, derived->getSymbol());
       std::lock_guard<std::mutex> guard2(queueMutex);
-      messages.push(std::move(msg));
+      messages.push(derived);
       break;
     }
     case Type::ERASE : {
-      CrdtMessage msg(std::move(base));
-      *sender >> msg;
-      spdlog::debug("Received Message!\n" + msg.toString());
+      auto derived = dynamic_cast<CrdtMessage*>(base);
+      spdlog::debug("Received Message!\n" + derived->toString());
 
-      model->userErase(clientId, msg.getSymbol());
+      model->userErase(clientId, derived->getSymbol());
       std::lock_guard<std::mutex> guard2(queueMutex);
-      messages.push(std::move(msg));
+      messages.push(derived);
       break;
     }
     case Type::CREATE : {
-      RequestMessage msg(std::move(base));
-      *sender >> msg;
-      spdlog::debug("Received Message!\n" + msg.toString());
+      auto derived = dynamic_cast<RequestMessage*>(base);
+      spdlog::debug("Received Message!\n" + derived->toString());
 
-      if (model->createFileByUser(clientId, msg.getFilename())) {
+      if (model->createFileByUser(clientId, derived->getFilename())) {
         ResultMessage newMsg(Type::FILE_RESULT, clientId, true);
+        sender->sendMsg(newMsg);
+        spdlog::debug("Sent Message!\n" + newMsg.toString());
+
         std::vector<Symbol> empty;
         FileContentMessage newMsg2(clientId, empty);
-        *sender << newMsg;
-        *sender << newMsg2;
-        spdlog::debug("Sent Message!\n" + newMsg.toString());
+        sender->sendMsg(newMsg2);
         spdlog::debug("Sent Message!\n" + newMsg2.toString());
       } else {
         ResultMessage newMsg(Type::FILE_RESULT, clientId, false);
-        *sender << newMsg;
+        sender->sendMsg(newMsg);
         spdlog::debug("Sent Message!\n" + newMsg.toString());
       }
+      delete base;
       break;
     }
     case Type::OPEN : {
-      RequestMessage msg(std::move(base));
-      *sender >> msg;
-      spdlog::debug("Received Message!\n" + msg.toString());
+      auto derived = dynamic_cast<RequestMessage*>(base);
+      spdlog::debug("Received Message!\n" + derived->toString());
 
-      if (model->openFileByUser(clientId, msg.getFilename())) {
+      if (model->openFileByUser(clientId, derived->getFilename())) {
         auto symbolList = model->getFileSymbolList(clientId);
         ResultMessage newMsg(Type::FILE_RESULT, clientId, true);
-        FileContentMessage newMsg2(clientId, symbolList);
-        *sender << newMsg;
-        *sender << newMsg2;
+        sender->sendMsg(newMsg);
         spdlog::debug("Sent Message!\n" + newMsg.toString());
+
+        FileContentMessage newMsg2(clientId, symbolList);
+        sender->sendMsg(newMsg2);
         spdlog::debug("Sent Message!\n" + newMsg2.toString());
       } else {
         ResultMessage newMsg(Type::FILE_RESULT, clientId, false);
-        *sender << newMsg;
+        sender->sendMsg(newMsg);
         spdlog::debug("Sent Message!\n{}", newMsg.toString());
       }
+      delete base;
       break;
     }
     default :

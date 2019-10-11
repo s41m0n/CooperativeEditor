@@ -25,6 +25,8 @@ public:
     ///Method build a FileContentMessage from a BasicMessage
     explicit FileListingMessage(BasicMessage &&msg);
 
+    FileListingMessage() = default;
+
     ///Return all the symbols
     std::vector<std::string> &getFiles();
 
