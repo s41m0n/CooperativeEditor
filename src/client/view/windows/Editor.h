@@ -5,6 +5,8 @@
 #include <QLabel>
 #include <QPushButton>
 #include <QMessageBox>
+#include <QMenuBar>
+#include <QPlainTextEdit>
 #include <QString>
 
 /**
@@ -15,6 +17,9 @@ class Editor : public QMainWindow {
 Q_OBJECT
 
 private:
+    QWidget *mainWidget;
+    QPlainTextEdit *textEdit;
+    QMenuBar *topBar;
 
 public:
     ///Constructor

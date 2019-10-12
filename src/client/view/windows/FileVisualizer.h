@@ -5,6 +5,7 @@
 #include <QLabel>
 #include <QPushButton>
 #include <QMessageBox>
+#include <QGroupBox>
 #include <QString>
 
 /**
@@ -16,9 +17,13 @@ Q_OBJECT
 
 private:
     QWidget *mainWidget;
-    QLabel *title;
+    QLabel *titleOpen;
+    QLabel *titleCreate;
     QPushButton *buttonExit;
+    QPushButton *buttonCreate;
     QMessageBox *areYouSureQuit;
+    QGroupBox *filesBox;
+    QMessageBox *fileCannotBeOpened;
 
 public:
     ///Constructor
@@ -26,8 +31,8 @@ public:
 
 public slots:
 
-    ///Slot to notify the visualizer that the list of files has been received
-    void onFileListing(std::string files);
+    ///Slot to notify the editor that the list of files has been received
+    void onFileListing(const std::vector<std::string>& filesArray);
 
     ///Slot to notify the visualizer that the file can/cannot be opened/created
     void onFileResult(bool result);

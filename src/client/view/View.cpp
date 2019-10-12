@@ -34,5 +34,6 @@ void View::init() {
                    &Editor::onRemoteUpdate);
 
   login->show();
+  //editor->show();
 
 }
