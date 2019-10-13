@@ -33,12 +33,6 @@ public:
 
 public slots:
 
-    ///Slot to notify the editor that the list of files has been received
-    void onFileListing(std::vector<std::string> files);
-
-    ///Slot to notify the editor that the file can/cannot be opened/created
-    void onFileResult(bool result);
-
     ///Slot to notify the editor that a remote op. has been performed
     void onRemoteUpdate(std::string text);
 

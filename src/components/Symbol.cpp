@@ -65,6 +65,7 @@ QDataStream &operator>>(QDataStream &stream, Symbol &val) {
   quint32 size;
   stream >> reinterpret_cast<qint32 &>(val.character) >> val.siteId >> size;
   Identifier tmp;
+  val.position.clear();
   for (quint32 i = 0; i < size; i++) {
     stream >> tmp;
     val.position.emplace_back(tmp);
