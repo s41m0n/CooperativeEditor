@@ -84,7 +84,10 @@ std::vector<Identifier> CrdtAlgorithm::generatePosBetween(
         std::vector<Identifier> pos1, std::vector<Identifier> pos2,
         unsigned int editorId, std::vector<Identifier> newPos, int level) {
 
-  int baseValue = (int) (std::pow(2, level) * CrdtAlgorithm::base);
+  auto baseValue = (unsigned int) (std::pow(2, level) * CrdtAlgorithm::base);
+  if (!baseValue) {
+    baseValue = UINT_MAX;
+  }
   bool boundaryStrategy = retrieveStrategy(level);
 
   auto id1 = !pos1.empty() ? pos1[0] : Identifier(editorId, 0);
@@ -108,7 +111,10 @@ std::vector<Identifier> CrdtAlgorithm::generatePosBetween(
       if (!pos1.empty()) {
         pos1.erase(pos1.begin());
       }
-      return CrdtAlgorithm::generatePosBetween(pos1, {}, editorId, newPos,
+      if (!pos2.empty()) {
+        pos2.erase(pos2.begin());
+      }
+      return CrdtAlgorithm::generatePosBetween(pos1, pos2, editorId, newPos,
               level + 1);
     } else if (id1.getEditorId() == id2.getEditorId()) {
       newPos.push_back(id1);
@@ -122,10 +128,13 @@ std::vector<Identifier> CrdtAlgorithm::generatePosBetween(
               level + 1);
     } else {
       newPos.push_back(id2);
+      if (!pos1.empty()) {
+        pos1.erase(pos1.begin());
+      }
       if (!pos2.empty()) {
         pos2.erase(pos2.begin());
       }
-      return CrdtAlgorithm::generatePosBetween({}, pos2, editorId, newPos,
+      return CrdtAlgorithm::generatePosBetween(pos1, pos2, editorId, newPos,
               level + 1);
     }
   }
