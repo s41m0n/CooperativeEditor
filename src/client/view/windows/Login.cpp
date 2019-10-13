@@ -1,21 +1,15 @@
-#include <QGridLayout>
-
 #include "Login.h"
 
 Login::Login(QWidget *parent) : QMainWindow(parent) {
 
-  //this->setFixedSize(355, 240);
   this->setWindowTitle("Login Form");
+  this->setFixedSize(this->minimumSize());
 
   mainWidget = new QWidget(this);
   auto layout = new QGridLayout(mainWidget);
 
   setCentralWidget(mainWidget);
   mainWidget->setLayout(layout);
-
-  title = new QLabel(this);
-  title->setText("Welcome to Our Cooperative Editor!");
-  layout->addWidget(title, 0, 0);
 
   loginBox = new QGroupBox("Insert your Personal Data:", mainWidget);
   loginBox->setLayout(new QVBoxLayout());
@@ -35,10 +29,22 @@ Login::Login(QWidget *parent) : QMainWindow(parent) {
   passwordTextField->setStyleSheet("lineedit-password-character: 42");
   loginBox->layout()->addWidget(passwordTextField);
 
-  buttonEnter = new QPushButton("Enter");
+  buttonEnter = new QPushButton("Log In");
   buttonEnter->setAutoDefault(true);
+  loginBox->layout()->addWidget(buttonEnter);
+
+  registerBox = new QGroupBox("Or sign up if you do not have credentials:",
+                              mainWidget);
+  registerBox->setLayout(new QVBoxLayout());
+  layout->addWidget(registerBox, 4, 0, 1, 2);
+
+  buttonRegister = new QPushButton("Sign Up");
+  buttonRegister->setAutoDefault(true);
+  registerBox->layout()->addWidget(buttonRegister);
+
   buttonExit = new QPushButton("Exit");
   buttonExit->setAutoDefault(true);
+  layout->addWidget(buttonExit, 5, 0, 1, 2);
 
   errorMessageEmptyFields = new QMessageBox();
   errorMessageEmptyFields->setText("Please insert username and password.");
@@ -54,8 +60,7 @@ Login::Login(QWidget *parent) : QMainWindow(parent) {
   errorNotConnected->setText(
           "Sorry, the server is unreachable. Try later, please.");
 
-  layout->addWidget(buttonEnter, 2, 0);
-  layout->addWidget(buttonExit, 3, 0);
+  buttonExit->setFocus();
 
   QObject::connect(buttonExit, &QAbstractButton::clicked, this,
                    [this]() {
@@ -85,6 +90,11 @@ Login::Login(QWidget *parent) : QMainWindow(parent) {
                        }
                    });
 
+  QObject::connect(buttonRegister, &QAbstractButton::clicked, this,
+                   [this]() {
+                       emit signUp();
+                       this->close();
+                   });
 }
 
 void Login::onServerUnreachable() {

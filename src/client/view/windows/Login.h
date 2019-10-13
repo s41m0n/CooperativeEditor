@@ -8,6 +8,7 @@
 #include <QPushButton>
 #include <QString>
 #include <QMessageBox>
+#include <QGridLayout>
 
 /**
  * Login application window
@@ -17,7 +18,6 @@ class Login : public QMainWindow {
 Q_OBJECT
 
 private:
-    ///The private components
     QWidget *mainWidget;
     QLabel *title;
     QGroupBox *loginBox;
@@ -25,6 +25,8 @@ private:
     QLineEdit *usernameTextField;
     QLabel *passwordLabel;
     QLineEdit *passwordTextField;
+    QGroupBox *registerBox;
+    QPushButton *buttonRegister;
     QPushButton *buttonEnter;
     QPushButton *buttonExit;
     QMessageBox *errorMessageEmptyFields;
@@ -33,7 +35,6 @@ private:
     QMessageBox *errorNotLogged;
 
 public:
-    ///Constructor
     explicit Login(QWidget *parent = nullptr);
 
 public slots:
@@ -46,8 +47,11 @@ public slots:
 
 signals:
 
-    ///Signal to notify controller that user wants log in
+    ///Signal to notify the controller that user wants log in
     void loginRequest(QString username, QString password);
+
+    ///Signal to notify the view that a user wants to register himself
+    void signUp();
 };
 
 

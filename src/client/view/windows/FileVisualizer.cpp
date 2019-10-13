@@ -1,6 +1,4 @@
 #include <spdlog/spdlog.h>
-#include <sstream>
-#include <QVBoxLayout>
 #include "FileVisualizer.h"
 
 FileVisualizer::FileVisualizer(QWidget *parent) : QMainWindow(parent) {

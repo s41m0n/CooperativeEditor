@@ -1,10 +1,5 @@
 #include <spdlog/spdlog.h>
-
-#include "client/view/windows/Login.h"
-#include "client/view/windows/Editor.h"
-#include "client/view/windows/FileVisualizer.h"
 #include "client/view/View.h"
-#include "client/controller/Controller.h"
 
 View::View(Controller *controller) : controller(controller) {
 }
@@ -13,6 +8,11 @@ void View::init() {
   auto login = new Login();
   auto editor = new Editor();
   auto fileVisualizer = new FileVisualizer();
+  auto signUp = new SignUp();
+
+  QObject::connect(login, &Login::signUp, signUp, &SignUp::show);
+
+  QObject::connect(signUp, &SignUp::backToLogin, login, &Login::show);
 
   QObject::connect(login, &Login::loginRequest, controller,
                    &Controller::onLoginRequest);

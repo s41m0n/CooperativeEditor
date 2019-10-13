@@ -7,9 +7,10 @@
 #include <QMessageBox>
 #include <QGroupBox>
 #include <QString>
+#include <QVBoxLayout>
 
 /**
- * File Visualizer application windows
+ * File Visualizer application window
  */
 class FileVisualizer : public QMainWindow {
 

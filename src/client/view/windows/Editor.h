@@ -6,11 +6,14 @@
 #include <QPushButton>
 #include <QMessageBox>
 #include <QMenuBar>
+#include <QToolBar>
 #include <QPlainTextEdit>
 #include <QString>
+#include <QVBoxLayout>
+#include <QAction>
 
 /**
- * Editor application windows
+ * Editor application window
  */
 class Editor : public QMainWindow {
 
@@ -20,6 +23,9 @@ private:
     QWidget *mainWidget;
     QPlainTextEdit *textEdit;
     QMenuBar *topBar;
+    QToolBar *toolBar;
+    void createTopBar(QVBoxLayout* layout);
+    void createToolBar(QVBoxLayout* layout);
 
 public:
     ///Constructor
