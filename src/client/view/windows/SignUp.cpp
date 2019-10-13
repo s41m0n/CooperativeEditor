@@ -20,6 +20,13 @@ SignUp::SignUp(QWidget *parent) : QMainWindow(parent) {
   registerBox->setLayout(new QVBoxLayout());
   layout->addWidget(registerBox, 1, 0, 1, 2);
 
+  imageLabel = new QLabel("Select your image:");
+  registerBox->layout()->addWidget(imageLabel);
+
+  buttonSelectImage = new QPushButton("Select file", registerBox);
+  buttonSelectImage->setAutoDefault(true);
+  registerBox->layout()->addWidget(buttonSelectImage);
+
   nameLabel = new QLabel("Name:", registerBox);
   registerBox->layout()->addWidget(nameLabel);
 
@@ -47,7 +54,7 @@ SignUp::SignUp(QWidget *parent) : QMainWindow(parent) {
   passwordLabel = new QLabel("Password:", registerBox);
   registerBox->layout()->addWidget(passwordLabel);
 
-  passwordTextField = new QLineEdit();
+  passwordTextField = new QLineEdit(registerBox);
   passwordTextField->setEchoMode(passwordTextField->Password);
   passwordTextField->setStyleSheet("lineedit-password-character: 42");
   registerBox->layout()->addWidget(passwordTextField);
@@ -55,12 +62,12 @@ SignUp::SignUp(QWidget *parent) : QMainWindow(parent) {
   passwordLabelConfirm = new QLabel("Repeat Password:", registerBox);
   registerBox->layout()->addWidget(passwordLabelConfirm);
 
-  passwordTextFieldConfirm = new QLineEdit();
+  passwordTextFieldConfirm = new QLineEdit(registerBox);
   passwordTextFieldConfirm->setEchoMode(passwordTextFieldConfirm->Password);
   passwordTextFieldConfirm->setStyleSheet("lineedit-password-character: 42");
   registerBox->layout()->addWidget(passwordTextFieldConfirm);
 
-  buttonSignUp = new QPushButton("Sign Up");
+  buttonSignUp = new QPushButton("Sign Up", registerBox);
   buttonSignUp->setAutoDefault(true);
   registerBox->layout()->addWidget(buttonSignUp);
 
@@ -69,27 +76,31 @@ SignUp::SignUp(QWidget *parent) : QMainWindow(parent) {
   alreadyRegisteredBox->setLayout(new QVBoxLayout());
   layout->addWidget(alreadyRegisteredBox, 5, 0, 1, 2);
 
-  buttonBackToLogin = new QPushButton("Log In");
+  buttonBackToLogin = new QPushButton("Log In", alreadyRegisteredBox);
   buttonBackToLogin->setAutoDefault(true);
   alreadyRegisteredBox->layout()->addWidget(buttonBackToLogin);
 
-  buttonExit = new QPushButton("Exit");
+  buttonExit = new QPushButton("Exit", mainWidget);
   buttonExit->setAutoDefault(true);
   layout->addWidget(buttonExit, 6, 0, 1, 2);
 
-  errorMessageEmptyFields = new QMessageBox();
+  errorMessageEmptyFields = new QMessageBox(this);
   errorMessageEmptyFields->setText("Please fill all the requested fields.");
+  errorMessageEmptyFields->setFixedSize(this->minimumSize());
 
-  areYouSureQuit = new QMessageBox();
+  areYouSureQuit = new QMessageBox(this);
   areYouSureQuit->setText("Are you sure you want to exit?");
   areYouSureQuit->setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+  areYouSureQuit->setFixedSize(this->minimumSize());
 
-  errorMessageDifferentPasswords = new QMessageBox();
+  errorMessageDifferentPasswords = new QMessageBox(this);
   errorMessageDifferentPasswords->setText("The two passwords must match.");
+  errorMessageDifferentPasswords->setFixedSize(this->minimumSize());
 
-  errorNotConnected = new QMessageBox();
+  errorNotConnected = new QMessageBox(this);
   errorNotConnected->setText(
           "Sorry, the server is unreachable. Try later, please.");
+  errorNotConnected->setFixedSize(this->minimumSize());
 
   buttonExit->setFocus();
 
@@ -110,6 +121,19 @@ SignUp::SignUp(QWidget *parent) : QMainWindow(parent) {
                        }
                    });
 
+  QObject::connect(buttonSelectImage, &QAbstractButton::clicked, this,
+                   [this]() {
+                       userImage = QFileDialog::getOpenFileName(this,
+                                                                tr("Open Image"),
+                                                                "/home",
+                                                                tr("Image Files (*.png *.jpg *.bmp)"));
+                       if(!userImage.isEmpty()) {
+                         buttonSelectImage->setText(userImage);
+                       } else {
+                         buttonSelectImage->setText("Select File");
+                       }
+                   });
+
   QObject::connect(buttonBackToLogin, &QAbstractButton::clicked, this,
                    [this]() {
                        emit backToLogin();
@@ -118,7 +142,8 @@ SignUp::SignUp(QWidget *parent) : QMainWindow(parent) {
 
   QObject::connect(buttonSignUp, &QAbstractButton::clicked, this,
                    [this]() {
-                       if (!nameTextField->text().isEmpty() &&
+                       if (!userImage.isEmpty() &&
+                           !nameTextField->text().isEmpty() &&
                            !surnameTextField->text().isEmpty() &&
                            !usernameTextField->text().isEmpty() &&
                            !emailTextField->text().isEmpty() &&
@@ -126,7 +151,8 @@ SignUp::SignUp(QWidget *parent) : QMainWindow(parent) {
 
                          if (passwordTextField->text() ==
                              passwordTextFieldConfirm->text()) {
-                           emit signUpRequest(nameTextField->text(),
+                           emit signUpRequest(userImage,
+                                              nameTextField->text(),
                                               surnameTextField->text(),
                                               usernameTextField->text(),
                                               emailTextField->text(),

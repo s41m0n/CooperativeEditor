@@ -7,6 +7,7 @@
 #include <QMessageBox>
 #include <QGroupBox>
 #include <QString>
+#include <QInputDialog>
 #include <QVBoxLayout>
 
 /**
@@ -25,6 +26,7 @@ private:
     QMessageBox *areYouSureQuit;
     QGroupBox *filesBox;
     QMessageBox *fileCannotBeOpened;
+    QString newFileName;
 
 public:
 

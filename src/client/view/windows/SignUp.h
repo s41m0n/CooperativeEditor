@@ -9,6 +9,7 @@
 #include <QString>
 #include <QMessageBox>
 #include <QGridLayout>
+#include <QFileDialog>
 
 /**
  * SignUp application window
@@ -21,6 +22,7 @@ private:
     QWidget *mainWidget;
     QLabel *title;
     QGroupBox *registerBox;
+    QLabel *imageLabel;
     QLabel *nameLabel;
     QLineEdit *nameTextField;
     QLabel *surnameLabel;
@@ -33,6 +35,7 @@ private:
     QLineEdit *passwordTextField;
     QLabel *passwordLabelConfirm;
     QLineEdit *passwordTextFieldConfirm;
+    QPushButton *buttonSelectImage;
     QPushButton *buttonSignUp;
     QPushButton *buttonExit;
     QGroupBox *alreadyRegisteredBox;
@@ -41,6 +44,7 @@ private:
     QMessageBox *errorMessageDifferentPasswords;
     QMessageBox *areYouSureQuit;
     QMessageBox *errorNotConnected;
+    QString userImage;
 
 public:
     explicit SignUp(QWidget *parent = nullptr);
@@ -53,7 +57,7 @@ public slots:
 signals:
 
     ///Signal to notify the server an user wants to sign up
-    void signUpRequest(QString name, QString surname, QString username,
+    void signUpRequest(QString image, QString name, QString surname, QString username,
                        QString email, QString password);
 
     ///Signl to go back to the login page

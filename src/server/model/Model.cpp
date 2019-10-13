@@ -17,7 +17,6 @@ Model::Model() : idGenerator(1) {
       availableFiles.push_back(QString::fromStdString(filename));
     }
   }
-
 }
 
 void Model::storeFileSymbols(QString &filename) {

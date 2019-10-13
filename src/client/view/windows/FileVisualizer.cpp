@@ -1,13 +1,14 @@
 #include <spdlog/spdlog.h>
+#include <QtCore/QDir>
 #include "FileVisualizer.h"
 
 FileVisualizer::FileVisualizer(QWidget *parent) : QMainWindow(parent) {
 }
 
-
 void FileVisualizer::onFileListing(const QVector<QString> &filesArray) {
 
   this->setWindowTitle("File Selection");
+  this->setFixedSize(this->minimumSize());
 
   mainWidget = new QWidget(this);
   auto layout = new QVBoxLayout(mainWidget);
@@ -15,7 +16,7 @@ void FileVisualizer::onFileListing(const QVector<QString> &filesArray) {
   setCentralWidget(mainWidget);
   mainWidget->setLayout(layout);
 
-  titleOpen = new QLabel(this);
+  titleOpen = new QLabel(mainWidget);
   titleOpen->setText(
           "Select the file you want to open:");
   layout->addWidget(titleOpen);
@@ -24,10 +25,13 @@ void FileVisualizer::onFileListing(const QVector<QString> &filesArray) {
   filesBox->setLayout(new QVBoxLayout());
   layout->addWidget(filesBox);
 
-  if(filesArray.empty()){
-    auto noFiles = new QLabel("There are not file to open on the server. Please create a new file.");
+  if (filesArray.empty()) {
+    auto noFiles = new QLabel(
+            "There are not file to open on the server. Please create a new file.",
+            filesBox);
     filesBox->layout()->addWidget(noFiles);
   } else {
+
     for (const auto & i : filesArray) {
       auto fileButton = new QPushButton();
       fileButton->setText(i);
@@ -39,24 +43,27 @@ void FileVisualizer::onFileListing(const QVector<QString> &filesArray) {
     }
   }
 
-  areYouSureQuit = new QMessageBox();
+  areYouSureQuit = new QMessageBox(this);
   areYouSureQuit->setText("Are you sure you want to exit?");
   areYouSureQuit->setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+  areYouSureQuit->setFixedSize(this->minimumSize());
 
-  fileCannotBeOpened = new QMessageBox();
-  fileCannotBeOpened->setText("Sorry, the file you selected cannot be opened. Do you want to choose another file?");
+  fileCannotBeOpened = new QMessageBox(this);
+  fileCannotBeOpened->setText(
+          "Sorry, the file you selected cannot be opened. Do you want to choose another file?");
   fileCannotBeOpened->setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+  fileCannotBeOpened->setFixedSize(this->minimumSize());
 
-  titleCreate = new QLabel(this);
+  titleCreate = new QLabel(mainWidget);
   titleCreate->setText(
           "Click here to create a new file:");
   layout->addWidget(titleCreate);
 
-  buttonCreate = new QPushButton("New file");
+  buttonCreate = new QPushButton("New file", mainWidget);
   buttonCreate->setAutoDefault(true);
   layout->addWidget(buttonCreate);
 
-  buttonExit = new QPushButton("Exit");
+  buttonExit = new QPushButton("Exit", mainWidget);
   buttonExit->setAutoDefault(true);
   layout->addWidget(buttonExit);
 
@@ -78,10 +85,28 @@ void FileVisualizer::onFileListing(const QVector<QString> &filesArray) {
                            break;
                        }
                    });
+
+  QObject::connect(buttonCreate, &QAbstractButton::clicked, this,
+                   [this]() {
+                       QString name = QInputDialog::getText(this,
+                                                           "New File",
+                                                           "Insert the name of the file you want to create:",
+                                                           QLineEdit::Normal);
+
+                       if (!name.isEmpty()){
+                         newFileName = name;
+                         //invia nome file a server
+                       } else {
+                         auto nameEmpty = new QMessageBox(this);
+                         nameEmpty->setText("You insert an invalid name. Try again.");
+                         nameEmpty->setFixedSize(this->minimumSize());
+                         nameEmpty->show();
+                       }
+                   });
 }
 
 void FileVisualizer::onFileResult(bool result) {
-  if(result) {
+  if (result) {
     //Il file può essere aperto/creato
     spdlog::debug("Action OK");
     //Va triggerata l'apertura dell'editor e inviato il contenuto del file

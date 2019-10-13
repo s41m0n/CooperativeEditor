@@ -15,7 +15,7 @@ Editor::Editor(QWidget *parent) : QMainWindow(parent) {
 
   createToolBar(layout);
 
-  textEdit = new QPlainTextEdit();
+  textEdit = new QPlainTextEdit(mainWidget);
   layout->addWidget(textEdit);
 
 }
@@ -28,39 +28,39 @@ void Editor::onRemoteUpdate(QString text) {
 
 void Editor::createTopBar(QVBoxLayout *layout) {
 
-  topBar = new QMenuBar();
+  topBar = new QMenuBar(mainWidget);
 
-  auto file = new QMenu("File");
+  auto file = new QMenu("File", topBar);
   topBar->addMenu(file);
-  auto actionSave = new QAction("Save As...", mainWidget);
+  auto actionSave = new QAction("Save As...", file);
   file->addAction(actionSave);
   file->addSeparator();
   auto actionClose = new QAction("Close",
-                                 mainWidget); //torno al file visualizer
+                                 file); //torno al file visualizer
   file->addAction(actionClose);
-  auto actionQuit = new QAction("Quit", mainWidget); //chiudo tutto
+  auto actionQuit = new QAction("Quit", file); //chiudo tutto
   file->addAction(actionQuit);
   topBar->addSeparator();
 
-  auto edit = new QMenu("Edit");
+  auto edit = new QMenu("Edit", topBar);
   topBar->addMenu(edit);
-  auto actionCopy = new QAction("Copy", mainWidget);
+  auto actionCopy = new QAction("Copy", edit);
   edit->addAction(actionCopy);
-  auto actionPaste = new QAction("Paste", mainWidget);
+  auto actionPaste = new QAction("Paste", edit);
   edit->addAction(actionPaste);
-  auto actionCut = new QAction("Cut", mainWidget);
+  auto actionCut = new QAction("Cut", edit);
   edit->addAction(actionCut);
   edit->addSeparator();
-  auto actionEditProfile = new QAction("Edit your profile", mainWidget);
+  auto actionEditProfile = new QAction("Edit your profile", edit);
   edit->addAction(actionEditProfile);
   topBar->addSeparator();
 
-  auto help = new QMenu("Help");
+  auto help = new QMenu("Help", topBar);
   topBar->addMenu(help);
-  auto actionAboutEditor = new QAction("About the Editor", mainWidget);
+  auto actionAboutEditor = new QAction("About the Editor", help);
   help->addAction(actionAboutEditor);
   help->addSeparator();
-  auto actionAboutAuthors = new QAction("About Us", mainWidget);
+  auto actionAboutAuthors = new QAction("About Us", help);
   help->addAction(actionAboutAuthors);
 
   layout->addWidget(topBar);
@@ -69,17 +69,17 @@ void Editor::createTopBar(QVBoxLayout *layout) {
 
 void Editor::createToolBar(QVBoxLayout *layout) {
 
-  toolBar = new QToolBar();
+  toolBar = new QToolBar(mainWidget);
 
-  auto actionBold = new QAction("Bold");
+  auto actionBold = new QAction("Bold", toolBar);
   toolBar->addAction(actionBold);
   toolBar->addSeparator();
 
-  auto actionItalic = new QAction("Italic");
+  auto actionItalic = new QAction("Italic", toolBar);
   toolBar->addAction(actionItalic);
   toolBar->addSeparator();
 
-  auto actionUnderlined = new QAction("Underlined");
+  auto actionUnderlined = new QAction("Underlined", toolBar);
   toolBar->addAction(actionUnderlined);
 
   layout->addWidget(toolBar);

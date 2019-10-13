@@ -18,18 +18,18 @@ Login::Login(QWidget *parent) : QMainWindow(parent) {
   usernameLabel = new QLabel("Username:", loginBox);
   loginBox->layout()->addWidget(usernameLabel);
 
-  usernameTextField = new QLineEdit();
+  usernameTextField = new QLineEdit(loginBox);
   loginBox->layout()->addWidget(usernameTextField);
 
   passwordLabel = new QLabel("Password:", loginBox);
   loginBox->layout()->addWidget(passwordLabel);
 
-  passwordTextField = new QLineEdit();
+  passwordTextField = new QLineEdit(loginBox);
   passwordTextField->setEchoMode(passwordTextField->Password);
   passwordTextField->setStyleSheet("lineedit-password-character: 42");
   loginBox->layout()->addWidget(passwordTextField);
 
-  buttonEnter = new QPushButton("Log In");
+  buttonEnter = new QPushButton("Log In", loginBox);
   buttonEnter->setAutoDefault(true);
   loginBox->layout()->addWidget(buttonEnter);
 
@@ -38,27 +38,31 @@ Login::Login(QWidget *parent) : QMainWindow(parent) {
   registerBox->setLayout(new QVBoxLayout());
   layout->addWidget(registerBox, 4, 0, 1, 2);
 
-  buttonRegister = new QPushButton("Sign Up");
+  buttonRegister = new QPushButton("Sign Up", registerBox);
   buttonRegister->setAutoDefault(true);
   registerBox->layout()->addWidget(buttonRegister);
 
-  buttonExit = new QPushButton("Exit");
+  buttonExit = new QPushButton("Exit", mainWidget);
   buttonExit->setAutoDefault(true);
   layout->addWidget(buttonExit, 5, 0, 1, 2);
 
-  errorMessageEmptyFields = new QMessageBox();
+  errorMessageEmptyFields = new QMessageBox(this);
   errorMessageEmptyFields->setText("Please insert username and password.");
+  errorMessageEmptyFields->setFixedSize(this->minimumSize());
 
-  areYouSureQuit = new QMessageBox();
+  areYouSureQuit = new QMessageBox(this);
   areYouSureQuit->setText("Are you sure you want to exit?");
   areYouSureQuit->setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+  areYouSureQuit->setFixedSize(this->minimumSize());
 
-  errorNotLogged = new QMessageBox();
+  errorNotLogged = new QMessageBox(this);
   errorNotLogged->setText("Username and Password are not correct.");
+  errorNotLogged->setFixedSize(this->minimumSize());
 
-  errorNotConnected = new QMessageBox();
+  errorNotConnected = new QMessageBox(this);
   errorNotConnected->setText(
           "Sorry, the server is unreachable. Try later, please.");
+  errorNotConnected->setFixedSize(this->minimumSize());
 
   buttonExit->setFocus();
 
