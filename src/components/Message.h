@@ -153,8 +153,8 @@ public:
     operator>>(QDataStream &stream, FileContentMessage &val) {
       quint32 size;
       stream >> size;
-      Symbol tmp;
       for (quint32 i = 0; i < size; i++) {
+        Symbol tmp;
         stream >> tmp;
         val.symbols.emplace_back(tmp);
       }
