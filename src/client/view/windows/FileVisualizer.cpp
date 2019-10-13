@@ -24,14 +24,19 @@ void FileVisualizer::onFileListing(const std::vector<std::string>& filesArray) {
   filesBox->setLayout(new QVBoxLayout());
   layout->addWidget(filesBox);
 
-  for (const auto & i : filesArray) {
-    auto fileButton = new QPushButton();
-    fileButton->setText(QString::fromStdString(i));
-    fileButton->setAutoDefault(true);
-    filesBox->layout()->addWidget(fileButton);
+  if(filesArray.empty()){
+    auto noFiles = new QLabel("There are not file to open on the server. Please create a new file.");
+    filesBox->layout()->addWidget(noFiles);
+  } else {
+    for (const auto & i : filesArray) {
+      auto fileButton = new QPushButton();
+      fileButton->setText(QString::fromStdString(i));
+      fileButton->setAutoDefault(true);
+      filesBox->layout()->addWidget(fileButton);
 
-    //serve far emettere ad ogni pulsante un segnale per richiedere al server l'apertura del file desiderato
+      //serve far emettere ad ogni pulsante un segnale per richiedere al server l'apertura del file desiderato
 
+    }
   }
 
   areYouSureQuit = new QMessageBox();
@@ -44,7 +49,7 @@ void FileVisualizer::onFileListing(const std::vector<std::string>& filesArray) {
 
   titleCreate = new QLabel(this);
   titleCreate->setText(
-          "Or click here to create a new file:");
+          "Click here to create a new file:");
   layout->addWidget(titleCreate);
 
   buttonCreate = new QPushButton("New file");
