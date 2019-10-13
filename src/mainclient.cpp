@@ -6,15 +6,20 @@
 #include "client/view/View.h"
 #include "client/model/Model.h"
 
-int main(int argc, char** argv) {
+int main(int argc, char **argv) {
 
-  if(argc != 3) {
-    std::cout << "Usage: ./client <serverIp> <serverPort>" << std::endl;
+  if (argc < 3) {
+    spdlog::info("Usage: {} <serverIp> <serverPort> [-d/--debug]", argv[0]);
     exit(-1);
   }
 
-  //Setting LogLevel=debug
-  spdlog::set_level(spdlog::level::debug);
+  //Setting logging level
+  if (argc == 4 && (std::strncmp(argv[3], "-d", 2) == 0 ||
+                    std::strncmp(argv[3], "--debug", 7) == 0)) {
+    spdlog::set_level(spdlog::level::debug);
+  } else {
+    spdlog::set_level(spdlog::level::critical);
+  }
 
   QApplication app(argc, argv);
 
@@ -22,7 +27,6 @@ int main(int argc, char** argv) {
   Controller controller(&model, argv[1], std::stoi(argv[2]));
   View view(&controller);
 
-  controller.setView(&view);
   view.init();
 
   return app.exec();

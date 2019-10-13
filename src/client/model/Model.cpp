@@ -1,19 +1,9 @@
-//
-// Created by s41m0n on 10/06/19.
-//
-
-#include <fstream>
 #include <spdlog/spdlog.h>
 
-#include "client/model/Model.h"
-#include "utility/CrdtAlgorithm.h"
+#include "Model.h"
+#include "common/CrdtAlgorithm.h"
 
 Model::Model() : editorId(0), digitGenerator(0), currentFile() {
-  spdlog::debug("SharedEditor::Created Model");
-}
-
-Model::~Model() {
-  spdlog::debug("SharedEditor::Destroyed Model");
 }
 
 std::string Model::textify() {
@@ -50,22 +40,23 @@ void Model::remoteErase(Symbol symbol) {
 
 Symbol Model::generateSymbol(int index, char value) {
   auto pos1 = (index - 1 < symbols.size() && index - 1 >= 0 &&
-                       !symbols[index - 1].getPos().empty()) ? symbols[
-          index - 1].getPos() : std::vector<Identifier>();
+               !symbols[index - 1].getPos().empty()) ? symbols[
+                      index - 1].getPos() : std::vector<Identifier>();
   auto pos2 = (index < symbols.size() && index >= 0 &&
-                      !symbols[index].getPos().empty()) ? symbols[
-                              index].getPos() : std::vector<Identifier>();
-  auto newPos = CrdtAlgorithm::generatePosBetween(pos1, pos2, getEditorId());
+               !symbols[index].getPos().empty()) ? symbols[
+                      index].getPos() : std::vector<Identifier>();
+  auto newPos = CrdtAlgorithm::generatePosBetween(pos1, pos2, editorId);
 
   return Symbol(value, editorId, newPos);
 }
 
-unsigned int Model::getEditorId() {
-  return editorId;
-}
 
 void Model::setEditorId(unsigned int newEditorId) {
   editorId = newEditorId;
+}
+
+unsigned Model::getEditorId() {
+  return editorId;
 }
 
 void Model::setCurrentFile(std::string &filename) {

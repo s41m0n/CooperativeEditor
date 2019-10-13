@@ -1,7 +1,3 @@
-//
-// Created by s41m0n on 10/06/19.
-//
-
 #ifndef COOPERATIVEEDITOR_MODEL_H
 #define COOPERATIVEEDITOR_MODEL_H
 
@@ -12,7 +8,6 @@
 
 /**Model class for the client
  *
- * @author Simone Magnani - s41m0n
  */
 class Model {
 
@@ -37,14 +32,11 @@ public:
     ///Constructor
     Model();
 
-    //Destructor
-    ~Model();
-
     ///Crdt local method to insert a symbol
-    Symbol* localInsert(int index, char value);
+    Symbol *localInsert(int index, char value);
 
     ///Crdt local method to erase a symbol
-    Symbol* localErase(int index);
+    Symbol *localErase(int index);
 
     ///Method to update the list of symbol after a remote insertion
     void remoteInsert(Symbol symbol);
@@ -52,15 +44,16 @@ public:
     ///Method to update the list of symbol after a remote deletion
     void remoteErase(Symbol symbol);
 
-    ///Method to return the editorId
-    unsigned int getEditorId();
-
     ///Method to set the editorId once received by the server
     void setEditorId(unsigned int newEditorId);
 
-    ///Method to set the current opened file name
-    void setCurrentFile(std::string& filename);
+    ///Method to get the editorId
+    unsigned getEditorId();
 
+    ///Method to set the current opened file name
+    void setCurrentFile(std::string &filename);
+
+    ///Method to set the current opened file content
     void setCurrentFileContent(std::vector<Symbol> &newContent);
 
     ///Method to return the sequence of characters

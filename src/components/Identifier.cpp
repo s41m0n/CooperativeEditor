@@ -1,10 +1,10 @@
-//
-// Created by s41m0n on 17/05/19.
-//
+#include "Identifier.h"
 
-#include "components/Identifier.h"
+Identifier::Identifier(unsigned int editorId, unsigned int digit) : editorId(
+        editorId), digit(digit) {}
 
-Identifier::Identifier(unsigned int editorId, unsigned int digit) : editorId(editorId), digit(digit) {}
+Identifier::Identifier() : editorId(-1), digit(0){
+}
 
 int Identifier::compareTo(Identifier other) {
   if (this->digit < other.digit) {
@@ -24,8 +24,10 @@ int Identifier::compareTo(Identifier other) {
 
 std::string Identifier::toString(int level) {
   return std::string(std::string(level, '\t') + "Identifier{\n" +
-                     std::string(level + 1, '\t') + "editorId: " + std::to_string(editorId) + "\n" +
-                     std::string(level + 1, '\t') + "digit: " + std::to_string(digit) + "\n" +
+                     std::string(level + 1, '\t') + "editorId: " +
+                     std::to_string(editorId) + "\n" +
+                     std::string(level + 1, '\t') + "digit: " +
+                     std::to_string(digit) + "\n" +
                      std::string(level, '\t') + "}");
 }
 

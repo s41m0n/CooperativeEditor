@@ -1,18 +1,12 @@
-//
-// Created by s41m0n on 07/06/19.
-//
-
 #include <spdlog/spdlog.h>
 #include <filesystem>
 #include <algorithm>
 #include <QFile>
 
-#include "server/model/Model.h"
-#include "utility/CrdtAlgorithm.h"
+#include "common/CrdtAlgorithm.h"
+#include "Model.h"
 
 Model::Model() : idGenerator(1) {
-
-  spdlog::debug("Created Model");
 
   //Loading all files name in the directory
   for (auto &p: std::filesystem::directory_iterator(".")) {
@@ -21,17 +15,11 @@ Model::Model() : idGenerator(1) {
     if (pos != std::string::npos) {
       filename.erase(pos, filename.length());
       filename.erase(filename.begin(), filename.begin() + 2);
-      availableFiles += filename + ";";
+      availableFiles.emplace_back(filename);
     }
   }
-}
-
-Model::~Model() {
-
-  spdlog::debug("Destroyed Model");
 
 }
-
 
 void Model::storeFileSymbols(std::string &filename) {
   QFile file((filename + ".crdt").c_str());
@@ -83,13 +71,14 @@ void Model::userErase(unsigned int connId, Symbol &symbol) {
 
 }
 
-bool Model::createFileByUser(unsigned int connId, std::string &filename) {
+bool Model::createFileByUser(unsigned int connId, const std::string &filename) {
   std::lock_guard<std::mutex> guard(openedFilesMapMutex);
 
-  if (availableFiles.find(filename) != std::string::npos) {
+  if (std::find(availableFiles.begin(), availableFiles.end(), filename) ==
+      availableFiles.end()) {
     return false;
   } else {
-    availableFiles.append(filename + ";");
+    availableFiles.emplace_back(filename);
     usersFile[connId] = filename;
     openedFiles.emplace(filename, std::vector<Symbol>());
     openedFilesMutexes.emplace(filename, std::make_unique<std::mutex>());
@@ -97,10 +86,12 @@ bool Model::createFileByUser(unsigned int connId, std::string &filename) {
   }
 }
 
-bool Model::openFileByUser(unsigned int connId, std::string &filename) {
+bool Model::openFileByUser(unsigned int connId, std::string filename) {
   std::lock_guard<std::mutex> guard(openedFilesMapMutex);
 
-  if (availableFiles.empty() || availableFiles.find(filename)) {
+  if (availableFiles.empty() ||
+      std::find(availableFiles.begin(), availableFiles.end(), filename) ==
+      availableFiles.end()) {
     return false;
   } else {
     usersFile[connId] = filename;
@@ -113,7 +104,7 @@ bool Model::openFileByUser(unsigned int connId, std::string &filename) {
   }
 }
 
-std::string &Model::getAvailableFiles() {
+std::vector<std::string> &Model::getAvailableFiles() {
   return availableFiles;
 }
 

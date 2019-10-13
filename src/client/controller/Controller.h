@@ -1,26 +1,21 @@
-//
-// Created by s41m0n on 20/05/19.
-//
-
 #ifndef COOPERATIVEEDITOR_CONTROLLER_H
 #define COOPERATIVEEDITOR_CONTROLLER_H
 
 #include <string>
 #include <QTcpSocket>
+#include <QDataStream>
 #include <QObject>
+#include <QString>
 
-#include "components/Message.h"
+#include "components/messages/BasicMessage.h"
 #include "client/model/Model.h"
-
-//Forward class declaration
-class View;
+#include "common/TcpSocket.h"
 
 /**
  * Controller class for the client
  *
- * @autor Simone Magnani - s41m0n
  */
-class Controller : QObject {
+class Controller : public QObject {
 
 Q_OBJECT
 
@@ -28,32 +23,43 @@ private:
     ///The instance of the model
     Model *model;
 
-    ///The instance of the view
-    View *view;
-
-    ///The QTcpSOcket
-    QTcpSocket _socket;
+    ///The socket
+    TcpSocket socket;
 
 public:
     ///Classic constructor
     Controller(Model *model, const std::string &host, int port);
 
-    ///Destructor used for debug purpose only by now
-    ~Controller() override;
-
-    ///Method to handle a CrdtMessage - symbol inserted
-    void handle_insert(int index, char value);
-
-    ///Method to handle a CrdtMessage - symbol erased
-    void handle_erase(int index);
-
-    ///Method to start the controller (Which will start the view)
-    void setView(View *newView);
-
 public slots:
 
-    ///Method to be called once something has been read on socket
+    ///Slot to wake up when data ready on the socket
     void onReadyRead();
+
+    ///Slot to wake up when LoginRequest arrived from View
+    void onLoginRequest(const QString &username, const QString &password);
+
+    ///Slot to wake up when user insert a char locally
+    void onCharInserted(int index, char value);
+
+    ///Slot to wake up when user erase a char locally
+    void onCharErased(int index);
+
+signals:
+
+    ///Signal to notify the view about the login
+    void loginResponse(bool response);
+
+    ///Signal to notify the view that the client is not connected
+    void serverUnreachable();
+
+    ///Signal to notify the view that the server has sent the list of files
+    void fileListing(std::vector<std::string> files);
+
+    ///Signal to notify the view about the possibility to open/create a file
+    void fileResult(bool result);
+
+    ///Method to notify the view that text must be updated after a remote op.
+    void remoteUpdate(std::string text);
 
 };
 

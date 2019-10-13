@@ -1,17 +1,11 @@
-//
-// Created by s41m0n on 20/05/19.
-//
-
 #ifndef COOPERATIVEEDITOR_IDENTIFIER_H
 #define COOPERATIVEEDITOR_IDENTIFIER_H
 
-#include <QtCore/QDataStream>
+#include <QDataStream>
 #include <string>
 
 /**
  * Identifier class, used to identify a symbol
- *
- * @author Simone Magnani - s41m0n
  *
  */
 class Identifier {
@@ -28,7 +22,7 @@ public:
     Identifier(unsigned int editorId, unsigned int digit);
 
     ///Constructor used to create a non-valid Identifier to be filled
-    Identifier() = default;
+    Identifier();
 
     ///Method to compare two identifier by their private variables
     int compareTo(Identifier other);

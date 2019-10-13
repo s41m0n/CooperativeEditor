@@ -1,138 +1,162 @@
-//
-// Created by s41m0n on 16/05/19.
-//
-
 #include <spdlog/spdlog.h>
-#include <memory>
 #include <QHostAddress>
 #include <QAbstractSocket>
 
-#include "utility/CrdtAlgorithm.h"
+#include "src/components/messages/BasicMessage.h"
+#include "src/components/messages/LoginMessage.h"
+#include "src/components/messages/RequestMessage.h"
+#include "src/components/messages/FileContentMessage.h"
+#include "src/components/messages/FileListingMessage.h"
+#include "src/components/messages/CrdtMessage.h"
+#include "src/components/messages/ResultMessage.h"
 #include "Controller.h"
 
-Controller::Controller(Model *model, unsigned short port) : model(model),
-                                                            _server(this) {
-  spdlog::debug("Created Controller");
-  _server.listen(QHostAddress::Any, port);
-  connect(&_server, SIGNAL(newConnection()), this, SLOT(onNewConnection()));
+Controller::Controller(Model *model, unsigned short port, QWidget *parent)
+        : QTcpServer(parent),
+          model(model) {
+  listen(QHostAddress::Any, port);
+  connect(this, SIGNAL(newConnection()), this, SLOT(onNewConnection()));
 }
 
-Controller::~Controller() {
-  spdlog::debug("Destroyed Controller");
+void Controller::incomingConnection(qintptr handle) {
+  auto socket = new TcpSocket();
+  socket->setSocketDescriptor(handle);
+  addPendingConnection(socket);
 }
 
 void Controller::onNewConnection() {
 
-  auto clientSocket = _server.nextPendingConnection();
-  auto clientId = model->generateEditorId();
-
-  spdlog::debug("Connected Editor{0:d}", clientId);
+  auto clientSocket = dynamic_cast<TcpSocket *>(nextPendingConnection());
+  auto clientId = clientSocket->socketDescriptor();
 
   connect(clientSocket, SIGNAL(readyRead()), this, SLOT(onReadyRead()));
   connect(clientSocket, SIGNAL(stateChanged(QAbstractSocket::SocketState)),
           this,
           SLOT(onSocketStateChanged(QAbstractSocket::SocketState)));
 
-  std::lock_guard<std::mutex> guard(connectionsMutex);
-  connections.insert(
-          std::pair<QTcpSocket *, unsigned int>(clientSocket, clientId));
 
-  //Sending Connect and FileListing Message
+  spdlog::debug("Connected Editor {0:d}", clientId);
+
+
+  std::lock_guard<std::mutex> guard(connectionsMutex);
+
+  connections.insert(std::make_pair(clientId, clientSocket));
+
   BasicMessage msg(Type::CONNECT, clientId);
-  RequestMessage msg2(Type::LISTING, clientId, model->getAvailableFiles());
-  QDataStream ds(clientSocket);
-  ds << msg << msg2;
+
+  clientSocket->sendMsg(msg);
   spdlog::debug("Sent Message:\n" + msg.toString());
-  spdlog::debug("Sent Message:\n" + msg2.toString());
+
 }
 
 void
 Controller::onSocketStateChanged(QAbstractSocket::SocketState socketState) {
-  if (socketState == QAbstractSocket::UnconnectedState) {
+  if (socketState == QAbstractSocket::UnconnectedState ||
+      socketState == QAbstractSocket::ClosingState) {
     auto sender = dynamic_cast<QTcpSocket *>(QObject::sender());
     std::lock_guard<std::mutex> guard(connectionsMutex);
-    connections.erase(sender);
+    sender->deleteLater();
+    connections.erase(sender->socketDescriptor());
   }
 }
 
 void Controller::onReadyRead() {
-  auto sender = dynamic_cast<QTcpSocket *>(QObject::sender());
-  auto clientId = connections[sender];
-  QDataStream ds(sender);
-  BasicMessage base;
-  ds >> base;
+  auto sender = dynamic_cast<TcpSocket *>(QObject::sender());
+  auto clientId = sender->socketDescriptor();
 
+  BasicMessage *base = sender->readMsg();
 
-  switch (base.getMsgType()) {
+  switch (base->getMsgType()) {
 
+    case Type::LOGIN : {
+      auto derived = dynamic_cast<LoginMessage*>(base);
+      spdlog::debug("Received Message!\n" + derived->toString());
+
+      //TEMPORARY METHOD TO CHECK USER LOGIN PERMISSION
+      bool result = derived->getUsername() == "hello" && derived->getPassword() ==
+                                                    "9b71d224bd62f3785d96d46ad3ea3d73319bfbc2890caadae2dff72519673ca72323c3d99ba5c11d7c7acc6e14b8c5da0c4663475c2e5c3adef46f73bcdec043";
+
+      ResultMessage newMsg(Type::LOGIN_RESULT, clientId, result);
+      sender->sendMsg(newMsg);
+      spdlog::debug("Sent Message!\n" + newMsg.toString());
+
+      if (result) {
+        FileListingMessage newMsg2(clientId, model->getAvailableFiles());
+        sender->sendMsg(newMsg2);
+        spdlog::debug("Sent Message:\n" + newMsg2.toString());
+      }
+      delete base;
+      break;
+    }
     case Type::INSERT : {
-      CrdtMessage msg(std::move(base));
-      ds >> msg;
-      spdlog::debug("Received Message!\n" + msg.toString());
+      auto derived = dynamic_cast<CrdtMessage*>(base);
+      spdlog::debug("Received Message!\n" + derived->toString());
 
-      model->userInsert(clientId, msg.getSymbol());
+      model->userInsert(clientId, derived->getSymbol());
       std::lock_guard<std::mutex> guard2(queueMutex);
-      messages.push(std::move(msg));
+      messages.push(derived);
       break;
     }
     case Type::ERASE : {
-      CrdtMessage msg(std::move(base));
-      ds >> msg;
-      spdlog::debug("Received Message!\n" + msg.toString());
+      auto derived = dynamic_cast<CrdtMessage*>(base);
+      spdlog::debug("Received Message!\n" + derived->toString());
 
-      model->userErase(clientId, msg.getSymbol());
+      model->userErase(clientId, derived->getSymbol());
       std::lock_guard<std::mutex> guard2(queueMutex);
-      messages.push(std::move(msg));
+      messages.push(derived);
       break;
     }
     case Type::CREATE : {
-      RequestMessage msg(std::move(base));
-      ds >> msg;
-      spdlog::debug("Received Message!\n" + msg.toString());
+      auto derived = dynamic_cast<RequestMessage*>(base);
+      spdlog::debug("Received Message!\n" + derived->toString());
 
-      auto filename = msg.getFilename();
-      if (model->createFileByUser(clientId, filename)) {
-        RequestMessage newMsg(Type::FILEOK, clientId, filename);
-        std::vector<Symbol> empty;
-        FileContentMessage newMsg2(Type::CONTENT, clientId, empty);
-        ds << newMsg << newMsg2;
+      if (model->createFileByUser(clientId, derived->getFilename())) {
+        ResultMessage newMsg(Type::FILE_RESULT, clientId, true);
+        sender->sendMsg(newMsg);
         spdlog::debug("Sent Message!\n" + newMsg.toString());
+
+        std::vector<Symbol> empty;
+        FileContentMessage newMsg2(clientId, empty);
+        sender->sendMsg(newMsg2);
         spdlog::debug("Sent Message!\n" + newMsg2.toString());
       } else {
-        RequestMessage newMsg(Type::FILEKO, clientId, filename);
-        ds << newMsg;
+        ResultMessage newMsg(Type::FILE_RESULT, clientId, false);
+        sender->sendMsg(newMsg);
         spdlog::debug("Sent Message!\n" + newMsg.toString());
       }
+      delete base;
       break;
     }
     case Type::OPEN : {
-      RequestMessage msg(std::move(base));
-      ds >> msg;
-      spdlog::debug("Received Message!\n" + msg.toString());
+      auto derived = dynamic_cast<RequestMessage*>(base);
+      spdlog::debug("Received Message!\n" + derived->toString());
 
-      auto filename = msg.getFilename();
-
-      if (model->openFileByUser(clientId, filename)) {
+      if (model->openFileByUser(clientId, derived->getFilename())) {
         auto symbolList = model->getFileSymbolList(clientId);
-        RequestMessage newMsg(Type::FILEOK, clientId, filename);
-        FileContentMessage newMsg2(Type::CONTENT, clientId, symbolList);
-        ds << newMsg << newMsg2;
+        ResultMessage newMsg(Type::FILE_RESULT, clientId, true);
+        sender->sendMsg(newMsg);
         spdlog::debug("Sent Message!\n" + newMsg.toString());
+
+        FileContentMessage newMsg2(clientId, symbolList);
+        sender->sendMsg(newMsg2);
         spdlog::debug("Sent Message!\n" + newMsg2.toString());
       } else {
-        RequestMessage newMsg(Type::FILEKO, clientId, filename);
-        ds << newMsg;
+        ResultMessage newMsg(Type::FILE_RESULT, clientId, false);
+        sender->sendMsg(newMsg);
         spdlog::debug("Sent Message!\n{}", newMsg.toString());
       }
+      delete base;
       break;
     }
     default :
       throw std::runtime_error("Must never read different types of Message!!!");
   }
-  if (sender->bytesAvailable())
+  //TEMPORARY SOLUTION
+  if (sender->bytesAvailable()) {
     onReadyRead();
+  }
 }
-
+/*
 
 void Controller::dispatch() {
 
@@ -156,3 +180,4 @@ void Controller::dispatch() {
     }
   }
 }
+*/
