@@ -42,70 +42,65 @@ public:
     ///Operator overload to make simpler sending msg
     template<typename T, typename std::enable_if<std::is_base_of<BasicMessage, T>::value>::type* = nullptr>
     void sendMsg(T &val) {
-      ds << val;
+      ds << static_cast<quint32>(val.getMsgType()) << val;
     }
 
     ///Operator overload to make simpler receiving msg
     BasicMessage *readMsg() {
-      BasicMessage base;
-      ds >> base;
+      BasicMessage *msg = nullptr;
+      quint32 type;
+      ds >> type;
 
-      switch (base.getMsgType()) {
+      switch (static_cast<Type>(type)) {
         case Type::CONNECT : {
-          auto ret = new BasicMessage(std::move(base));
-          return ret;
+          msg = new BasicMessage();
+          break;
         }
         case Type::LOGIN : {
-          auto ret = new LoginMessage(std::move(base));
-          ds >> *ret;
-          return ret;
+          msg = new LoginMessage();
+          break;
         }
         case Type::LISTING: {
-          auto ret = new FileListingMessage(std::move(base));
-          ds >> *ret;
-          return ret;
+          msg = new FileListingMessage();
+          break;
         }
         case Type::CREATE: {
-          auto ret = new RequestMessage(std::move(base));
-          ds >> *ret;
-          return ret;
+          msg = new RequestMessage();
+          break;
         }
         case Type::OPEN: {
-          auto ret = new RequestMessage(std::move(base));
-          ds >> *ret;
-          return ret;
+          msg = new RequestMessage();
+          break;
         }
         case Type::FILE_RESULT: {
-          auto ret = new ResultMessage(std::move(base));
-          ds >> *ret;
-          return ret;
+          msg = new ResultMessage();
+          break;
         }
         case Type::LOGIN_RESULT: {
-          auto ret = new ResultMessage(std::move(base));
-          ds >> *ret;
-          return ret;
+          msg = new ResultMessage();
+          break;
         }
         case Type::CONTENT: {
-          auto ret = new FileContentMessage(std::move(base));
-          ds >> *ret;
-          return ret;
+          msg = new FileContentMessage();
+          break;
         }
         case Type::INSERT: {
-          auto ret = new CrdtMessage(std::move(base));
-          ds >> *ret;
-          return ret;
+          msg = new CrdtMessage();
+          break;
         }
         case Type::ERASE: {
-          auto ret = new CrdtMessage(std::move(base));
-          ds >> *ret;
-          return ret;
+          msg = new CrdtMessage();
+          break;
         }
         case Type::UNKNOWN: {
-          return new BasicMessage();
+          return msg;
         }
-        default:
-          return new BasicMessage();
+        default: {
+          return msg;
+        }
       }
+      ds >> *msg;
+      return msg;
     }
 
 };

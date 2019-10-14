@@ -11,14 +11,15 @@ class ResultMessage : public BasicMessage {
 
 private:
     ///The OK/KO answer
-    bool result;
+    bool result{};
+
+    void serialize(QDataStream &stream) override;
+
+    void deserialize(QDataStream &stream) override;
 
 public:
     ///Constructor with also the type (it could index different msg)
     ResultMessage(Type msgType, unsigned editorId, bool result);
-
-    ///Movement constructor to build one from BasicMessage
-    explicit ResultMessage(BasicMessage &&msg);
 
     ResultMessage() = default;
 
@@ -27,19 +28,6 @@ public:
 
     ///Method to print in human-readable format the message with indent
     std::string toString(int level = 0) override;
-
-    ///Operator overload '<<' for ResultMessage when using QDataStream for serialization
-    friend QDataStream &
-    operator<<(QDataStream &stream, const ResultMessage &val) {
-      stream << static_cast<const BasicMessage &>(val) << val.result;
-      return stream;
-    }
-
-    ///Operator overload '>>' for ResultMessage when using QDataStream for serialization
-    friend QDataStream &operator>>(QDataStream &stream, ResultMessage &val) {
-      stream >> val.result;
-      return stream;
-    };
 
 };
 

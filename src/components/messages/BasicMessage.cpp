@@ -29,3 +29,15 @@ std::string BasicMessage::toString(int level) {
          std::to_string(editorId) + "\n" +
          std::string(level, '\t') + "}";
 }
+
+QDataStream &
+operator<<(QDataStream &stream, BasicMessage &val) {
+  val.serialize(stream);
+  return stream;
+}
+
+///Operator overload '>>' for BasicMessage when using QDataStream for serialization
+QDataStream &operator>>(QDataStream &stream, BasicMessage &val) {
+  val.deserialize(stream);
+  return stream;
+};

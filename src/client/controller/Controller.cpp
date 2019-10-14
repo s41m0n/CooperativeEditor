@@ -1,6 +1,7 @@
 #include <spdlog/spdlog.h>
 #include <QHostAddress>
 #include <QCryptographicHash>
+#include <memory>
 
 #include "src/components/messages/BasicMessage.h"
 #include "src/components/messages/LoginMessage.h"
@@ -20,7 +21,7 @@ Controller::Controller(Model *model, const std::string &host, int port)
 /// Handle completion of a read operation.
 void Controller::onReadyRead() {
 
-  auto base = socket.readMsg();
+  std::shared_ptr<BasicMessage> base(socket.readMsg());
 
   switch (base->getMsgType()) {
     case Type::CONNECT : {
@@ -29,20 +30,20 @@ void Controller::onReadyRead() {
       break;
     }
     case Type::LOGIN_RESULT : {
-      auto derived = dynamic_cast<ResultMessage*>(base);
+      auto derived = std::dynamic_pointer_cast<ResultMessage>(base);
       spdlog::debug("Received Message!\n{}", derived->toString());
       emit loginResponse(derived->isPositive());
       break;
     }
     case Type::LISTING : {
-      auto derived = dynamic_cast<FileListingMessage*>(base);
+      auto derived = std::dynamic_pointer_cast<FileListingMessage>(base);
       spdlog::debug("Received Message!\n{}", derived->toString());
 
       emit fileListing(derived->getFiles());
       break;
     }
     case Type::FILE_RESULT : {
-      auto derived = dynamic_cast<ResultMessage*>(base);
+      auto derived = std::dynamic_pointer_cast<ResultMessage>(base);
       spdlog::debug("Received Message!\n{}", derived->toString());
       if (!derived->isPositive()) {
         emit fileResult(false);
@@ -50,21 +51,21 @@ void Controller::onReadyRead() {
       break;
     }
     case Type::CONTENT : {
-      auto derived = dynamic_cast<FileContentMessage*>(base);
+      auto derived = std::dynamic_pointer_cast<FileContentMessage>(base);
       spdlog::debug("Received Message!\n{}", derived->toString());
       model->setCurrentFileContent(derived->getSymbols());
       emit fileResult(true);
       break;
     }
     case Type::INSERT : {
-      auto derived = dynamic_cast<CrdtMessage*>(base);
+      auto derived = std::dynamic_pointer_cast<CrdtMessage>(base);
       spdlog::debug("Received Message!\n{}", derived->toString());
       model->remoteInsert(derived->getSymbol());
       emit remoteUpdate(model->textify());
       break;
     }
     case Type::ERASE : {
-      auto derived = dynamic_cast<CrdtMessage*>(base);
+      auto derived = std::dynamic_pointer_cast<CrdtMessage>(base);
       spdlog::debug("Received Message!\n{}", base->toString());
       model->remoteErase(derived->getSymbol());
       break;
@@ -72,7 +73,6 @@ void Controller::onReadyRead() {
     default :
       throw std::runtime_error("Unknown message received");
   }
-  delete base;
   if (socket.bytesAvailable()) {
     onReadyRead();
   }

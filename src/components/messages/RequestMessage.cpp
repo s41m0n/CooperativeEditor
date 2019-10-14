@@ -10,10 +10,6 @@ std::string RequestMessage::getFilename() {
   return filename;
 }
 
-RequestMessage::RequestMessage(BasicMessage &&msg) : BasicMessage(
-        std::move(msg)) {
-}
-
 std::string RequestMessage::toString(int level) {
   return std::string(level, '\t') + "RequestMessage{\n" +
          std::string(level + 1, '\t') + "msgType: " +
@@ -22,4 +18,18 @@ std::string RequestMessage::toString(int level) {
          std::to_string(editorId) + "\n" +
          std::string(level + 1, '\t') + "file/s: " + filename + "\n" +
          std::string(level, '\t') + "}";
+}
+
+void RequestMessage::serialize(QDataStream &stream) {
+  BasicMessage::serialize(stream);
+  stream << filename.c_str();
+}
+
+void RequestMessage::deserialize(QDataStream &stream) {
+  BasicMessage::deserialize(stream);
+  char *tmp;
+  stream >> tmp;
+  if (tmp)
+    filename = std::string(tmp);
+  delete[] tmp;
 }

@@ -9,9 +9,6 @@ LoginMessage::LoginMessage(unsigned editorId, std::string username,
                                                            password)) {
 }
 
-LoginMessage::LoginMessage(BasicMessage &&msg) : BasicMessage(std::move(msg)) {
-}
-
 std::string &LoginMessage::getUsername() {
   return username;
 }
@@ -31,4 +28,23 @@ std::string LoginMessage::toString(int level) {
          std::string(level + 1, '\t') + "password: " +
          password + "\n" +
          std::string(level, '\t') + "}";
+}
+
+void LoginMessage::serialize(QDataStream &stream) {
+  BasicMessage::serialize(stream);
+  stream << username.c_str() << password.c_str();
+}
+
+void LoginMessage::deserialize(QDataStream &stream) {
+  BasicMessage::deserialize(stream);
+  char *tmp;
+  stream >> tmp;
+  if (tmp) {
+    username = std::string(tmp);
+  }
+  stream >> tmp;
+  if (tmp) {
+    password = std::string(tmp);
+  }
+  delete[] tmp;
 }

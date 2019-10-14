@@ -5,10 +5,6 @@ FileContentMessage::FileContentMessage(unsigned int editorId,
         : BasicMessage(Type::CONTENT, editorId), symbols(symbols) {
 }
 
-FileContentMessage::FileContentMessage(BasicMessage &&msg) : BasicMessage(
-        std::move(msg)) {
-}
-
 std::vector<Symbol> &FileContentMessage::getSymbols() {
   return symbols;
 }
@@ -25,4 +21,22 @@ std::string FileContentMessage::toString(int level) {
     tmp += s.toString(level + 2) + "\n";
   tmp += std::string(level + 1, '\t') + "]\n" + std::string(level, '\t') + "}";
   return tmp;
+}
+
+void FileContentMessage::serialize(QDataStream &stream) {
+  BasicMessage::serialize(stream);
+  stream << static_cast<quint32>(symbols.size());
+  for (auto &tmp: symbols)
+    stream << tmp;
+}
+
+void FileContentMessage::deserialize(QDataStream &stream) {
+  BasicMessage::deserialize(stream);
+  quint32 size;
+  stream >> size;
+  Symbol tmp;
+  for (quint32 i = 0; i < size; i++) {
+    stream >> tmp;
+    symbols.emplace_back(tmp);
+  }
 }

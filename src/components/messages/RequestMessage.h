@@ -13,12 +13,13 @@ private:
     ///The name of the requested file
     std::string filename;
 
+    void serialize(QDataStream &stream) override;
+
+    void deserialize(QDataStream &stream) override;
+
 public:
     ///Classic constructor with all parameters given
     RequestMessage(Type msgType, unsigned int editorId, std::string &filename);
-
-    ///Method build a RequestMessage from a BasicMessage
-    explicit RequestMessage(BasicMessage &&msg);
 
     RequestMessage() = default;
 
@@ -28,22 +29,6 @@ public:
     ///Method to print in human-readable format the message with indent
     std::string toString(int level = 0) override;
 
-    ///Operator overload '<<' for RequestMessage when using QDataStream for serialization
-    friend QDataStream &
-    operator<<(QDataStream &stream, const RequestMessage &val) {
-      stream << static_cast<const BasicMessage &>(val) << val.filename.c_str();
-      return stream;
-    }
-
-    ///Operator overload '>>' for RequestMessage when using QDataStream for serialization
-    friend QDataStream &operator>>(QDataStream &stream, RequestMessage &val) {
-      char *tmp;
-      stream >> tmp;
-      if (tmp)
-        val.filename = std::string(tmp);
-      delete[] tmp;
-      return stream;
-    };
 };
 
 

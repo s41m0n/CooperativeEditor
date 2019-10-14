@@ -25,6 +25,14 @@ protected:
     ///The editor specific ID
     unsigned int editorId;
 
+    virtual void serialize(QDataStream &stream){
+      stream << static_cast<quint32>(msgType) << editorId;
+    };
+
+    virtual void deserialize(QDataStream &stream) {
+      stream >> reinterpret_cast<quint32 &>(msgType) >> editorId;
+    }
+
 public:
     ///Constructor used in case of Connect Message
     BasicMessage(Type msgType, unsigned int editorId);
@@ -46,16 +54,10 @@ public:
 
     ///Operator overload '<<' for BasicMessage when using QDataStream for serialization
     friend QDataStream &
-    operator<<(QDataStream &stream, const BasicMessage &val) {
-      stream << static_cast<quint32>(val.msgType) << val.editorId;
-      return stream;
-    }
+    operator<<(QDataStream &stream, BasicMessage &val);
 
     ///Operator overload '>>' for BasicMessage when using QDataStream for serialization
-    friend QDataStream &operator>>(QDataStream &stream, BasicMessage &val) {
-      stream >> reinterpret_cast<quint32 &>(val.msgType) >> val.editorId;
-      return stream;
-    };
+    friend QDataStream &operator>>(QDataStream &stream, BasicMessage &val);
 
 };
 

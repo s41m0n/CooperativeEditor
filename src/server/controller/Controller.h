@@ -8,6 +8,7 @@
 #include <QTcpServer>
 #include <QTcpSocket>
 #include <QObject>
+#include <memory>
 
 #include "components/messages/CrdtMessage.h"
 #include "common/TcpSocket.h"
@@ -29,7 +30,7 @@ private:
     std::map<quint32, TcpSocket *> connections;
 
     ///The queue containing all the messages
-    std::queue<CrdtMessage*> messages;
+    std::queue<std::shared_ptr<CrdtMessage>> messages;
 
     ///The mutex used for the message queue
     std::mutex queueMutex;

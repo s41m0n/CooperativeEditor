@@ -48,14 +48,14 @@ public:
     ///Overload of the operators '>>' for QDataStream using Symbol for serialization
     friend QDataStream &operator>>(QDataStream &stream, Symbol &val);
 
-    ///Overload of the operators '<<' for QDataStream using vector of Symbol for serialization
-    friend QDataStream &
-    operator<<(QDataStream &stream, std::vector<Symbol> &val);
-
-    ///Overload of the operators '>>' for QDataStream using vector of Symbol for serialization
-    friend QDataStream &
-    operator>>(QDataStream &stream, std::vector<Symbol> &val);
-
 };
+
+///Overload of the operators '<<' for QDataStream using vector of Symbol for serialization
+QDataStream &
+operator<<(QDataStream &stream, std::vector<Symbol> &val);
+
+///Overload of the operators '>>' for QDataStream using vector of Symbol for serialization
+QDataStream &
+operator>>(QDataStream &stream, std::vector<Symbol> &val);
 
 #endif //COOPERATIVEEDITOR_SYMBOL_H

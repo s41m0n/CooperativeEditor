@@ -5,9 +5,6 @@ CrdtMessage::CrdtMessage(Type msgType, Symbol symbol, unsigned int editorId)
           symbol(std::move(symbol)) {
 }
 
-CrdtMessage::CrdtMessage(BasicMessage &&msg) : BasicMessage(std::move(msg)) {
-}
-
 Symbol &CrdtMessage::getSymbol() {
   return symbol;
 }
@@ -20,4 +17,14 @@ std::string CrdtMessage::toString(int level) {
          std::to_string(editorId) + "\n" +
          symbol.toString(level + 1) + "\n" +
          std::string(level, '\t') + "}";
+}
+
+void CrdtMessage::serialize(QDataStream &stream) {
+  BasicMessage::serialize(stream);
+  stream << symbol;
+}
+
+void CrdtMessage::deserialize(QDataStream &stream) {
+  BasicMessage::deserialize(stream);
+  stream >> symbol;
 }

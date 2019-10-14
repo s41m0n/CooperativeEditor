@@ -64,12 +64,12 @@ void Controller::onReadyRead() {
   auto sender = dynamic_cast<TcpSocket *>(QObject::sender());
   auto clientId = sender->socketDescriptor();
 
-  BasicMessage *base = sender->readMsg();
+  std::shared_ptr<BasicMessage> base(sender->readMsg());
 
   switch (base->getMsgType()) {
 
     case Type::LOGIN : {
-      auto derived = dynamic_cast<LoginMessage*>(base);
+      auto derived = std::dynamic_pointer_cast<LoginMessage>(base);
       spdlog::debug("Received Message!\n" + derived->toString());
 
       //TEMPORARY METHOD TO CHECK USER LOGIN PERMISSION
@@ -85,11 +85,11 @@ void Controller::onReadyRead() {
         sender->sendMsg(newMsg2);
         spdlog::debug("Sent Message:\n" + newMsg2.toString());
       }
-      delete base;
+
       break;
     }
     case Type::INSERT : {
-      auto derived = dynamic_cast<CrdtMessage*>(base);
+      auto derived = std::dynamic_pointer_cast<CrdtMessage>(base);
       spdlog::debug("Received Message!\n" + derived->toString());
 
       model->userInsert(clientId, derived->getSymbol());
@@ -98,7 +98,7 @@ void Controller::onReadyRead() {
       break;
     }
     case Type::ERASE : {
-      auto derived = dynamic_cast<CrdtMessage*>(base);
+      auto derived = std::dynamic_pointer_cast<CrdtMessage>(base);
       spdlog::debug("Received Message!\n" + derived->toString());
 
       model->userErase(clientId, derived->getSymbol());
@@ -107,7 +107,7 @@ void Controller::onReadyRead() {
       break;
     }
     case Type::CREATE : {
-      auto derived = dynamic_cast<RequestMessage*>(base);
+      auto derived = std::dynamic_pointer_cast<RequestMessage>(base);
       spdlog::debug("Received Message!\n" + derived->toString());
 
       if (model->createFileByUser(clientId, derived->getFilename())) {
@@ -124,11 +124,10 @@ void Controller::onReadyRead() {
         sender->sendMsg(newMsg);
         spdlog::debug("Sent Message!\n" + newMsg.toString());
       }
-      delete base;
       break;
     }
     case Type::OPEN : {
-      auto derived = dynamic_cast<RequestMessage*>(base);
+      auto derived = std::dynamic_pointer_cast<RequestMessage>(base);
       spdlog::debug("Received Message!\n" + derived->toString());
 
       if (model->openFileByUser(clientId, derived->getFilename())) {
@@ -145,7 +144,6 @@ void Controller::onReadyRead() {
         sender->sendMsg(newMsg);
         spdlog::debug("Sent Message!\n{}", newMsg.toString());
       }
-      delete base;
       break;
     }
     default :
