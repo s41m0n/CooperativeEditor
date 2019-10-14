@@ -8,10 +8,14 @@ void View::init() {
   auto editor = new Editor();
   auto fileVisualizer = new FileVisualizer();
   auto signUp = new SignUp();
+  auto editProfile = new EditUserProfile();
 
   QObject::connect(login, &Login::signUp, signUp, &SignUp::show);
 
   QObject::connect(signUp, &SignUp::backToLogin, login, &Login::show);
+
+  QObject::connect(editor, &Editor::openEditProfileFromEditor, editProfile,
+                   &EditUserProfile::show);
 
   QObject::connect(login, &Login::loginRequest, controller,
                    &Controller::onLoginRequest);

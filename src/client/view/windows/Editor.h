@@ -38,6 +38,10 @@ public slots:
     ///Slot to notify the editor that a remote op. has been performed
     void onRemoteUpdate(QString text);
 
+signals:
+    ///Signal emitted when the user wants to edit his profile
+    void openEditProfileFromEditor();
+
 };
 
 #endif //COOPERATIVEEDITOR_EDITOR_H

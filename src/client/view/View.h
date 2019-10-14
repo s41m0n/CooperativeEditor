@@ -5,6 +5,7 @@
 #include "client/view/windows/Login.h"
 #include "client/view/windows/Editor.h"
 #include "client/view/windows/FileVisualizer.h"
+#include "client/view/windows/EditUserProfile.h"
 #include "client/view/windows/SignUp.h"
 
 /**Class View, the responsible of the user interface

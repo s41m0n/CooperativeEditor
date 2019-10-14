@@ -3,7 +3,7 @@
 
 Editor::Editor(QWidget *parent) : QMainWindow(parent) {
 
-  //this->setWindowTitle("File Selection"); //nome del file
+  //this->setWindowTitle("File Selection"); //TODO: fileVisualizer mi passa il nome del file
 
   mainWidget = new QWidget(this);
   auto layout = new QVBoxLayout(mainWidget);
@@ -22,6 +22,7 @@ Editor::Editor(QWidget *parent) : QMainWindow(parent) {
 
 void Editor::onRemoteUpdate(QString text) {
   //RIAGGIORNARE LA VIEW CON IL NUOVO TESTO
+  //TODO: RIAGGIORNARE LA VIEW CON IL NUOVO TESTO
   spdlog::debug("Un nuovo Crdt message arrivato");
 
 }
@@ -65,6 +66,14 @@ void Editor::createTopBar(QVBoxLayout *layout) {
 
   layout->addWidget(topBar);
 
+  //TODO: aggiungere tutte le connect con le varie azioni, come quella qui sotto
+
+  QObject::connect(actionEditProfile, &QAction::triggered, this,
+                   [this]() {
+                       emit openEditProfileFromEditor(); //versione non definitva mancano dati utente (crea classe utente e fatti tornare dati al login)
+                       this->close();
+                   });
+
 }
 
 void Editor::createToolBar(QVBoxLayout *layout) {
@@ -83,4 +92,6 @@ void Editor::createToolBar(QVBoxLayout *layout) {
   toolBar->addAction(actionUnderlined);
 
   layout->addWidget(toolBar);
+
+  //TODO: aggiungere tutte le connect con le varie azioni dei pulsanti
 }

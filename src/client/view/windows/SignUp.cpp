@@ -74,7 +74,7 @@ SignUp::SignUp(QWidget *parent) : QMainWindow(parent) {
   alreadyRegisteredBox = new QGroupBox("Are you already registered?",
                                        mainWidget);
   alreadyRegisteredBox->setLayout(new QVBoxLayout());
-  layout->addWidget(alreadyRegisteredBox, 5, 0, 1, 2);
+  layout->addWidget(alreadyRegisteredBox, 2, 0, 1, 2);
 
   buttonBackToLogin = new QPushButton("Log In", alreadyRegisteredBox);
   buttonBackToLogin->setAutoDefault(true);
@@ -82,7 +82,7 @@ SignUp::SignUp(QWidget *parent) : QMainWindow(parent) {
 
   buttonExit = new QPushButton("Exit", mainWidget);
   buttonExit->setAutoDefault(true);
-  layout->addWidget(buttonExit, 6, 0, 1, 2);
+  layout->addWidget(buttonExit, 3, 0, 1, 2);
 
   errorMessageEmptyFields = new QMessageBox(this);
   errorMessageEmptyFields->setText("Please fill all the requested fields.");
@@ -151,7 +151,7 @@ SignUp::SignUp(QWidget *parent) : QMainWindow(parent) {
 
                          if (passwordTextField->text() ==
                              passwordTextFieldConfirm->text()) {
-                           emit signUpRequest(userImage,
+                           emit onSignUpRequest(userImage,
                                               nameTextField->text(),
                                               surnameTextField->text(),
                                               usernameTextField->text(),

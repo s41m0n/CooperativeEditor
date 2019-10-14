@@ -38,7 +38,7 @@ void FileVisualizer::onFileListing(const QVector<QString> &filesArray) {
       fileButton->setAutoDefault(true);
       filesBox->layout()->addWidget(fileButton);
 
-      //serve far emettere ad ogni pulsante un segnale per richiedere al server l'apertura del file desiderato
+      //TODO: serve far emettere ad ogni pulsante un segnale per richiedere al server l'apertura del file desiderato + passare all'editor il nome del file
 
     }
   }
@@ -88,17 +88,21 @@ void FileVisualizer::onFileListing(const QVector<QString> &filesArray) {
 
   QObject::connect(buttonCreate, &QAbstractButton::clicked, this,
                    [this]() {
+                       bool ok;
                        QString name = QInputDialog::getText(this,
-                                                           "New File",
-                                                           "Insert the name of the file you want to create:",
-                                                           QLineEdit::Normal);
+                                                            "New File",
+                                                            "Insert the name of the file you want to create:",
+                                                            QLineEdit::Normal,
+                                                            "",
+                                                            &ok); //ok = button ok on the dialog
 
-                       if (!name.isEmpty()){
+                       if (ok && !name.isEmpty()) { //ok clicked + text provided
                          newFileName = name;
-                         //invia nome file a server
-                       } else {
+                         //TODO: invia nome file al server + apri un file vuoto
+                       } else if(ok){ //ok clicked but no text provided
                          auto nameEmpty = new QMessageBox(this);
-                         nameEmpty->setText("You insert an invalid name. Try again.");
+                         nameEmpty->setText(
+                                 "You insert an invalid name. Try again.");
                          nameEmpty->setFixedSize(this->minimumSize());
                          nameEmpty->show();
                        }
@@ -109,7 +113,7 @@ void FileVisualizer::onFileResult(bool result) {
   if (result) {
     //Il file può essere aperto/creato
     spdlog::debug("Action OK");
-    //Va triggerata l'apertura dell'editor e inviato il contenuto del file
+    //TODO: Va triggerata l'apertura dell'editor e inviato il contenuto del file
   } else {
     spdlog::debug("Action KO");
 
