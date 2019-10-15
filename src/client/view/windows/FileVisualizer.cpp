@@ -1,5 +1,4 @@
 #include <spdlog/spdlog.h>
-#include <QtCore/QDir>
 #include "FileVisualizer.h"
 
 FileVisualizer::FileVisualizer(QWidget *parent) : QMainWindow(parent) {
@@ -11,37 +10,28 @@ void FileVisualizer::onFileListing(const QVector<QString> &filesArray) {
   this->setFixedSize(this->minimumSize());
 
   mainWidget = new QWidget(this);
-  auto layout = new QVBoxLayout(mainWidget);
+  auto layout = new QGridLayout(mainWidget);
 
   setCentralWidget(mainWidget);
   mainWidget->setLayout(layout);
 
   titleOpen = new QLabel(mainWidget);
-  titleOpen->setText(
-          "Select the file you want to open:");
-  layout->addWidget(titleOpen);
+  titleOpen->setText("Select the file you want to open from the ones showed below:");
+  layout->addWidget(titleOpen, 0, 0, 1, 2);
 
-  filesBox = new QGroupBox(mainWidget);
-  filesBox->setLayout(new QVBoxLayout());
-  layout->addWidget(filesBox);
+  auto list = new QListWidget(mainWidget);
+  list->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+  list->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
   if (filesArray.empty()) {
-    auto noFiles = new QLabel(
-            "There are not file to open on the server. Please create a new file.",
-            filesBox);
-    filesBox->layout()->addWidget(noFiles);
+    list->addItem("There are not file to open on the server. Please create a new file.");
   } else {
-
-    for (const auto & i : filesArray) {
-      auto fileButton = new QPushButton();
-      fileButton->setText(i);
-      fileButton->setAutoDefault(true);
-      filesBox->layout()->addWidget(fileButton);
-
-      //TODO: serve far emettere ad ogni pulsante un segnale per richiedere al server l'apertura del file desiderato + passare all'editor il nome del file
-
+    for (const auto &i : filesArray) {
+      list->addItem(i);
     }
   }
+
+  layout->addWidget(list, 1, 0, 3, 2);
 
   areYouSureQuit = new QMessageBox(this);
   areYouSureQuit->setText("Are you sure you want to exit?");
@@ -54,18 +44,17 @@ void FileVisualizer::onFileListing(const QVector<QString> &filesArray) {
   fileCannotBeOpened->setStandardButtons(QMessageBox::Yes | QMessageBox::No);
   fileCannotBeOpened->setFixedSize(this->minimumSize());
 
-  titleCreate = new QLabel(mainWidget);
-  titleCreate->setText(
-          "Click here to create a new file:");
-  layout->addWidget(titleCreate);
+  boxCreate = new QGroupBox("Click here to create a new file:", mainWidget);
+  boxCreate->setLayout(new QVBoxLayout());
+  layout->addWidget(boxCreate, 4, 0, 1, 2);
 
-  buttonCreate = new QPushButton("New file", mainWidget);
+  buttonCreate = new QPushButton("New file", boxCreate);
   buttonCreate->setAutoDefault(true);
-  layout->addWidget(buttonCreate);
+  boxCreate->layout()->addWidget(buttonCreate);
 
   buttonExit = new QPushButton("Exit", mainWidget);
   buttonExit->setAutoDefault(true);
-  layout->addWidget(buttonExit);
+  layout->addWidget(buttonExit, 5, 0, 1, 2);
 
   buttonExit->setFocus();
 
@@ -97,9 +86,10 @@ void FileVisualizer::onFileListing(const QVector<QString> &filesArray) {
                                                             &ok); //ok = button ok on the dialog
 
                        if (ok && !name.isEmpty()) { //ok clicked + text provided
-                         newFileName = name;
-                         //TODO: invia nome file al server + apri un file vuoto
-                       } else if(ok){ //ok clicked but no text provided
+                         name = name.append(".crdt");
+                         emit fileRequest(name, false);
+                         this->close();
+                       } else if (ok) { //ok clicked but no text provided
                          auto nameEmpty = new QMessageBox(this);
                          nameEmpty->setText(
                                  "You insert an invalid name. Try again.");

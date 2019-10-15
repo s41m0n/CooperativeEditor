@@ -6,6 +6,7 @@
 #include <QPushButton>
 #include <QMessageBox>
 #include <QGroupBox>
+#include <QListWidget>
 #include <QString>
 #include <QInputDialog>
 #include <QVBoxLayout>
@@ -24,9 +25,8 @@ private:
     QPushButton *buttonExit;
     QPushButton *buttonCreate;
     QMessageBox *areYouSureQuit;
-    QGroupBox *filesBox;
+    QGroupBox *boxCreate;
     QMessageBox *fileCannotBeOpened;
-    QString newFileName;
 
 public:
 
@@ -42,6 +42,7 @@ public slots:
 
 signals:
 
+  ///True = file exists, False = file does not exist
   void fileRequest(const QString &filename, bool exists);
 
 };
