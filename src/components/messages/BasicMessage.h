@@ -3,14 +3,17 @@
 
 #include <string>
 #include <QDataStream>
-#include <components/Symbol.h>
 
 ///Enumeration to identify the type of the message
-enum class Type {
+enum class Type : qint32 {
     CONNECT = 0, LISTING = 1, CREATE = 2, OPEN = 3, LOGIN = 4,
     FILE_RESULT = 5, LOGIN_RESULT = 6,
-    CONTENT = 7, INSERT = 8, ERASE = 9, UNKNOWN = -1,
+    CONTENT = 7, INSERT = 8, ERASE = 9, UNKNOWN = -1
 };
+
+QDataStream &operator<<(QDataStream &stream, Type &val);
+
+QDataStream &operator>>(QDataStream &stream, Type &val);
 
 /**
  * BasicMessage class, represents a basic message between client-server
@@ -19,47 +22,37 @@ enum class Type {
 class BasicMessage {
 
 protected:
-    ///The type of the message
+
     Type msgType;
 
-    ///The editor specific ID
-    unsigned int editorId;
+    unsigned editorId;
 
-    virtual void serialize(QDataStream &stream){
-      stream << static_cast<quint32>(msgType) << editorId;
+    virtual void serialize(QDataStream &stream) {
+      stream << msgType << editorId;
     };
 
     virtual void deserialize(QDataStream &stream) {
-      stream >> reinterpret_cast<quint32 &>(msgType) >> editorId;
+      stream >> msgType >> editorId;
     }
 
 public:
-    ///Constructor used in case of Connect Message
-    BasicMessage(Type msgType, unsigned int editorId);
 
-    ///Move constructor
-    BasicMessage(BasicMessage &&msg) noexcept;
+    BasicMessage(Type msgType, unsigned editorId);
 
-    ///Constructor used to create a message to be filled
     BasicMessage();
 
-    ///Return the editor ID
-    unsigned int getEditorId();
+    quint32 getEditorId();
 
-    ///Return the type of the Message
-    Type getMsgType();
+    Type &getMsgType();
 
     virtual ///Method to print in human-readable format the message using indent
-    std::string toString(int level = 0);
+    std::string toStdString(int level = 0);
 
-    ///Operator overload '<<' for BasicMessage when using QDataStream for serialization
     friend QDataStream &
     operator<<(QDataStream &stream, BasicMessage &val);
 
-    ///Operator overload '>>' for BasicMessage when using QDataStream for serialization
     friend QDataStream &operator>>(QDataStream &stream, BasicMessage &val);
 
 };
-
 
 #endif //COOPERATIVEEDITOR_BASICMESSAGE_H

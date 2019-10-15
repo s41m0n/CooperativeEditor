@@ -1,4 +1,3 @@
-#include <spdlog/spdlog.h>
 #include <filesystem>
 #include <algorithm>
 #include <QFile>
@@ -15,14 +14,14 @@ Model::Model() : idGenerator(1) {
     if (pos != std::string::npos) {
       filename.erase(pos, filename.length());
       filename.erase(filename.begin(), filename.begin() + 2);
-      availableFiles.emplace_back(filename);
+      availableFiles.push_back(QString::fromStdString(filename));
     }
   }
 
 }
 
-void Model::storeFileSymbols(std::string &filename) {
-  QFile file((filename + ".crdt").c_str());
+void Model::storeFileSymbols(QString &filename) {
+  QFile file((filename + ".crdt"));
 
   if (!file.open(QIODevice::WriteOnly)) {
     throw std::runtime_error("Unable to open file");
@@ -33,8 +32,8 @@ void Model::storeFileSymbols(std::string &filename) {
 }
 
 
-void Model::loadFileSymbols(std::string &filename) {
-  QFile file((filename + ".crdt").c_str());
+void Model::loadFileSymbols(QString &filename) {
+  QFile file((filename + ".crdt"));
 
   if (!file.open(QIODevice::ReadOnly)) {
     throw std::runtime_error("Unable to load file");
@@ -61,7 +60,7 @@ void Model::userInsert(unsigned int connId, Symbol &symbol) {
 
 void Model::userErase(unsigned int connId, Symbol &symbol) {
 
-  std::string filename = usersFile[connId];
+  auto filename = usersFile[connId];
 
   std::lock_guard<std::mutex> guard(*openedFilesMutexes[filename]);
 
@@ -71,22 +70,22 @@ void Model::userErase(unsigned int connId, Symbol &symbol) {
 
 }
 
-bool Model::createFileByUser(unsigned int connId, const std::string &filename) {
+bool Model::createFileByUser(unsigned connId, const QString &filename) {
   std::lock_guard<std::mutex> guard(openedFilesMapMutex);
 
   if (std::find(availableFiles.begin(), availableFiles.end(), filename) ==
       availableFiles.end()) {
     return false;
   } else {
-    availableFiles.emplace_back(filename);
+    availableFiles.push_back(filename);
     usersFile[connId] = filename;
-    openedFiles.emplace(filename, std::vector<Symbol>());
+    openedFiles.emplace(filename, QVector<Symbol>());
     openedFilesMutexes.emplace(filename, std::make_unique<std::mutex>());
     return true;
   }
 }
 
-bool Model::openFileByUser(unsigned int connId, std::string filename) {
+bool Model::openFileByUser(unsigned connId, QString filename) {
   std::lock_guard<std::mutex> guard(openedFilesMapMutex);
 
   if (availableFiles.empty() ||
@@ -96,7 +95,7 @@ bool Model::openFileByUser(unsigned int connId, std::string filename) {
   } else {
     usersFile[connId] = filename;
     if (openedFiles.find(filename) == openedFiles.end()) {
-      openedFiles.emplace(filename, std::vector<Symbol>());
+      openedFiles.emplace(filename, QVector<Symbol>());
       openedFilesMutexes.emplace(filename, std::make_unique<std::mutex>());
       loadFileSymbols(filename);
     }
@@ -104,10 +103,10 @@ bool Model::openFileByUser(unsigned int connId, std::string filename) {
   }
 }
 
-std::vector<std::string> &Model::getAvailableFiles() {
+QVector<QString> &Model::getAvailableFiles() {
   return availableFiles;
 }
 
-std::vector<Symbol> &Model::getFileSymbolList(unsigned int connId) {
+QVector<Symbol> &Model::getFileSymbolList(unsigned connId) {
   return openedFiles[usersFile[connId]];
 }

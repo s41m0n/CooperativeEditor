@@ -5,7 +5,7 @@ FileVisualizer::FileVisualizer(QWidget *parent) : QMainWindow(parent) {
 }
 
 
-void FileVisualizer::onFileListing(const std::vector<std::string>& filesArray) {
+void FileVisualizer::onFileListing(const QVector<QString> &filesArray) {
 
   this->setWindowTitle("File Selection");
 
@@ -30,7 +30,7 @@ void FileVisualizer::onFileListing(const std::vector<std::string>& filesArray) {
   } else {
     for (const auto & i : filesArray) {
       auto fileButton = new QPushButton();
-      fileButton->setText(QString::fromStdString(i));
+      fileButton->setText(i);
       fileButton->setAutoDefault(true);
       filesBox->layout()->addWidget(fileButton);
 

@@ -1,10 +1,10 @@
 #ifndef COOPERATIVEEDITOR_TCPSOCKET_H
 #define COOPERATIVEEDITOR_TCPSOCKET_H
 
+#include <spdlog/spdlog.h>
+#include <QObject>
 #include <QTcpSocket>
-#include <QWidget>
 #include <QDataStream>
-#include <memory>
 #include <components/messages/BasicMessage.h>
 #include <components/messages/LoginMessage.h>
 #include <src/components/messages/FileListingMessage.h>
@@ -39,19 +39,26 @@ public:
     ///Method to set user authN (or logged out)
     void setUserAuthN(bool value);
 
+    bool operator==(const TcpSocket &b) { return this->socketDescriptor() == b.socketDescriptor();}
+
+    bool operator==(const TcpSocket *b) { return this->socketDescriptor() == b->socketDescriptor();}
+
     ///Operator overload to make simpler sending msg
-    template<typename T, typename std::enable_if<std::is_base_of<BasicMessage, T>::value>::type* = nullptr>
+    template<typename T, typename std::enable_if<std::is_base_of<BasicMessage, T>::value>::type * = nullptr>
     void sendMsg(T &val) {
-      ds << static_cast<quint32>(val.getMsgType()) << val;
+      //It sends the Type before the entire message, like in networking protocols.
+      ds << val.getMsgType() << val;
+      spdlog::debug("Sent Message!\n" + val.toStdString());
     }
 
     ///Operator overload to make simpler receiving msg
     BasicMessage *readMsg() {
       BasicMessage *msg = nullptr;
-      quint32 type;
+      Type type;
       ds >> type;
 
-      switch (static_cast<Type>(type)) {
+      //Depending on the Type, it will read a different message
+      switch (type) {
         case Type::CONNECT : {
           msg = new BasicMessage();
           break;
@@ -100,6 +107,7 @@ public:
         }
       }
       ds >> *msg;
+      spdlog::debug("Received Message!\n" + msg->toStdString());
       return msg;
     }
 

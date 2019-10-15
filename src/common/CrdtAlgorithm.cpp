@@ -23,7 +23,7 @@ unsigned int CrdtAlgorithm::generateIdBetween(unsigned int id1,
   return distribution(gen);
 }
 
-int CrdtAlgorithm::findPositionErase(Symbol &s, std::vector<Symbol> &symbols) {
+int CrdtAlgorithm::findPositionErase(Symbol &s, QVector<Symbol> &symbols) {
   int left = 0, mid;
   auto right = symbols.size() - 1;
 
@@ -48,7 +48,7 @@ int CrdtAlgorithm::findPositionErase(Symbol &s, std::vector<Symbol> &symbols) {
   return -1;
 }
 
-int CrdtAlgorithm::findPositionInsert(Symbol &s, std::vector<Symbol> &symbols) {
+int CrdtAlgorithm::findPositionInsert(Symbol &s, QVector<Symbol> &symbols) {
   int left = 0;
   auto right = symbols.size() - 1;
   int mid, compareNum;
@@ -76,9 +76,9 @@ int CrdtAlgorithm::findPositionInsert(Symbol &s, std::vector<Symbol> &symbols) {
     return right;
 }
 
-std::vector<Identifier> CrdtAlgorithm::generatePosBetween(
-        std::vector<Identifier> pos1, std::vector<Identifier> pos2,
-        unsigned int editorId, std::vector<Identifier> newPos, int level) {
+QVector<Identifier> CrdtAlgorithm::generatePosBetween(
+        QVector<Identifier> pos1, QVector<Identifier> pos2,
+        unsigned int editorId, QVector<Identifier> newPos, int level) {
 
   auto baseValue = (unsigned int) (std::pow(2, level) * CrdtAlgorithm::base);
   if (!baseValue) {
@@ -92,7 +92,7 @@ std::vector<Identifier> CrdtAlgorithm::generatePosBetween(
   if (id2.getDigit() - id1.getDigit() > 1) {
     auto newDigit = CrdtAlgorithm::generateIdBetween(id1.getDigit(),
             id2.getDigit(), boundaryStrategy);
-    newPos.emplace_back(editorId, newDigit);
+    newPos.push_back({editorId, newDigit});
     return newPos;
   } else if (id2.getDigit() - id1.getDigit() == 1) {
     newPos.push_back(id1);
@@ -137,13 +137,13 @@ std::vector<Identifier> CrdtAlgorithm::generatePosBetween(
   throw std::runtime_error("Fix Position Sorting");
 }
 
-void CrdtAlgorithm::remoteErase(Symbol &s, std::vector<Symbol> &symbols) {
+void CrdtAlgorithm::remoteErase(Symbol &s, QVector<Symbol> &symbols) {
   int index = CrdtAlgorithm::findPositionErase(s, symbols);
   if (index >= 0)
     symbols.erase(symbols.begin() + index);
 }
 
-void CrdtAlgorithm::remoteInsert(Symbol &s, std::vector<Symbol> &symbols) {
+void CrdtAlgorithm::remoteInsert(Symbol &s, QVector<Symbol> &symbols) {
   int index = CrdtAlgorithm::findPositionInsert(s, symbols);
 
   symbols.insert(symbols.begin() + index, std::move(s));

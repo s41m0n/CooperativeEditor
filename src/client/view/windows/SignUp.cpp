@@ -1,6 +1,6 @@
 #include "SignUp.h"
 
-SignUp::SignUp(QWidget *parent) {
+SignUp::SignUp(QWidget *parent) : QMainWindow(parent) {
 
   this->setWindowTitle("Sign Up Form");
   this->setFixedSize(this->minimumSize());
@@ -65,7 +65,7 @@ SignUp::SignUp(QWidget *parent) {
   registerBox->layout()->addWidget(buttonSignUp);
 
   alreadyRegisteredBox = new QGroupBox("Are you already registered?",
-                              mainWidget);
+                                       mainWidget);
   alreadyRegisteredBox->setLayout(new QVBoxLayout());
   layout->addWidget(alreadyRegisteredBox, 5, 0, 1, 2);
 

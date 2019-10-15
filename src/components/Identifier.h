@@ -11,36 +11,27 @@
 class Identifier {
 
 private:
-    ///The editor specific ID
-    unsigned int editorId;
+    unsigned editorId;
 
-    ///Unique digit inside the editor
-    unsigned int digit;
+    unsigned digit;
 
 public:
-    ///Classic constructor, given both the two parameter
+
     Identifier(unsigned int editorId, unsigned int digit);
 
-    ///Constructor used to create a non-valid Identifier to be filled
     Identifier();
 
-    ///Method to compare two identifier by their private variables
     int compareTo(Identifier other);
 
-    ///Operator overload '<<' for Identifier when using QDataStream for serialization
     friend QDataStream &operator<<(QDataStream &stream, const Identifier &val);
 
-    ///Operator overload '>>' for Identifier when using QDataStream for serialization
     friend QDataStream &operator>>(QDataStream &stream, Identifier &val);
 
-    ///Method to print in human-readable format the Identifier
-    std::string toString(int level = 0);
+    std::string toStdString(int level = 0);
 
-    ///Return editor identifier
-    unsigned int getEditorId();
+    unsigned getEditorId();
 
-    ///Return digit
-    unsigned int getDigit();
+    unsigned getDigit();
 
 };
 

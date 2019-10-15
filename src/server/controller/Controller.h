@@ -2,12 +2,10 @@
 #define COOPERATIVEEDITOR_CONTROLLER_H
 
 
-#include <queue>
-#include <map>
-#include <string>
 #include <QTcpServer>
 #include <QTcpSocket>
-#include <QObject>
+#include <QWidget>
+#include <queue>
 #include <memory>
 
 #include "components/messages/CrdtMessage.h"
@@ -23,11 +21,7 @@ class Controller : public QTcpServer {
 Q_OBJECT
 
 private:
-    ///The model instance
     Model *model;
-
-    ///Map of connection ID, filename required by user and QTcpSockets
-    std::map<quint32, TcpSocket *> connections;
 
     ///The queue containing all the messages
     std::queue<std::shared_ptr<CrdtMessage>> messages;
@@ -35,14 +29,10 @@ private:
     ///The mutex used for the message queue
     std::mutex queueMutex;
 
-    ///The mutex used for the connection map
-    std::mutex connectionsMutex;
-
     ///Method to dispatch messages
     void dispatch();
 
 public:
-    ///Class constructor, given an io_service and a port
     Controller(Model *model, unsigned short port, QWidget *parent = nullptr);
 
 

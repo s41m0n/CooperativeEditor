@@ -1,11 +1,9 @@
-#include <spdlog/spdlog.h>
 #include <QHostAddress>
 #include <QCryptographicHash>
 #include <memory>
 
 #include "src/components/messages/BasicMessage.h"
 #include "src/components/messages/LoginMessage.h"
-#include "src/components/messages/RequestMessage.h"
 #include "src/components/messages/FileContentMessage.h"
 #include "src/components/messages/FileListingMessage.h"
 #include "src/components/messages/CrdtMessage.h"
@@ -18,56 +16,44 @@ Controller::Controller(Model *model, const std::string &host, int port)
   connect(&socket, SIGNAL(readyRead()), this, SLOT(onReadyRead()));
 }
 
-/// Handle completion of a read operation.
 void Controller::onReadyRead() {
 
   std::shared_ptr<BasicMessage> base(socket.readMsg());
 
   switch (base->getMsgType()) {
     case Type::CONNECT : {
-      spdlog::debug("Received Message!\n{}", base->toString());
       model->setEditorId(base->getEditorId());
       break;
     }
     case Type::LOGIN_RESULT : {
-      auto derived = std::dynamic_pointer_cast<ResultMessage>(base);
-      spdlog::debug("Received Message!\n{}", derived->toString());
-      emit loginResponse(derived->isPositive());
+      emit loginResponse(
+              std::dynamic_pointer_cast<ResultMessage>(base)->isPositive());
       break;
     }
     case Type::LISTING : {
-      auto derived = std::dynamic_pointer_cast<FileListingMessage>(base);
-      spdlog::debug("Received Message!\n{}", derived->toString());
-
-      emit fileListing(derived->getFiles());
+      emit fileListing(
+              std::dynamic_pointer_cast<FileListingMessage>(base)->getFiles());
       break;
     }
     case Type::FILE_RESULT : {
-      auto derived = std::dynamic_pointer_cast<ResultMessage>(base);
-      spdlog::debug("Received Message!\n{}", derived->toString());
-      if (!derived->isPositive()) {
-        emit fileResult(false);
-      }
+      emit fileResult(
+              std::dynamic_pointer_cast<ResultMessage>(base)->isPositive());
       break;
     }
     case Type::CONTENT : {
-      auto derived = std::dynamic_pointer_cast<FileContentMessage>(base);
-      spdlog::debug("Received Message!\n{}", derived->toString());
-      model->setCurrentFileContent(derived->getSymbols());
-      emit fileResult(true);
-      break;
-    }
-    case Type::INSERT : {
-      auto derived = std::dynamic_pointer_cast<CrdtMessage>(base);
-      spdlog::debug("Received Message!\n{}", derived->toString());
-      model->remoteInsert(derived->getSymbol());
+      model->setCurrentFileContent(
+              std::dynamic_pointer_cast<FileContentMessage>(
+                      base)->getSymbols());
       emit remoteUpdate(model->textify());
       break;
     }
+    case Type::INSERT :
     case Type::ERASE : {
-      auto derived = std::dynamic_pointer_cast<CrdtMessage>(base);
-      spdlog::debug("Received Message!\n{}", base->toString());
-      model->remoteErase(derived->getSymbol());
+      base->getMsgType() == Type::INSERT ? model->remoteInsert(
+              std::dynamic_pointer_cast<CrdtMessage>(base)->getSymbol())
+                                         : model->remoteErase(
+              std::dynamic_pointer_cast<CrdtMessage>(base)->getSymbol());
+      emit remoteUpdate(model->textify());
       break;
     }
     default :
@@ -79,15 +65,13 @@ void Controller::onReadyRead() {
 
 }
 
-void Controller::onCharInserted(int index, char value) {
+void Controller::onCharInserted(int index, QChar value) {
 
   auto symbol = model->localInsert(index, value);
 
   if (symbol != nullptr) {
     CrdtMessage msg(Type::INSERT, *symbol, model->getEditorId());
     socket.sendMsg(msg);
-    spdlog::debug("Inserted Symbol!\n{}", symbol->toString());
-    spdlog::debug("Current text: {}", model->textify());
   }
 }
 
@@ -98,8 +82,6 @@ void Controller::onCharErased(int index) {
   if (symbol != nullptr) {
     CrdtMessage msg(Type::ERASE, *symbol, model->getEditorId());
     socket.sendMsg(msg);
-    spdlog::debug("Erased Symbol!\n{}", symbol->toString());
-    spdlog::debug("Current text: {}", model->textify());
   }
 }
 
@@ -110,10 +92,9 @@ Controller::onLoginRequest(const QString &username, const QString &password) {
     QByteArray hashedPassword = QCryptographicHash::hash(password.toUtf8(),
                                                          QCryptographicHash::Sha512);
 
-    LoginMessage msg(model->getEditorId(), username.toStdString(),
-                     QString(hashedPassword.toHex()).toStdString());
+    LoginMessage msg(model->getEditorId(), username,
+                     QString(hashedPassword.toHex()));
     socket.sendMsg(msg);
-    spdlog::debug("Login Request sent!\n{}", msg.toString());
 
   } else {
     emit serverUnreachable();

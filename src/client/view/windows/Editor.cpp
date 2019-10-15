@@ -20,7 +20,7 @@ Editor::Editor(QWidget *parent) : QMainWindow(parent) {
 
 }
 
-void Editor::onRemoteUpdate(std::string text) {
+void Editor::onRemoteUpdate(QString text) {
   //RIAGGIORNARE LA VIEW CON IL NUOVO TESTO
   spdlog::debug("Un nuovo Crdt message arrivato");
 

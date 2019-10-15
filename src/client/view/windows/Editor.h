@@ -24,17 +24,19 @@ private:
     QPlainTextEdit *textEdit;
     QMenuBar *topBar;
     QToolBar *toolBar;
-    void createTopBar(QVBoxLayout* layout);
-    void createToolBar(QVBoxLayout* layout);
+
+    void createTopBar(QVBoxLayout *layout);
+
+    void createToolBar(QVBoxLayout *layout);
 
 public:
-    ///Constructor
+
     explicit Editor(QWidget *parent = nullptr);
 
 public slots:
 
     ///Slot to notify the editor that a remote op. has been performed
-    void onRemoteUpdate(std::string text);
+    void onRemoteUpdate(QString text);
 
 };
 
