@@ -8,7 +8,7 @@ bool ResultMessage::isPositive() {
   return result;
 }
 
-std::string ResultMessage::toString(int level) {
+std::string ResultMessage::toStdString(int level) {
   return std::string(level, '\t') + "ResultMessage{\n" +
          std::string(level + 1, '\t') + "msgType: " +
          std::to_string(static_cast<int>(msgType)) + "\n" +

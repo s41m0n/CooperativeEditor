@@ -1,6 +1,8 @@
 #ifndef COOPERATIVEEDITOR_LOGINMESSAGE_H
 #define COOPERATIVEEDITOR_LOGINMESSAGE_H
 
+#include <QString>
+
 #include "BasicMessage.h"
 
 
@@ -10,31 +12,27 @@
 class LoginMessage : public BasicMessage {
 
 private:
-    ///Username
-    std::string username;
 
-    ///Password
-    std::string password;
+    QString username;
+
+    QString password;
 
     void serialize(QDataStream &stream) override;
 
     void deserialize(QDataStream &stream) override;
 
 public:
-    ///Classic constructor with all parameters given (Type is automatically set)
-    LoginMessage(unsigned int editorId, std::string username,
-                 std::string password);
+
+    LoginMessage(unsigned editorId, QString username,
+                 QString password);
 
     LoginMessage() = default;
 
-    ///Return the username
-    std::string &getUsername();
+    QString &getUsername();
 
-    ///Return the password
-    std::string &getPassword();
+    QString &getPassword();
 
-    ///Method to print in human-readable format the message with indent
-    std::string toString(int level = 0) override;
+    std::string toStdString(int level = 0) override;
 
 };
 

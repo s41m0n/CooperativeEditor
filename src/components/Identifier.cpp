@@ -1,9 +1,9 @@
 #include "Identifier.h"
 
-Identifier::Identifier(unsigned int editorId, unsigned int digit) : editorId(
+Identifier::Identifier(unsigned editorId, unsigned digit) : editorId(
         editorId), digit(digit) {}
 
-Identifier::Identifier() : editorId(-1), digit(0){
+Identifier::Identifier() : editorId(-1), digit(0) {
 }
 
 int Identifier::compareTo(Identifier other) {
@@ -22,7 +22,7 @@ int Identifier::compareTo(Identifier other) {
   }
 }
 
-std::string Identifier::toString(int level) {
+std::string Identifier::toStdString(int level) {
   return std::string(std::string(level, '\t') + "Identifier{\n" +
                      std::string(level + 1, '\t') + "editorId: " +
                      std::to_string(editorId) + "\n" +
@@ -41,10 +41,10 @@ QDataStream &operator>>(QDataStream &stream, Identifier &val) {
   return stream;
 }
 
-unsigned int Identifier::getEditorId() {
+unsigned Identifier::getEditorId() {
   return this->editorId;
 }
 
-unsigned int Identifier::getDigit() {
+unsigned Identifier::getDigit() {
   return this->digit;
 }

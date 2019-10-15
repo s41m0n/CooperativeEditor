@@ -1,4 +1,3 @@
-#include <spdlog/spdlog.h>
 #include "client/view/View.h"
 
 View::View(Controller *controller) : controller(controller) {
@@ -34,6 +33,5 @@ void View::init() {
                    &Editor::onRemoteUpdate);
 
   login->show();
-  //editor->show();
 
 }

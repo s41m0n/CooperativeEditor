@@ -27,13 +27,13 @@ private:
     QMessageBox *fileCannotBeOpened;
 
 public:
-    ///Constructor
+
     explicit FileVisualizer(QWidget *parent = nullptr);
 
 public slots:
 
     ///Slot to notify the editor that the list of files has been received
-    void onFileListing(const std::vector<std::string>& filesArray);
+    void onFileListing(const QVector<QString> &filesArray);
 
     ///Slot to notify the visualizer that the file can/cannot be opened/created
     void onFileResult(bool result);

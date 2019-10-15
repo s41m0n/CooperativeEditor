@@ -13,14 +13,11 @@
 class View {
 
 private:
-    ///A reference to the Controller
     Controller *controller;
 
 public:
-    ///Constructor which also assigns the controller
     explicit View(Controller *controller);
 
-    ///Method to initialize the user interface
     void init();
 
 };

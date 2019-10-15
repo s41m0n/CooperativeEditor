@@ -1,12 +1,12 @@
 #ifndef COOPERATIVEEDITOR_MODEL_H
 #define COOPERATIVEEDITOR_MODEL_H
 
-#include <vector>
+#include <QVector>
+#include <QString>
 #include <map>
 #include <mutex>
 #include <memory>
 #include <atomic>
-#include <string>
 
 #include "components/Symbol.h"
 
@@ -17,53 +17,53 @@ class Model {
 
 private:
     ///The map of the connection, containing the editorId and the pointer to the connection
-    std::map<std::string, std::vector<Symbol>> openedFiles;
+    std::map<QString, QVector<Symbol>> openedFiles;
 
     ///The mutexes for the opened files
-    std::map<std::string, std::unique_ptr<std::mutex>> openedFilesMutexes;
+    std::map<QString, std::unique_ptr<std::mutex>> openedFilesMutexes;
 
     ///The mutex for the files mutex map
     std::mutex openedFilesMapMutex;
 
     ///The map of the current file for each user
-    std::map<unsigned int, std::string> usersFile;
+    std::map<unsigned, QString> usersFile;
 
     ///Editor Id unique generator
-    std::atomic<unsigned int> idGenerator;
+    std::atomic<unsigned> idGenerator;
 
     ///Set of all available files
-    std::vector<std::string> availableFiles;
+    QVector<QString> availableFiles;
 
     ///Method to write on file the respective sequence of symbols
-    void storeFileSymbols(std::string &filename);
+    void storeFileSymbols(QString &filename);
 
     ///Method to restore from file the respective sequence of symbols
-    void loadFileSymbols(std::string &filename);
+    void loadFileSymbols(QString &filename);
 
 public:
     ///Classic constructor
     Model();
 
     ///Method to generate a new editor id
-    unsigned int generateEditorId();
+    unsigned generateEditorId();
 
     ///Method to handle user remote insertion
-    void userInsert(unsigned int connId, Symbol &symbol);
+    void userInsert(unsigned connId, Symbol &symbol);
 
     ///Method to handle user remote deletion
-    void userErase(unsigned int connId, Symbol &symbol);
+    void userErase(unsigned connId, Symbol &symbol);
 
     ///Method called when a user requests to create a file
-    bool createFileByUser(unsigned int connId, const std::string& filename);
+    bool createFileByUser(unsigned connId, const QString &filename);
 
     ///Method called when a user requests to open a file
-    bool openFileByUser(unsigned int connId, std::string filename);
+    bool openFileByUser(unsigned connId, QString filename);
 
     ///Returns the list (string) of all available files
-    std::vector<std::string> &getAvailableFiles();
+    QVector<QString> &getAvailableFiles();
 
     ///Returns the list of symbols for the file the user connId has requested
-    std::vector<Symbol> &getFileSymbolList(unsigned int connId);
+    QVector<Symbol> &getFileSymbolList(unsigned connId);
 
 };
 

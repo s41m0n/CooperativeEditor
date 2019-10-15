@@ -10,7 +10,7 @@
 class ResultMessage : public BasicMessage {
 
 private:
-    ///The OK/KO answer
+
     bool result{};
 
     void serialize(QDataStream &stream) override;
@@ -18,16 +18,13 @@ private:
     void deserialize(QDataStream &stream) override;
 
 public:
-    ///Constructor with also the type (it could index different msg)
     ResultMessage(Type msgType, unsigned editorId, bool result);
 
     ResultMessage() = default;
-
-    ///Method to return the answer
+    
     bool isPositive();
 
-    ///Method to print in human-readable format the message with indent
-    std::string toString(int level = 0) override;
+    std::string toStdString(int level = 0) override;
 
 };
 

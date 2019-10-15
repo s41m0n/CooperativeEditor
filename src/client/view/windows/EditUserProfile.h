@@ -15,7 +15,7 @@ private:
     QWidget *mainWidget;
 
 public:
-    ///Constructor
+
     explicit EditUserProfile(QWidget *parent = nullptr);
 
 public slots:

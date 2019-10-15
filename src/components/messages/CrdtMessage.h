@@ -11,7 +11,7 @@
 class CrdtMessage : public BasicMessage {
 
 private:
-    ///The symbol contained in the message (can be empty)
+
     Symbol symbol;
 
     void serialize(QDataStream &stream) override;
@@ -19,17 +19,14 @@ private:
     void deserialize(QDataStream &stream) override;
 
 public:
-    ///Classic constructor with all parameters
-    CrdtMessage(Type msgType, Symbol symbol, unsigned int editorId);
 
-    ///Constructor used to create a message to be filled
+    CrdtMessage(Type msgType, Symbol symbol, unsigned editorId);
+
     CrdtMessage() = default;
 
-    ///Return the Symbol contained in the Message
     Symbol &getSymbol();
 
-    ///Method to print in human-readable format the message with indent
-    std::string toString(int level = 0) override;
+    std::string toStdString(int level = 0) override;
 
 };
 
