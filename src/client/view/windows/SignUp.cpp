@@ -151,7 +151,7 @@ SignUp::SignUp(QWidget *parent) : QMainWindow(parent) {
 
                          if (passwordTextField->text() ==
                              passwordTextFieldConfirm->text()) {
-                           emit onSignUpRequest(userImage,
+                           emit signUpRequest(userImage,
                                               nameTextField->text(),
                                               surnameTextField->text(),
                                               usernameTextField->text(),

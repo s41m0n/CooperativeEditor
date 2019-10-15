@@ -57,7 +57,7 @@ public slots:
 signals:
 
     ///Signal to notify the server an user wants to sign up
-    void onSignUpRequest(QString image, QString name, QString surname, QString username,
+    void signUpRequest(QString image, QString name, QString surname, QString username,
                        QString email, QString password);
 
     ///Signl to go back to the login page

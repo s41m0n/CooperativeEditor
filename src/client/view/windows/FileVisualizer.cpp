@@ -113,7 +113,7 @@ void FileVisualizer::onFileResult(bool result) {
   if (result) {
     //Il file può essere aperto/creato
     spdlog::debug("Action OK");
-    //TODO: Va triggerata l'apertura dell'editor e inviato il contenuto del file
+    this->close();
   } else {
     spdlog::debug("Action KO");
 

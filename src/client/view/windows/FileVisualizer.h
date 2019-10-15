@@ -40,6 +40,10 @@ public slots:
     ///Slot to notify the visualizer that the file can/cannot be opened/created
     void onFileResult(bool result);
 
+signals:
+
+  void fileRequest(const QString &filename, bool exists);
+
 };
 
 #endif //COOPERATIVEEDITOR_FILEVISUALIZER_H

@@ -101,3 +101,14 @@ Controller::onLoginRequest(const QString &username, const QString &password) {
   }
 
 }
+
+void Controller::onSignUpRequest(QString image, QString name, QString surname,
+                                 QString username, QString email,
+                                 QString password) {
+  //TODO : send data to server (Refactor to do using a User class)
+
+}
+
+void Controller::onFileRequest(const QString &filename, bool exists) {
+  //TODO : send msg to server
+}

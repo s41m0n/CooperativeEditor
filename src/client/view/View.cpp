@@ -22,8 +22,6 @@ void View::init() {
   QObject::connect(editor, &Editor::openEditProfileFromEditor, editProfile,
                    &EditUserProfile::show);
 
-  //TODO: Simo guarda qua che queste connect le hai scritte tu e non vorrei aver scritto cazzate nei commenti
-
   QObject::connect(login, &Login::loginRequest, controller,
                    &Controller::onLoginRequest);
 
@@ -43,8 +41,21 @@ void View::init() {
                    &FileVisualizer::onFileListing);
   QObject::connect(controller, &Controller::fileResult, fileVisualizer,
                    &FileVisualizer::onFileResult);
+  QObject::connect(fileVisualizer, &FileVisualizer::fileRequest, controller,
+                   &Controller::onFileRequest);
+
+  QObject::connect(controller, &Controller::fileResult,
+                   [editor](bool result) {
+                       if (result) {
+                         editor->show();
+                       }
+                   });
+
   QObject::connect(controller, &Controller::remoteUpdate, editor,
                    &Editor::onRemoteUpdate);
+
+  QObject::connect(signUp, &SignUp::signUpRequest, controller,
+                   &Controller::onSignUpRequest);
 
   login->show();
 

@@ -38,17 +38,18 @@ public slots:
     ///Slot to wake up when LoginRequest arrived from View
     void onLoginRequest(const QString &username, const QString &password);
 
+    // TODO: Refactor using class USER
     ///Slot to wake up when SignUpRequest arrived from View
     void onSignUpRequest(QString image, QString name, QString surname, QString username,
                          QString email, QString password);
-
-    // TODO: check slot onSignUpRequest
 
     ///Slot to wake up when user insert a char locally
     void onCharInserted(int index, QChar value);
 
     ///Slot to wake up when user erase a char locally
     void onCharErased(int index);
+
+    void onFileRequest(const QString &filename, bool exists);
 
 signals:
 
