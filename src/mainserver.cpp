@@ -25,7 +25,7 @@ int main(int argc, char **argv) {
   Model model;
   Controller controller(&model, std::stoi(argv[1]));
   Database DB;
-  //DB.insertUser("Brazorf33","Ajeje22","Ajeje","Brazorf","ajebra@email.it");
+  DB.insertUser("Brazorf33","Ajeje22","Ajeje","Brazorf","ajebra@email.it");
 
   return app.exec();
 }
