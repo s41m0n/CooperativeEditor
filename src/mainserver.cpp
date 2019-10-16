@@ -3,6 +3,7 @@
 
 #include "server/controller/Controller.h"
 #include "server/model/Model.h"
+#include "server/database/Database.h"
 
 int main(int argc, char **argv) {
 
@@ -23,6 +24,8 @@ int main(int argc, char **argv) {
 
   Model model;
   Controller controller(&model, std::stoi(argv[1]));
+  Database DB;
+  //DB.insertUser("Brazorf33","Ajeje22","Ajeje","Brazorf","ajebra@email.it");
 
   return app.exec();
 }

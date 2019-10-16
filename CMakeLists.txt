@@ -24,6 +24,7 @@ endif ()
 
 include_directories(src)
 include_directories(src/include/lib/)
+add_compile_options(-l sqlite3)
 
 find_package(Threads)
 find_package(Qt5Widgets REQUIRED)
