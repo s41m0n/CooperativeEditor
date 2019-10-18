@@ -1,5 +1,3 @@
-#include <spdlog/spdlog.h>
-
 #include "Model.h"
 #include "common/CrdtAlgorithm.h"
 
@@ -68,6 +66,6 @@ void Model::setCurrentFile(const QString &filename) {
   symbols.clear();
 }
 
-void Model::setCurrentFileContent(QVector<Symbol> &newContent) {
+void Model::setCurrentFileContent(FileText &newContent) {
   symbols = std::move(newContent);
 }

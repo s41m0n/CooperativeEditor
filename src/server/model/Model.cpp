@@ -78,7 +78,7 @@ bool Model::createFileByUser(unsigned connId, const QString &filename) {
   } else {
     availableFiles.push_back(filename);
     usersFile[connId] = filename;
-    openedFiles.emplace(filename, QVector<Symbol>());
+    openedFiles.emplace(filename, FileText());
     openedFilesMutexes.emplace(filename, std::make_unique<std::mutex>());
     return true;
   }
@@ -94,7 +94,7 @@ bool Model::openFileByUser(unsigned connId, QString filename) {
   } else {
     usersFile[connId] = filename;
     if (openedFiles.find(filename) == openedFiles.end()) {
-      openedFiles.emplace(filename, QVector<Symbol>());
+      openedFiles.emplace(filename, FileText());
       openedFilesMutexes.emplace(filename, std::make_unique<std::mutex>());
       loadFileSymbols(filename);
     }
@@ -106,6 +106,6 @@ QVector<QString> &Model::getAvailableFiles() {
   return availableFiles;
 }
 
-QVector<Symbol> &Model::getFileSymbolList(unsigned connId) {
+FileText &Model::getFileSymbolList(unsigned connId) {
   return openedFiles[usersFile[connId]];
 }

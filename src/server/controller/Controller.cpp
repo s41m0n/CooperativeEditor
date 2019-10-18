@@ -89,7 +89,7 @@ void Controller::onReadyRead() {
     case Type::CREATE :
     case Type::OPEN : {
       auto derived = std::dynamic_pointer_cast<RequestMessage>(base);
-      QVector<Symbol> symbolList;
+      FileText symbolList;
 
       if (base->getMsgType() == Type::OPEN &&
           model->openFileByUser(clientId, derived->getFilename())) {

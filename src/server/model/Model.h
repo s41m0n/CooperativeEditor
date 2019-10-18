@@ -17,7 +17,7 @@ class Model {
 
 private:
     ///The map of the connection, containing the editorId and the pointer to the connection
-    std::map<QString, QVector<Symbol>> openedFiles;
+    std::map<QString, FileText> openedFiles;
 
     ///The mutexes for the opened files
     std::map<QString, std::unique_ptr<std::mutex>> openedFilesMutexes;
@@ -63,7 +63,7 @@ public:
     QVector<QString> &getAvailableFiles();
 
     ///Returns the list of symbols for the file the user connId has requested
-    QVector<Symbol> &getFileSymbolList(unsigned connId);
+    FileText &getFileSymbolList(unsigned connId);
 
 };
 

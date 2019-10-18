@@ -16,7 +16,7 @@ private:
 
     unsigned editorId;
 
-    QVector<Symbol> symbols;
+    FileText symbols;
 
     QString currentFile;
 
@@ -48,7 +48,7 @@ public:
     void setCurrentFile(const QString &filename);
 
     ///Method to set the current opened file content
-    void setCurrentFileContent(QVector<Symbol> &newContent);
+    void setCurrentFileContent(FileText &newContent);
 
     ///Return the file content
     QString textify();

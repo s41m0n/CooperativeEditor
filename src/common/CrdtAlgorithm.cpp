@@ -23,7 +23,7 @@ unsigned int CrdtAlgorithm::generateIdBetween(unsigned int id1,
   return distribution(gen);
 }
 
-int CrdtAlgorithm::findPositionErase(Symbol &s, QVector<Symbol> &symbols) {
+int CrdtAlgorithm::findPositionErase(Symbol &s, FileText &symbols) {
   int left = 0, mid;
   auto right = symbols.size() - 1;
 
@@ -48,7 +48,7 @@ int CrdtAlgorithm::findPositionErase(Symbol &s, QVector<Symbol> &symbols) {
   return -1;
 }
 
-int CrdtAlgorithm::findPositionInsert(Symbol &s, QVector<Symbol> &symbols) {
+int CrdtAlgorithm::findPositionInsert(Symbol &s, FileText &symbols) {
   int left = 0;
   auto right = symbols.size() - 1;
   int mid, compareNum;
@@ -137,13 +137,13 @@ QVector<Identifier> CrdtAlgorithm::generatePosBetween(
   throw std::runtime_error("Fix Position Sorting");
 }
 
-void CrdtAlgorithm::remoteErase(Symbol &s, QVector<Symbol> &symbols) {
+void CrdtAlgorithm::remoteErase(Symbol &s, FileText &symbols) {
   int index = CrdtAlgorithm::findPositionErase(s, symbols);
   if (index >= 0)
     symbols.erase(symbols.begin() + index);
 }
 
-void CrdtAlgorithm::remoteInsert(Symbol &s, QVector<Symbol> &symbols) {
+void CrdtAlgorithm::remoteInsert(Symbol &s, FileText &symbols) {
   int index = CrdtAlgorithm::findPositionInsert(s, symbols);
 
   symbols.insert(symbols.begin() + index, std::move(s));

@@ -15,7 +15,7 @@ class FileContentMessage : public BasicMessage {
 
 private:
 
-    QVector<Symbol> symbols;
+    FileText symbols;
 
     void serialize(QDataStream &stream) override;
 
@@ -24,11 +24,11 @@ private:
 public:
 
     FileContentMessage(unsigned editorId,
-                       QVector<Symbol> &symbols);
+                       FileText &symbols);
 
     FileContentMessage() = default;
 
-    QVector<Symbol> &getSymbols();
+    FileText &getSymbols();
     
     std::string toStdString(int level = 0) override;
 

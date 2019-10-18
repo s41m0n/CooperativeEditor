@@ -1,11 +1,11 @@
 #include "FileContentMessage.h"
 
 FileContentMessage::FileContentMessage(unsigned editorId,
-                                       QVector<Symbol> &symbols)
+                                       FileText &symbols)
         : BasicMessage(Type::CONTENT, editorId), symbols(symbols) {
 }
 
-QVector<Symbol> &FileContentMessage::getSymbols() {
+FileText &FileContentMessage::getSymbols() {
   return symbols;
 }
 
