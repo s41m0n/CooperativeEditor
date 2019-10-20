@@ -3,7 +3,8 @@
 
 Editor::Editor(QWidget *parent) : QMainWindow(parent) {
 
-  //this->setWindowTitle("File Selection"); //TODO: fileVisualizer mi passa il nome del file
+  //TODO: fileVisualizer mi passa il nome del file
+  //this->setWindowTitle("File Selection");
 
   mainWidget = new QWidget(this);
   auto layout = new QVBoxLayout(mainWidget);
