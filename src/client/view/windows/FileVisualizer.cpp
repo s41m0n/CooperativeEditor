@@ -22,6 +22,13 @@ void FileVisualizer::onFileListing(const QVector<QString> &filesArray) {
   auto list = new QListWidget(mainWidget);
   list->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
   list->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+  list->setSortingEnabled(true);
+
+  if(filesArray.size() <= 10) {
+    list->setFixedHeight((int) filesArray.size() * 30);
+  }else {
+    list->setFixedHeight(300);
+  }
 
   if (filesArray.empty()) {
     list->addItem("There are not file to open on the server. Please create a new file.");
