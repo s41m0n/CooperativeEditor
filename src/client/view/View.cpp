@@ -52,8 +52,6 @@ void View::init() {
                    &FileVisualizer::onFileListing);
   QObject::connect(controller, &Controller::fileResult, fileVisualizer,
                    &FileVisualizer::onFileResult);
-  QObject::connect(fileVisualizer, &FileVisualizer::fileRequest, controller,
-                   &Controller::onFileRequest);
 
   QObject::connect(controller, &Controller::fileResult,
                    [editor](bool result) {
