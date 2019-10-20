@@ -15,21 +15,32 @@ void View::init() {
   //Bottone semplice da Login a SignUp se non ho un account e voglio registrarmi
   QObject::connect(login, &Login::signUp, signUp, &SignUp::show);
 
-  //Bottone semplice da SignUp a Login se non voglio registrarmi
+  //Bottone semplice da SignUp a Login se non voglio registrarmi e tornare al login
   QObject::connect(signUp, &SignUp::backToLogin, login, &Login::show);
 
-  //Bottone semplice (azione da menu dropdown) da Editor e EditUserProfile per modificare il mio profile
+  //Bottone semplice (azione da menu dropdown) da Editor e EditUserProfile per modificare il mio profilo
   QObject::connect(editor, &Editor::openEditProfileFromEditor, editProfile,
                    &EditUserProfile::show);
 
+  //Segnale dal fileVisualizer per chiedere al server di aprire un file
+  QObject::connect(fileVisualizer, &FileVisualizer::fileRequest, controller,
+                   &Controller::onFileRequest);
+
+  //Segnale dal login al controller per inviare al server la login request
   QObject::connect(login, &Login::loginRequest, controller,
                    &Controller::onLoginRequest);
 
+  //Segnale dal controller al login per notificare l'esito della login request
   QObject::connect(controller, &Controller::loginResponse, login,
                    &Login::onLoginResponse);
 
+  //Server unreachable nelle varie finestre
   QObject::connect(controller, &Controller::serverUnreachable, login,
                    &Login::onServerUnreachable);
+
+  QObject::connect(controller, &Controller::serverUnreachable, fileVisualizer,
+                   &FileVisualizer::onServerUnreachable);
+  //Fine server unreachable
 
   QObject::connect(controller, &Controller::loginResponse,
                    [fileVisualizer](bool isLogged) {

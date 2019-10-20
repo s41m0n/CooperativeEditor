@@ -16,7 +16,8 @@ void FileVisualizer::onFileListing(const QVector<QString> &filesArray) {
   mainWidget->setLayout(layout);
 
   titleOpen = new QLabel(mainWidget);
-  titleOpen->setText("Select the file you want to open from the ones showed below:");
+  titleOpen->setText(
+          "Select the file you want to open from the ones showed below:");
   layout->addWidget(titleOpen, 0, 0, 1, 2);
 
   auto list = new QListWidget(mainWidget);
@@ -24,14 +25,15 @@ void FileVisualizer::onFileListing(const QVector<QString> &filesArray) {
   list->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
   list->setSortingEnabled(true);
 
-  if(filesArray.size() <= 10) {
+  if (filesArray.size() <= 10) {
     list->setFixedHeight((int) filesArray.size() * 30);
-  }else {
+  } else {
     list->setFixedHeight(300);
   }
 
   if (filesArray.empty()) {
-    list->addItem("There are not file to open on the server. Please create a new file.");
+    list->addItem(
+            "There are not file to open on the server. Please create a new file.");
   } else {
     for (const auto &i : filesArray) {
       list->addItem(i);
@@ -44,6 +46,11 @@ void FileVisualizer::onFileListing(const QVector<QString> &filesArray) {
   areYouSureQuit->setText("Are you sure you want to exit?");
   areYouSureQuit->setStandardButtons(QMessageBox::Yes | QMessageBox::No);
   areYouSureQuit->setFixedSize(this->minimumSize());
+
+  errorNotConnected = new QMessageBox(this);
+  errorNotConnected->setText(
+          "Sorry, the server is unreachable. Try later, please.");
+  errorNotConnected->setFixedSize(this->minimumSize());
 
   fileCannotBeOpened = new QMessageBox(this);
   fileCannotBeOpened->setText(
@@ -99,11 +106,14 @@ void FileVisualizer::onFileListing(const QVector<QString> &filesArray) {
                        } else if (ok) { //ok clicked but no text provided
                          auto nameEmpty = new QMessageBox(this);
                          nameEmpty->setText(
-                                 "You insert an invalid name. Try again.");
+                                 "You inserted an invalid name. Try again.");
                          nameEmpty->setFixedSize(this->minimumSize());
                          nameEmpty->show();
                        }
                    });
+
+  QObject::connect(list, SIGNAL(itemDoubleClicked(QListWidgetItem*)), this,
+                   SLOT(performFileRequest(QListWidgetItem*)));
 }
 
 void FileVisualizer::onFileResult(bool result) {
@@ -128,4 +138,12 @@ void FileVisualizer::onFileResult(bool result) {
         break;
     }
   }
+}
+
+void FileVisualizer::performFileRequest(QListWidgetItem* item){
+  emit fileRequest(item->text(), true);
+}
+
+void FileVisualizer::onServerUnreachable() {
+  errorNotConnected->exec();
 }

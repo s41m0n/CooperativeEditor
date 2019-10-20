@@ -42,6 +42,12 @@ signals:
     ///Signal emitted when the user wants to edit his profile
     void openEditProfileFromEditor();
 
+    ///Signal emitted when the user inserts a symbol in the editor
+    void symbolInserted();
+
+    ///Signal emitted when the user deletes a symbol in the editor
+    void symbolDeleted();
+
 };
 
 #endif //COOPERATIVEEDITOR_EDITOR_H

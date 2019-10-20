@@ -25,6 +25,7 @@ private:
     QPushButton *buttonExit;
     QPushButton *buttonCreate;
     QMessageBox *areYouSureQuit;
+    QMessageBox *errorNotConnected;
     QGroupBox *boxCreate;
     QMessageBox *fileCannotBeOpened;
 
@@ -39,6 +40,12 @@ public slots:
 
     ///Slot to notify the visualizer that the file can/cannot be opened/created
     void onFileResult(bool result);
+
+    ///Slot to emit the signal fileRequest with the correct file
+    void performFileRequest(QListWidgetItem* item);
+
+    ///Slot to notify the client the server is unreachable
+    void onServerUnreachable();
 
 signals:
 
