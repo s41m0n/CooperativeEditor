@@ -9,6 +9,7 @@
 #include <atomic>
 
 #include "components/Symbol.h"
+#include "ServerFile.h"
 
 /**
  * Model server class
@@ -16,29 +17,24 @@
 class Model {
 
 private:
-    ///The map of the connection, containing the editorId and the pointer to the connection
-    std::map<QString, FileText> openedFiles;
-
-    ///The mutexes for the opened files
-    std::map<QString, std::unique_ptr<std::mutex>> openedFilesMutexes;
-
-    ///The mutex for the files mutex map
-    std::mutex openedFilesMapMutex;
-
-    ///The map of the current file for each user
-    std::map<unsigned, QString> usersFile;
-
-    ///Editor Id unique generator
-    std::atomic<unsigned> idGenerator;
 
     ///Set of all available files
     QVector<QString> availableFiles;
 
+    ///The map of the current file for each user
+    std::map<unsigned, std::shared_ptr<ServerFile>> usersFile;
+
+    ///The mutex for the usersFile map
+    std::mutex usersFileMutex;
+
+    ///Editor Id unique generator
+    std::atomic<unsigned> idGenerator;
+
     ///Method to write on file the respective sequence of symbols
-    void storeFileSymbols(QString &filename);
+    void storeFileSymbols(const std::shared_ptr<ServerFile>& serverFile);
 
     ///Method to restore from file the respective sequence of symbols
-    void loadFileSymbols(QString &filename);
+    void loadFileSymbols(const std::shared_ptr<ServerFile>&serverFile);
 
 public:
     ///Classic constructor
