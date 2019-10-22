@@ -63,13 +63,3 @@ QDataStream &operator>>(QDataStream &stream, Symbol &val) {
   stream >> val.character >> val.siteId >> val.position;
   return stream;
 }
-
-QDataStream &operator>>(QDataStream &stream, QVector<Symbol> &val) {
-  stream >> val;
-  return stream;
-}
-
-QDataStream &operator<<(QDataStream &stream, QVector<Symbol> &val) {
-  stream << val;
-  return stream;
-}

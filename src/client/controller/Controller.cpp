@@ -112,17 +112,9 @@ void Controller::onSignUpRequest(QString image, QString name, QString surname,
 void Controller::onFileRequest(const QString &filename, bool exists) {
 
   if (socket.state() == QTcpSocket::ConnectedState) {
-    if (exists) {
-      RequestMessage msg(RequestMessage(Type::OPEN, model->getEditorId(),
-                         filename.toStdString()));
-      socket.sendMsg(msg);
-      spdlog::debug("File Open Request sent!\n{}", msg.toString());
-    } else {
-      RequestMessage msg(Type::CREATE, model->getEditorId(),
-                         filename.toStdString());
-      socket.sendMsg(msg);
-      spdlog::debug("File Create Request sent!\n{}", msg.toString());
-    }
+    RequestMessage msg(exists ? Type::OPEN : Type::CREATE, model->getEditorId(),
+                       filename);
+    socket.sendMsg(msg);
   } else {
     emit serverUnreachable();
   }

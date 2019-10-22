@@ -41,10 +41,5 @@ public:
 
 };
 
-QDataStream &
-operator<<(QDataStream &stream, QVector<Symbol> &val);
-
-QDataStream &
-operator>>(QDataStream &stream, QVector<Symbol> &val);
 
 #endif //COOPERATIVEEDITOR_SYMBOL_H
