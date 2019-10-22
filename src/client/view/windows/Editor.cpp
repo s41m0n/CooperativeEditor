@@ -34,7 +34,6 @@ bool Editor::eventFilter(QObject *object, QEvent *event)
     if (keyEvent->key() == Qt::Key_Backspace) {
       //emit signal with position
       emit symbolDeleted(getCursorPos() - 1);
-      //spdlog::debug("Posizione: {}", getCursorPos() - 1);
       return false;
     } else if (characterInserted.isEmpty()){
       //Shift, control, meta ecc, I ignore them
