@@ -1,20 +1,18 @@
-//
-// Created by s41m0n on 15/10/19.
-//
-
 #ifndef COOPERATIVEEDITOR_USER_H
 #define COOPERATIVEEDITOR_USER_H
 
 #include <QImage>
 
+/**
+ * User class to define a User data structure
+ */
 class User {
 
 private:
+
     QImage icon;
 
     QString username;
-
-    QString password;
 
     QString name;
 
@@ -27,8 +25,6 @@ public:
     User(QImage &icon, QString &username, QString &password, QString &name, QString &surname, QString &email);
 
     QString &getUsername();
-
-    QString &getPassword();
 
     QString &getName();
 
