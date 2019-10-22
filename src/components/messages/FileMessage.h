@@ -30,7 +30,7 @@ public:
     FileMessage() = default;
 
     File &getFile();
-    
+
     std::string toStdString(int level = 0) override;
 
 };

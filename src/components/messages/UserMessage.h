@@ -4,7 +4,7 @@
 #include "BasicMessage.h"
 #include "common/User.h"
 
-class UserMessage : public BasicMessage{
+class UserMessage : public BasicMessage {
 
 private:
     User user;

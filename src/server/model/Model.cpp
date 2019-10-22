@@ -19,7 +19,7 @@ Model::Model() : idGenerator(1) {
   }
 }
 
-void Model::storeFileSymbols(const std::shared_ptr<ServerFile>& serverFile) {
+void Model::storeFileSymbols(const std::shared_ptr<ServerFile> &serverFile) {
   QFile file((serverFile->getFileName() + ".crdt"));
 
   if (!file.open(QIODevice::WriteOnly)) {
@@ -31,7 +31,7 @@ void Model::storeFileSymbols(const std::shared_ptr<ServerFile>& serverFile) {
 }
 
 
-void Model::loadFileSymbols(const std::shared_ptr<ServerFile>& serverFile) {
+void Model::loadFileSymbols(const std::shared_ptr<ServerFile> &serverFile) {
   QFile file((serverFile->getFileName() + ".crdt"));
 
   if (!file.open(QIODevice::ReadOnly)) {
@@ -87,8 +87,9 @@ bool Model::openFileByUser(unsigned connId, QString filename) {
     return false;
   } else {
     auto file = std::find_if(usersFile.begin(), usersFile.end(),
-                             [&filename](auto srvFile){
-                                 return srvFile.second->getFileName() == filename;
+                             [&filename](auto srvFile) {
+                                 return srvFile.second->getFileName() ==
+                                        filename;
                              });
     std::lock_guard<std::mutex> guard(usersFileMutex);
     if (file == usersFile.end()) {

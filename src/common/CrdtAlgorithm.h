@@ -32,10 +32,10 @@ namespace CrdtAlgorithm {
 
     ///Method to generate a position between two symbols
     QVector<Identifier> generatePosBetween(QVector<Identifier> pos1,
-                                               QVector<Identifier> pos2,
-                                               unsigned int editorId,
-                                               QVector<Identifier> newPos = {},
-                                               int level = 0);
+                                           QVector<Identifier> pos2,
+                                           unsigned int editorId,
+                                           QVector<Identifier> newPos = {},
+                                           int level = 0);
 
     ///Method to update the list of symbol after a remote insertion
     void remoteInsert(Symbol &s, FileText &symbols);

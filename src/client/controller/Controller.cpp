@@ -12,19 +12,19 @@
 #include "Controller.h"
 
 Controller::Controller(Model *model, const std::string &host, int port)
-        : model(model), socket(new TcpSocket(this)) {
-  socket.connectToHost(QHostAddress(host.c_str()), port);
-  connect(&socket, SIGNAL(readyRead()), this, SLOT(onReadyRead()));
+        : model(model) {
+  connectToHost(QHostAddress(host.c_str()), port);
+  connect(this, SIGNAL(readyRead()), this, SLOT(onReadyRead()));
 }
 
 void Controller::onReadyRead() {
 
-  std::shared_ptr<BasicMessage> base(socket.readMsg());
+  std::shared_ptr<BasicMessage> base(readMsg());
 
   switch (base->getMsgType()) {
     case Type::CONNECT : {
       model->setEditorId(base->getEditorId());
-      socket.setIdentifier(base->getEditorId());
+      setIdentifier(base->getEditorId());
       break;
     }
     case Type::LOGIN_KO : {
@@ -65,7 +65,7 @@ void Controller::onReadyRead() {
     default :
       throw std::runtime_error("Unknown message received");
   }
-  if (socket.bytesAvailable()) {
+  if (bytesAvailable()) {
     onReadyRead();
   }
 
@@ -73,12 +73,12 @@ void Controller::onReadyRead() {
 
 void Controller::onCharInserted(int index, QChar value) {
 
-  if (socket.state() == QTcpSocket::ConnectedState) {
+  if (state() == QTcpSocket::ConnectedState) {
     auto symbol = model->localInsert(index, value);
 
     if (symbol != nullptr) {
       CrdtMessage msg(Type::INSERT, *symbol, model->getEditorId());
-      socket.sendMsg(msg);
+      sendMsg(msg);
     }
   } else {
     emit serverUnreachable();
@@ -88,12 +88,12 @@ void Controller::onCharInserted(int index, QChar value) {
 
 void Controller::onCharErased(int index) {
 
-  if (socket.state() == QTcpSocket::ConnectedState) {
+  if (state() == QTcpSocket::ConnectedState) {
     auto symbol = model->localErase(index);
 
     if (symbol != nullptr) {
       CrdtMessage msg(Type::ERASE, *symbol, model->getEditorId());
-      socket.sendMsg(msg);
+      sendMsg(msg);
     }
   } else {
     emit serverUnreachable();
@@ -103,13 +103,13 @@ void Controller::onCharErased(int index) {
 void
 Controller::onLoginRequest(const QString &username, const QString &password) {
 
-  if (socket.state() == QTcpSocket::ConnectedState) {
+  if (state() == QTcpSocket::ConnectedState) {
     QByteArray hashedPassword = QCryptographicHash::hash(password.toUtf8(),
                                                          QCryptographicHash::Sha512);
 
     UserMessage msg(Type::LOGIN, model->getEditorId(),
                     User(username, QString(hashedPassword.toHex())));
-    socket.sendMsg(msg);
+    sendMsg(msg);
 
   } else {
     emit serverUnreachable();
@@ -119,7 +119,7 @@ Controller::onLoginRequest(const QString &username, const QString &password) {
 void Controller::onSignUpRequest(QString image, QString name, QString surname,
                                  QString username, QString email,
                                  const QString &password) {
-  if (socket.state() == QTcpSocket::ConnectedState) {
+  if (state() == QTcpSocket::ConnectedState) {
     QByteArray hashedPassword = QCryptographicHash::hash(password.toUtf8(),
                                                          QCryptographicHash::Sha512);
 
@@ -128,7 +128,7 @@ void Controller::onSignUpRequest(QString image, QString name, QString surname,
                          std::move(name), std::move(surname),
                          std::move(email),
                          QString(hashedPassword.toHex())));
-    socket.sendMsg(msg);
+    sendMsg(msg);
   } else {
     emit serverUnreachable();
   }
@@ -136,10 +136,10 @@ void Controller::onSignUpRequest(QString image, QString name, QString surname,
 
 void Controller::onFileRequest(const QString &filename, bool exists) {
 
-  if (socket.state() == QTcpSocket::ConnectedState) {
+  if (state() == QTcpSocket::ConnectedState) {
     RequestMessage msg(exists ? Type::OPEN : Type::CREATE, model->getEditorId(),
                        filename);
-    socket.sendMsg(msg);
+    sendMsg(msg);
   } else {
     emit serverUnreachable();
   }

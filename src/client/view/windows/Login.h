@@ -35,7 +35,7 @@ private:
     QMessageBox *errorNotLogged;
 
 public:
-    
+
     explicit Login(QWidget *parent = nullptr);
 
 public slots:

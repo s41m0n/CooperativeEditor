@@ -37,9 +37,13 @@ public:
 
     unsigned getIdentifier();
 
-    bool operator==(const TcpSocket &b) { return this->socketDescriptor() == b.socketDescriptor();}
+    bool operator==(const TcpSocket &b) {
+      return this->socketDescriptor() == b.socketDescriptor();
+    }
 
-    bool operator==(const TcpSocket *b) { return this->socketDescriptor() == b->socketDescriptor();}
+    bool operator==(const TcpSocket *b) {
+      return this->socketDescriptor() == b->socketDescriptor();
+    }
 
     ///Operator overload to make simpler sending msg
     template<typename T, typename std::enable_if<std::is_base_of<BasicMessage, T>::value>::type * = nullptr>
@@ -57,7 +61,7 @@ public:
 
       //Depending on the Type, it will read a different message
       switch (type) {
-        case Type ::REGISTER_KO :
+        case Type::REGISTER_KO :
         case Type::FILE_KO :
         case Type::LOGIN_KO :
         case Type::CONNECT : {

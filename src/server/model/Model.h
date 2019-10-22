@@ -31,10 +31,10 @@ private:
     std::atomic<unsigned> idGenerator;
 
     ///Method to write on file the respective sequence of symbols
-    static void storeFileSymbols(const std::shared_ptr<ServerFile>& serverFile);
+    static void storeFileSymbols(const std::shared_ptr<ServerFile> &serverFile);
 
     ///Method to restore from file the respective sequence of symbols
-    static void loadFileSymbols(const std::shared_ptr<ServerFile>&serverFile);
+    static void loadFileSymbols(const std::shared_ptr<ServerFile> &serverFile);
 
 public:
     ///Classic constructor

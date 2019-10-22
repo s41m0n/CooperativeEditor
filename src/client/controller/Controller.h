@@ -16,15 +16,13 @@
  * Controller class for the client
  *
  */
-class Controller : public QObject {
+class Controller : public TcpSocket {
 
 Q_OBJECT
 
 
 private:
     Model *model;
-
-    TcpSocket socket;
 
 public:
 

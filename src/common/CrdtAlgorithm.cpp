@@ -4,7 +4,8 @@
 #include "CrdtAlgorithm.h"
 
 unsigned int CrdtAlgorithm::generateIdBetween(unsigned int id1,
-        unsigned int id2, bool boundaryStrategy) {
+                                              unsigned int id2,
+                                              bool boundaryStrategy) {
   if ((id2 - id1) < CrdtAlgorithm::boundary) {
     id1++;
     id2--;
@@ -91,7 +92,8 @@ QVector<Identifier> CrdtAlgorithm::generatePosBetween(
 
   if (id2.getDigit() - id1.getDigit() > 1) {
     auto newDigit = CrdtAlgorithm::generateIdBetween(id1.getDigit(),
-            id2.getDigit(), boundaryStrategy);
+                                                     id2.getDigit(),
+                                                     boundaryStrategy);
     newPos.push_back({editorId, newDigit});
     return newPos;
   } else if (id2.getDigit() - id1.getDigit() == 1) {
@@ -100,7 +102,7 @@ QVector<Identifier> CrdtAlgorithm::generatePosBetween(
       pos1.erase(pos1.begin());
     }
     return CrdtAlgorithm::generatePosBetween(pos1, {}, editorId, newPos,
-            level + 1);
+                                             level + 1);
   } else if (id1.getDigit() == id2.getDigit()) {
     if (id1.getEditorId() < id2.getEditorId()) {
       newPos.push_back(id1);
@@ -111,7 +113,7 @@ QVector<Identifier> CrdtAlgorithm::generatePosBetween(
         pos2.erase(pos2.begin());
       }
       return CrdtAlgorithm::generatePosBetween(pos1, pos2, editorId, newPos,
-              level + 1);
+                                               level + 1);
     } else if (id1.getEditorId() == id2.getEditorId()) {
       newPos.push_back(id1);
       if (!pos1.empty()) {
@@ -121,7 +123,7 @@ QVector<Identifier> CrdtAlgorithm::generatePosBetween(
         pos2.erase(pos2.begin());
       }
       return CrdtAlgorithm::generatePosBetween(pos1, pos2, editorId, newPos,
-              level + 1);
+                                               level + 1);
     } else {
       newPos.push_back(id2);
       if (!pos1.empty()) {
@@ -131,7 +133,7 @@ QVector<Identifier> CrdtAlgorithm::generatePosBetween(
         pos2.erase(pos2.begin());
       }
       return CrdtAlgorithm::generatePosBetween(pos1, pos2, editorId, newPos,
-              level + 1);
+                                               level + 1);
     }
   }
   throw std::runtime_error("Fix Position Sorting");

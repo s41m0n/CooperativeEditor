@@ -127,7 +127,7 @@ SignUp::SignUp(QWidget *parent) : QMainWindow(parent) {
                                                                 tr("Open Image"),
                                                                 "/home",
                                                                 tr("Image Files (*.png *.jpg *.bmp)"));
-                       if(!userImage.isEmpty()) {
+                       if (!userImage.isEmpty()) {
                          buttonSelectImage->setText(userImage);
                        } else {
                          buttonSelectImage->setText("Select File");

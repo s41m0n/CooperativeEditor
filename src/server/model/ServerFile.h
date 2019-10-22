@@ -9,6 +9,7 @@
 class ServerFile : public File {
 public:
     explicit ServerFile(QString name, FileText text = {});
+
     std::mutex mutex;
 };
 
