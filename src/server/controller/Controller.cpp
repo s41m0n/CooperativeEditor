@@ -2,12 +2,10 @@
 #include <QHostAddress>
 
 #include "src/components/messages/BasicMessage.h"
-#include "src/components/messages/LoginMessage.h"
 #include "src/components/messages/RequestMessage.h"
-#include "src/components/messages/FileContentMessage.h"
+#include "src/components/messages/FileMessage.h"
 #include "src/components/messages/FileListingMessage.h"
 #include "src/components/messages/CrdtMessage.h"
-#include "src/components/messages/ResultMessage.h"
 #include "Controller.h"
 
 Controller::Controller(Model *model, unsigned short port, QWidget *parent)
@@ -27,6 +25,7 @@ void Controller::onNewConnection() {
 
   auto clientSocket = dynamic_cast<TcpSocket *>(nextPendingConnection());
   auto clientId = clientSocket->socketDescriptor();
+  clientSocket->setIdentifier(clientId);
 
   connect(clientSocket, SIGNAL(readyRead()), this, SLOT(onReadyRead()));
   connect(clientSocket, SIGNAL(stateChanged(QAbstractSocket::SocketState)),
@@ -45,34 +44,41 @@ Controller::onSocketStateChanged(QAbstractSocket::SocketState socketState) {
   if (socketState == QAbstractSocket::UnconnectedState ||
       socketState == QAbstractSocket::ClosingState) {
     auto sender = dynamic_cast<TcpSocket *>(QObject::sender());
-    //TODO : rimuovere il client dalla lista di client per file
+    model->removeConnection(sender->getIdentifier());
     sender->deleteLater();
   }
 }
 
 void Controller::onReadyRead() {
   auto sender = dynamic_cast<TcpSocket *>(QObject::sender());
-  auto clientId = sender->socketDescriptor();
+  auto clientId = sender->getIdentifier();
 
   std::shared_ptr<BasicMessage> base(sender->readMsg());
 
   switch (base->getMsgType()) {
 
     case Type::LOGIN : {
-      auto derived = std::dynamic_pointer_cast<LoginMessage>(base);
+      auto derived = std::dynamic_pointer_cast<UserMessage>(base);
 
       //TODO : Check into the DATABASE
+      auto user = derived->getUser();
       bool result =
-              derived->getUsername() == "hello" && derived->getPassword() ==
-                                                   "9b71d224bd62f3785d96d46ad3ea3d73319bfbc2890caadae2dff72519673ca72323c3d99ba5c11d7c7acc6e14b8c5da0c4663475c2e5c3adef46f73bcdec043";
-
-      ResultMessage newMsg(Type::LOGIN_RESULT, clientId, result);
-      sender->sendMsg(newMsg);
+              user.getUsername() == "hello" && user.getPassword() ==
+                                               "9b71d224bd62f3785d96d46ad3ea3d73319bfbc2890caadae2dff72519673ca72323c3d99ba5c11d7c7acc6e14b8c5da0c4663475c2e5c3adef46f73bcdec043";
 
       if (result) {
+        User tmp("icon", user.getUsername(), "name", "surname", "email", {});
+        UserMessage newMsg(Type::LOGIN_OK, clientId, tmp);
         FileListingMessage newMsg2(clientId, model->getAvailableFiles());
+        sender->sendMsg(newMsg);
         sender->sendMsg(newMsg2);
+      } else {
+        BasicMessage msg(Type::LOGIN_KO, clientId);
+        sender->sendMsg(msg);
       }
+      break;
+    }
+    case Type::REGISTER : {
       break;
     }
     case Type::INSERT :
@@ -88,22 +94,22 @@ void Controller::onReadyRead() {
     }
     case Type::CREATE :
     case Type::OPEN : {
-      auto derived = std::dynamic_pointer_cast<RequestMessage>(base);
+      auto filename = std::dynamic_pointer_cast<RequestMessage>(
+              base)->getFilename();
       FileText symbolList;
 
       if (base->getMsgType() == Type::OPEN &&
-          model->openFileByUser(clientId, derived->getFilename())) {
+          model->openFileByUser(clientId, filename)) {
         symbolList = model->getFileSymbolList(clientId);
       } else if (base->getMsgType() == Type::CREATE &&
-                 !model->createFileByUser(clientId, derived->getFilename())) {
-        ResultMessage newMsg(Type::FILE_RESULT, clientId, false);
+                 !model->createFileByUser(clientId, filename)) {
+        BasicMessage newMsg(Type::FILE_KO, clientId);
         sender->sendMsg(newMsg);
         break;
       }
 
-      ResultMessage newMsg(Type::FILE_RESULT, clientId, true);
-      FileContentMessage newMsg2(clientId, symbolList);
-      sender->sendMsg(newMsg);
+      File file(filename, symbolList);
+      FileMessage newMsg2(clientId, file);
       sender->sendMsg(newMsg2);
       break;
     }

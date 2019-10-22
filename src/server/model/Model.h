@@ -31,23 +31,22 @@ private:
     std::atomic<unsigned> idGenerator;
 
     ///Method to write on file the respective sequence of symbols
-    void storeFileSymbols(const std::shared_ptr<ServerFile>& serverFile);
+    static void storeFileSymbols(const std::shared_ptr<ServerFile>& serverFile);
 
     ///Method to restore from file the respective sequence of symbols
-    void loadFileSymbols(const std::shared_ptr<ServerFile>&serverFile);
+    static void loadFileSymbols(const std::shared_ptr<ServerFile>&serverFile);
 
 public:
     ///Classic constructor
     Model();
-
-    ///Method to generate a new editor id
-    unsigned generateEditorId();
 
     ///Method to handle user remote insertion
     void userInsert(unsigned connId, Symbol &symbol);
 
     ///Method to handle user remote deletion
     void userErase(unsigned connId, Symbol &symbol);
+
+    void removeConnection(unsigned connId);
 
     ///Method called when a user requests to create a file
     bool createFileByUser(unsigned connId, const QString &filename);

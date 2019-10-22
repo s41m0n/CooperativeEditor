@@ -1,12 +1,12 @@
 #include "TcpSocket.h"
 
 TcpSocket::TcpSocket(QObject *parent) : QTcpSocket(parent), ds(this),
-                                        userAuthN(false) {}
+                                        userAuthN(false), id(0) {}
 
-bool TcpSocket::isUserAuthN() {
-  return userAuthN;
+unsigned TcpSocket::getIdentifier() {
+  return id;
 }
 
-void TcpSocket::setUserAuthN(bool value) {
-  userAuthN = value;
+void TcpSocket::setIdentifier(unsigned idToSet) {
+  id = idToSet;
 }

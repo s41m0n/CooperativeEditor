@@ -42,10 +42,6 @@ void Model::loadFileSymbols(const std::shared_ptr<ServerFile>& serverFile) {
   ds >> serverFile->getFileText();
 }
 
-unsigned int Model::generateEditorId() {
-  return idGenerator++;
-}
-
 void Model::userInsert(unsigned int connId, Symbol &symbol) {
 
   auto serverFile = usersFile[connId];
@@ -112,4 +108,9 @@ QVector<QString> &Model::getAvailableFiles() {
 
 FileText &Model::getFileSymbolList(unsigned connId) {
   return usersFile[connId]->getFileText();
+}
+
+void Model::removeConnection(unsigned connId) {
+  std::lock_guard<std::mutex> lock(usersFileMutex);
+  usersFile.erase(connId);
 }

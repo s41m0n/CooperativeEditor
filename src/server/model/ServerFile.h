@@ -4,6 +4,7 @@
 #include <QtCore/QString>
 #include <src/components/Symbol.h>
 #include <src/common/File.h>
+#include <mutex>
 
 class ServerFile : public File {
 public:

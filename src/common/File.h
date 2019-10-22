@@ -7,13 +7,25 @@
 
 class File {
 protected:
+
     QString fileName;
+
     FileText fileText;
 
 public:
-    explicit File (QString name, FileText text = {});
+
+    explicit File(QString name, FileText text = {});
+
+    File() = default;
+
     QString getFileName();
-    FileText& getFileText();
+
+    FileText &getFileText();
+
+    friend QDataStream &operator<<(QDataStream &stream, const File &val);
+
+    friend QDataStream &operator>>(QDataStream &stream, File &val);
+
 };
 
 #endif //COOPERATIVEEDITOR_FILE_H

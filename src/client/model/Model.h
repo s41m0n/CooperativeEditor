@@ -7,6 +7,7 @@
 #include <memory>
 #include <src/common/File.h>
 
+#include "common/User.h"
 #include "components/Symbol.h"
 
 /**Model class for the client
@@ -18,7 +19,9 @@ private:
 
     unsigned editorId;
 
-    std::unique_ptr<File> clientFile;
+    File file;
+
+    User user;
 
     unsigned digitGenerator;
 
@@ -45,10 +48,10 @@ public:
     unsigned getEditorId();
 
     ///Method to set the current opened file name
-    void setCurrentFile(const QString &filename);
+    void setCurrentFile(File &fileToSet);
 
-    ///Method to set the current opened file content
-    void setCurrentFileContent(FileText &newContent);
+    ///Method to set the current user data
+    void setCurrentUser(User &userToSet);
 
     ///Return the file content
     QString textify();

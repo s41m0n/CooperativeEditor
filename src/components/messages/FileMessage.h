@@ -1,21 +1,22 @@
-#ifndef COOPERATIVEEDITOR_FILECONTENTMESSAGE_H
-#define COOPERATIVEEDITOR_FILECONTENTMESSAGE_H
+#ifndef COOPERATIVEEDITOR_FILEMESSAGE_H
+#define COOPERATIVEEDITOR_FILEMESSAGE_H
 
 #include <QVector>
 
 #include "BasicMessage.h"
 #include "components/Symbol.h"
+#include "common/File.h"
 
 
 /**
  * FileContentMessage class, represents a File content transfer message between client-server
  *
  */
-class FileContentMessage : public BasicMessage {
+class FileMessage : public BasicMessage {
 
 private:
 
-    FileText symbols;
+    File file;
 
     void serialize(QDataStream &stream) override;
 
@@ -23,15 +24,15 @@ private:
 
 public:
 
-    FileContentMessage(unsigned editorId,
-                       FileText &symbols);
+    FileMessage(unsigned editorId,
+                File &file);
 
-    FileContentMessage() = default;
+    FileMessage() = default;
 
-    FileText &getSymbols();
+    File &getFile();
     
     std::string toStdString(int level = 0) override;
 
 };
 
-#endif //COOPERATIVEEDITOR_FILECONTENTMESSAGE_H
+#endif //COOPERATIVEEDITOR_FILEMESSAGE_H

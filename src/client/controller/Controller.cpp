@@ -2,13 +2,13 @@
 #include <QCryptographicHash>
 #include <QImage>
 #include <memory>
+#include <utility>
 
 #include "src/components/messages/BasicMessage.h"
-#include "src/components/messages/LoginMessage.h"
-#include "src/components/messages/FileContentMessage.h"
+#include "src/components/messages/FileMessage.h"
+#include "src/components/messages/UserMessage.h"
 #include "src/components/messages/FileListingMessage.h"
 #include "src/components/messages/CrdtMessage.h"
-#include "src/components/messages/ResultMessage.h"
 #include "Controller.h"
 
 Controller::Controller(Model *model, const std::string &host, int port)
@@ -24,11 +24,17 @@ void Controller::onReadyRead() {
   switch (base->getMsgType()) {
     case Type::CONNECT : {
       model->setEditorId(base->getEditorId());
+      socket.setIdentifier(base->getEditorId());
       break;
     }
-    case Type::LOGIN_RESULT : {
-      emit loginResponse(
-              std::dynamic_pointer_cast<ResultMessage>(base)->isPositive());
+    case Type::LOGIN_KO : {
+      emit loginResponse(false);
+      break;
+    }
+    case Type::LOGIN_OK : {
+      emit loginResponse(true);
+      model->setCurrentUser(
+              std::dynamic_pointer_cast<UserMessage>(base)->getUser());
       break;
     }
     case Type::LISTING : {
@@ -36,15 +42,14 @@ void Controller::onReadyRead() {
               std::dynamic_pointer_cast<FileListingMessage>(base)->getFiles());
       break;
     }
-    case Type::FILE_RESULT : {
-      emit fileResult(
-              std::dynamic_pointer_cast<ResultMessage>(base)->isPositive());
+    case Type::FILE_KO : {
+      emit fileResult(false);
       break;
     }
-    case Type::CONTENT : {
-      model->setCurrentFileContent(
-              std::dynamic_pointer_cast<FileContentMessage>(
-                      base)->getSymbols());
+    case Type::FILE_OK : {
+      emit fileResult(true);
+      model->setCurrentFile(std::dynamic_pointer_cast<FileMessage>(
+              base)->getFile());
       emit remoteUpdate(model->textify());
       break;
     }
@@ -68,21 +73,30 @@ void Controller::onReadyRead() {
 
 void Controller::onCharInserted(int index, QChar value) {
 
-  auto symbol = model->localInsert(index, value);
+  if (socket.state() == QTcpSocket::ConnectedState) {
+    auto symbol = model->localInsert(index, value);
 
-  if (symbol != nullptr) {
-    CrdtMessage msg(Type::INSERT, *symbol, model->getEditorId());
-    socket.sendMsg(msg);
+    if (symbol != nullptr) {
+      CrdtMessage msg(Type::INSERT, *symbol, model->getEditorId());
+      socket.sendMsg(msg);
+    }
+  } else {
+    emit serverUnreachable();
   }
+
 }
 
 void Controller::onCharErased(int index) {
 
-  auto symbol = model->localErase(index);
+  if (socket.state() == QTcpSocket::ConnectedState) {
+    auto symbol = model->localErase(index);
 
-  if (symbol != nullptr) {
-    CrdtMessage msg(Type::ERASE, *symbol, model->getEditorId());
-    socket.sendMsg(msg);
+    if (symbol != nullptr) {
+      CrdtMessage msg(Type::ERASE, *symbol, model->getEditorId());
+      socket.sendMsg(msg);
+    }
+  } else {
+    emit serverUnreachable();
   }
 }
 
@@ -93,27 +107,36 @@ Controller::onLoginRequest(const QString &username, const QString &password) {
     QByteArray hashedPassword = QCryptographicHash::hash(password.toUtf8(),
                                                          QCryptographicHash::Sha512);
 
-    LoginMessage msg(model->getEditorId(), username,
-                     QString(hashedPassword.toHex()));
+    UserMessage msg(Type::LOGIN, model->getEditorId(),
+                    User(username, QString(hashedPassword.toHex())));
     socket.sendMsg(msg);
 
   } else {
     emit serverUnreachable();
   }
-
 }
 
 void Controller::onSignUpRequest(QString image, QString name, QString surname,
                                  QString username, QString email,
-                                 QString password) {
-  //TODO : send data to server (Refactor to do using a User class)
+                                 const QString &password) {
+  if (socket.state() == QTcpSocket::ConnectedState) {
+    QByteArray hashedPassword = QCryptographicHash::hash(password.toUtf8(),
+                                                         QCryptographicHash::Sha512);
 
+    UserMessage msg(Type::REGISTER, model->getEditorId(),
+                    User(std::move(image), std::move(username),
+                         std::move(name), std::move(surname),
+                         std::move(email),
+                         QString(hashedPassword.toHex())));
+    socket.sendMsg(msg);
+  } else {
+    emit serverUnreachable();
+  }
 }
 
 void Controller::onFileRequest(const QString &filename, bool exists) {
 
   if (socket.state() == QTcpSocket::ConnectedState) {
-    model->setCurrentFile(filename);
     RequestMessage msg(exists ? Type::OPEN : Type::CREATE, model->getEditorId(),
                        filename);
     socket.sendMsg(msg);
