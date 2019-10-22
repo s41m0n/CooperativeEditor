@@ -67,7 +67,7 @@ void Model::userErase(unsigned int connId, Symbol &symbol) {
 
 bool Model::createFileByUser(unsigned connId, const QString &filename) {
 
-  if (std::find(availableFiles.begin(), availableFiles.end(), filename) ==
+  if (std::find(availableFiles.begin(), availableFiles.end(), filename) !=
       availableFiles.end()) {
     return false;
   } else {
