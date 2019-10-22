@@ -45,7 +45,7 @@ signals:
     void openEditProfileFromEditor();
 
     ///Signal emitted when the user inserts a symbol in the editor
-    void symbolInserted(QString character, int position);
+    void symbolInserted(int position, QChar character);
 
     ///Signal emitted when the user deletes a symbol in the editor
     void symbolDeleted(int position);
