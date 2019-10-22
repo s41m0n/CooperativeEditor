@@ -12,7 +12,6 @@ protected:
     explicit File (QString name, FileText text = {});
 
 public:
-    std::mutex mutex;
     QString getFileName();
     FileText& getFileText();
 };
