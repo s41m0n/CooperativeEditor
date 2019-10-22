@@ -62,6 +62,6 @@ void View::init() {
   QObject::connect(signUp, &SignUp::signUpRequest, controller,
                    &Controller::onSignUpRequest);
 
-  login->show();
-
+  //login->show();
+  editor->show();
 }

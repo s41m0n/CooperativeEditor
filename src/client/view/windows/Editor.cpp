@@ -16,16 +16,43 @@ Editor::Editor(QWidget *parent) : QMainWindow(parent) {
 
   createToolBar(layout);
 
-  textEdit = new QPlainTextEdit(mainWidget);
+  textEdit = new QTextEdit(mainWidget);
+  textEdit->installEventFilter(this);
   layout->addWidget(textEdit);
 
 }
 
 void Editor::onRemoteUpdate(QString text) {
-  //RIAGGIORNARE LA VIEW CON IL NUOVO TESTO
   //TODO: RIAGGIORNARE LA VIEW CON IL NUOVO TESTO
   spdlog::debug("Un nuovo Crdt message arrivato");
+}
 
+bool Editor::eventFilter(QObject *object, QEvent *event)
+{
+  if (object == textEdit && event->type() == QEvent::KeyPress) {
+    auto keyEvent = dynamic_cast<QKeyEvent*>(event);
+    auto characterInserted = keyEvent->text();
+    if (keyEvent->key() == Qt::Key_Backspace) {
+      //emit signal with position
+      emit symbolDeleted(getCursorPos() - 1);
+      spdlog::debug("Posizione: {}", getCursorPos() - 1);
+      return false;
+    } else if (characterInserted.isEmpty()){
+      //Shift, control, meta ecc, I ignore them
+    } else {
+      //emit signal with character and position
+      emit symbolInserted(characterInserted, getCursorPos());
+      spdlog::debug("Carattere: {0}, Posizione: {1}", characterInserted.toStdString(), getCursorPos());
+      return false;
+    }
+  }
+  return false;
+}
+
+int Editor::getCursorPos(){
+  QTextCursor cursorPos;
+  cursorPos = textEdit->textCursor();
+  return cursorPos.position();
 }
 
 void Editor::createTopBar(QVBoxLayout *layout) {
@@ -74,7 +101,6 @@ void Editor::createTopBar(QVBoxLayout *layout) {
                        emit openEditProfileFromEditor(); //versione non definitva mancano dati utente (crea classe utente e fatti tornare dati al login)
                        this->close();
                    });
-
 }
 
 void Editor::createToolBar(QVBoxLayout *layout) {
@@ -96,3 +122,4 @@ void Editor::createToolBar(QVBoxLayout *layout) {
 
   //TODO: aggiungere tutte le connect con le varie azioni dei pulsanti
 }
+
