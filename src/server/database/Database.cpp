@@ -13,6 +13,7 @@ Database::Database() {
 }
 
 void Database::createTableUser() {
+    std::cout<<"CREATE TABLE CALLED\n";
     std::string sql= "CREATE TABLE User ("
                 "ID INTEGER PRIMARY KEY AUTOINCREMENT,"
                 "Username VARCHAR NOT NULL UNIQUE,"
