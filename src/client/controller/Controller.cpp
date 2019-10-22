@@ -1,5 +1,6 @@
 #include <QHostAddress>
 #include <QCryptographicHash>
+#include <QImage>
 #include <memory>
 
 #include "src/components/messages/BasicMessage.h"
@@ -112,6 +113,7 @@ void Controller::onSignUpRequest(QString image, QString name, QString surname,
 void Controller::onFileRequest(const QString &filename, bool exists) {
 
   if (socket.state() == QTcpSocket::ConnectedState) {
+    model->setCurrentFile(filename);
     RequestMessage msg(exists ? Type::OPEN : Type::CREATE, model->getEditorId(),
                        filename);
     socket.sendMsg(msg);

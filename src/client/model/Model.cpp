@@ -63,7 +63,7 @@ std::string Model::textifyToStdString() {
   return textify().toStdString();
 }
 
-void Model::setCurrentFile(QString &filename) {
+void Model::setCurrentFile(const QString &filename) {
   currentFile = filename;
   symbols.clear();
 }

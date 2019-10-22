@@ -45,7 +45,7 @@ public:
     unsigned getEditorId();
 
     ///Method to set the current opened file name
-    void setCurrentFile(QString &filename);
+    void setCurrentFile(const QString &filename);
 
     ///Method to set the current opened file content
     void setCurrentFileContent(QVector<Symbol> &newContent);
