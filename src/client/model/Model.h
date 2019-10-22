@@ -4,8 +4,10 @@
 #include <QVector>
 #include <QString>
 #include <string>
+#include <memory>
 
 #include "components/Symbol.h"
+#include "ClientFile.h"
 
 /**Model class for the client
  *
@@ -16,9 +18,7 @@ private:
 
     unsigned editorId;
 
-    FileText symbols;
-
-    QString currentFile;
+    std::unique_ptr<ClientFile> clientFile;
 
     unsigned digitGenerator;
 

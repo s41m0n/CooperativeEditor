@@ -7,7 +7,7 @@
 
 class ClientFile : public File {
 public:
-    ClientFile(QString name, FileText text);
+    ClientFile(QString name, FileText text = {});
 };
 
 #endif //COOPERATIVEEDITOR_CLIENTFILE_H

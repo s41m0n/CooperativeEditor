@@ -1,12 +1,14 @@
 #include "Model.h"
+
+#include <memory>
 #include "common/CrdtAlgorithm.h"
 
-Model::Model() : editorId(0), digitGenerator(0), currentFile() {
+Model::Model() : editorId(0), digitGenerator(0), clientFile(nullptr) {
 }
 
 QString Model::textify() {
   QString str;
-  for (auto &val : symbols) {
+  for (auto &val : clientFile->getFileText()) {
     str += val.getChar();
   }
   return str;
@@ -14,34 +16,38 @@ QString Model::textify() {
 
 Symbol *Model::localInsert(int index, QChar value) {
 
-  symbols.insert(symbols.begin() + index, generateSymbol(index, value));
+  clientFile->getFileText().insert(clientFile->getFileText().begin() + index,
+          generateSymbol(index, value));
 
-  return &symbols[index];
+  return &clientFile->getFileText()[index];
 }
 
 Symbol *Model::localErase(int index) {
-  auto s = (index < symbols.size() && index >= 0) ? &symbols[index] : nullptr;
+  auto s = (index < clientFile->getFileText().size() && index >= 0) ?
+          &clientFile->getFileText()[index] : nullptr;
 
   if (s != nullptr) {
-    symbols.erase(symbols.begin() + index);
+    clientFile->getFileText().erase(clientFile->getFileText().begin() + index);
   }
   return s;
 }
 
 void Model::remoteInsert(Symbol symbol) {
-  CrdtAlgorithm::remoteInsert(symbol, symbols);
+  CrdtAlgorithm::remoteInsert(symbol, clientFile->getFileText());
 }
 
 void Model::remoteErase(Symbol symbol) {
-  CrdtAlgorithm::remoteErase(symbol, symbols);
+  CrdtAlgorithm::remoteErase(symbol, clientFile->getFileText());
 }
 
 Symbol Model::generateSymbol(int index, QChar value) {
-  auto pos1 = (index - 1 < symbols.size() && index - 1 >= 0 &&
-               !symbols[index - 1].getPos().empty()) ? symbols[
+  auto pos1 = (index - 1 < clientFile->getFileText().size() && index - 1 >= 0 &&
+               !clientFile->getFileText()[index - 1].getPos().empty()) ?
+                       clientFile->getFileText()[
                       index - 1].getPos() : QVector<Identifier>();
-  auto pos2 = (index < symbols.size() && index >= 0 &&
-               !symbols[index].getPos().empty()) ? symbols[
+  auto pos2 = (index < clientFile->getFileText().size() && index >= 0 &&
+               !clientFile->getFileText()[index].getPos().empty()) ?
+                       clientFile->getFileText()[
                       index].getPos() : QVector<Identifier>();
   auto newPos = CrdtAlgorithm::generatePosBetween(pos1, pos2, editorId);
 
@@ -62,10 +68,9 @@ std::string Model::textifyToStdString() {
 }
 
 void Model::setCurrentFile(const QString &filename) {
-  currentFile = filename;
-  symbols.clear();
+  clientFile = std::make_unique<ClientFile>(filename);
 }
 
 void Model::setCurrentFileContent(FileText &newContent) {
-  symbols = std::move(newContent);
+  clientFile->getFileText() = std::move(newContent);
 }
