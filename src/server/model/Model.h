@@ -9,6 +9,7 @@
 #include <atomic>
 
 #include "components/Symbol.h"
+#include "ServerFile.h"
 
 /**
  * Model server class
@@ -16,42 +17,36 @@
 class Model {
 
 private:
-    ///The map of the connection, containing the editorId and the pointer to the connection
-    std::map<QString, QVector<Symbol>> openedFiles;
-
-    ///The mutexes for the opened files
-    std::map<QString, std::unique_ptr<std::mutex>> openedFilesMutexes;
-
-    ///The mutex for the files mutex map
-    std::mutex openedFilesMapMutex;
-
-    ///The map of the current file for each user
-    std::map<unsigned, QString> usersFile;
-
-    ///Editor Id unique generator
-    std::atomic<unsigned> idGenerator;
 
     ///Set of all available files
     QVector<QString> availableFiles;
 
+    ///The map of the current file for each user
+    std::map<unsigned, std::shared_ptr<ServerFile>> usersFile;
+
+    ///The mutex for the usersFile map
+    std::mutex usersFileMutex;
+
+    ///Editor Id unique generator
+    std::atomic<unsigned> idGenerator;
+
     ///Method to write on file the respective sequence of symbols
-    void storeFileSymbols(QString &filename);
+    static void storeFileSymbols(const std::shared_ptr<ServerFile> &serverFile);
 
     ///Method to restore from file the respective sequence of symbols
-    void loadFileSymbols(QString &filename);
+    static void loadFileSymbols(const std::shared_ptr<ServerFile> &serverFile);
 
 public:
     ///Classic constructor
     Model();
-
-    ///Method to generate a new editor id
-    unsigned generateEditorId();
 
     ///Method to handle user remote insertion
     void userInsert(unsigned connId, Symbol &symbol);
 
     ///Method to handle user remote deletion
     void userErase(unsigned connId, Symbol &symbol);
+
+    void removeConnection(unsigned connId);
 
     ///Method called when a user requests to create a file
     bool createFileByUser(unsigned connId, const QString &filename);
@@ -63,7 +58,7 @@ public:
     QVector<QString> &getAvailableFiles();
 
     ///Returns the list of symbols for the file the user connId has requested
-    QVector<Symbol> &getFileSymbolList(unsigned connId);
+    FileText &getFileSymbolList(unsigned connId);
 
 };
 

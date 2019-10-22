@@ -16,15 +16,13 @@
  * Controller class for the client
  *
  */
-class Controller : public QObject {
+class Controller : public TcpSocket {
 
 Q_OBJECT
 
 
 private:
     Model *model;
-
-    TcpSocket socket;
 
 public:
 
@@ -40,8 +38,9 @@ public slots:
 
     // TODO: Refactor using class USER
     ///Slot to wake up when SignUpRequest arrived from View
-    void onSignUpRequest(QString image, QString name, QString surname, QString username,
-                         QString email, QString password);
+    void onSignUpRequest(QString image, QString name, QString surname,
+                         QString username,
+                         QString email, const QString &password);
 
     ///Slot to wake up when user insert a char locally
     void onCharInserted(int index, QChar value);

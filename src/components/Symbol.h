@@ -41,5 +41,6 @@ public:
 
 };
 
+typedef QVector<Symbol> FileText;
 
 #endif //COOPERATIVEEDITOR_SYMBOL_H

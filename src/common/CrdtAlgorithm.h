@@ -25,23 +25,23 @@ namespace CrdtAlgorithm {
                                    bool boundaryStrategy);
 
     ///Method to find the position of the symbol to erase
-    int findPositionErase(Symbol &s, QVector<Symbol> &symbols);
+    int findPositionErase(Symbol &s, FileText &symbols);
 
     ///Method to find the position of the symbol to insert
-    int findPositionInsert(Symbol &s, QVector<Symbol> &symbols);
+    int findPositionInsert(Symbol &s, FileText &symbols);
 
     ///Method to generate a position between two symbols
     QVector<Identifier> generatePosBetween(QVector<Identifier> pos1,
-                                               QVector<Identifier> pos2,
-                                               unsigned int editorId,
-                                               QVector<Identifier> newPos = {},
-                                               int level = 0);
+                                           QVector<Identifier> pos2,
+                                           unsigned int editorId,
+                                           QVector<Identifier> newPos = {},
+                                           int level = 0);
 
     ///Method to update the list of symbol after a remote insertion
-    void remoteInsert(Symbol &s, QVector<Symbol> &symbols);
+    void remoteInsert(Symbol &s, FileText &symbols);
 
     ///Method to update the list of symbol after a remote deletion
-    void remoteErase(Symbol &s, QVector<Symbol> &symbols);
+    void remoteErase(Symbol &s, FileText &symbols);
 
 }
 

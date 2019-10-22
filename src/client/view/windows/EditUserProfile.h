@@ -16,7 +16,7 @@
  */
 class EditUserProfile : public QMainWindow {
 
-    Q_OBJECT
+Q_OBJECT
 
 private:
     QWidget *mainWidget;

@@ -42,15 +42,15 @@ public slots:
     void onFileResult(bool result);
 
     ///Slot to emit the signal fileRequest with the correct file
-    void performFileRequest(QListWidgetItem* item);
+    void performFileRequest(QListWidgetItem *item);
 
     ///Slot to notify the client the server is unreachable
     void onServerUnreachable();
 
 signals:
 
-  ///True = file exists, False = file does not exist
-  void fileRequest(const QString &filename, bool exists);
+    ///True = file exists, False = file does not exist
+    void fileRequest(const QString &filename, bool exists);
 
 };
 

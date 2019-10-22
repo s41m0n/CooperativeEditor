@@ -40,6 +40,7 @@ public slots:
     void onRemoteUpdate(QString text);
 
 signals:
+
     ///Signal emitted when the user wants to edit his profile
     void openEditProfileFromEditor();
 

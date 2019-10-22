@@ -38,10 +38,6 @@ void View::init() {
   QObject::connect(controller, &Controller::serverUnreachable, login,
                    &Login::onServerUnreachable);
 
-  QObject::connect(controller, &Controller::serverUnreachable, fileVisualizer,
-                   &FileVisualizer::onServerUnreachable);
-  //Fine server unreachable
-
   QObject::connect(controller, &Controller::loginResponse,
                    [fileVisualizer](bool isLogged) {
                        if (isLogged) {

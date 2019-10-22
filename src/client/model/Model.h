@@ -4,7 +4,10 @@
 #include <QVector>
 #include <QString>
 #include <string>
+#include <memory>
+#include <src/common/File.h>
 
+#include "common/User.h"
 #include "components/Symbol.h"
 
 /**Model class for the client
@@ -16,9 +19,9 @@ private:
 
     unsigned editorId;
 
-    QVector<Symbol> symbols;
+    File file;
 
-    QString currentFile;
+    User user;
 
     unsigned digitGenerator;
 
@@ -45,10 +48,10 @@ public:
     unsigned getEditorId();
 
     ///Method to set the current opened file name
-    void setCurrentFile(const QString &filename);
+    void setCurrentFile(File &fileToSet);
 
-    ///Method to set the current opened file content
-    void setCurrentFileContent(QVector<Symbol> &newContent);
+    ///Method to set the current user data
+    void setCurrentUser(User &userToSet);
 
     ///Return the file content
     QString textify();

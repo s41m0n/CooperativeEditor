@@ -6,9 +6,9 @@
 
 ///Enumeration to identify the type of the message
 enum class Type : qint32 {
-    CONNECT = 0, LISTING = 1, CREATE = 2, OPEN = 3, LOGIN = 4,
-    FILE_RESULT = 5, LOGIN_RESULT = 6,
-    CONTENT = 7, INSERT = 8, ERASE = 9, UNKNOWN = -1
+    CONNECT = 0, LISTING = 1, CREATE = 2, OPEN = 3, LOGIN = 4, REGISTER = 5,
+    FILE_OK = 7, LOGIN_OK = 8, REGISTER_OK = 9, INSERT = 10, ERASE = 11,
+    FILE_KO = 12, LOGIN_KO = 13, REGISTER_KO = 14, UNKNOWN = -1
 };
 
 QDataStream &operator<<(QDataStream &stream, Type &val);

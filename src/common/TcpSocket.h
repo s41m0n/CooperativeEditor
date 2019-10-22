@@ -6,11 +6,10 @@
 #include <QTcpSocket>
 #include <QDataStream>
 #include <components/messages/BasicMessage.h>
-#include <components/messages/LoginMessage.h>
 #include <src/components/messages/FileListingMessage.h>
 #include <src/components/messages/RequestMessage.h>
-#include <src/components/messages/ResultMessage.h>
-#include <src/components/messages/FileContentMessage.h>
+#include <src/components/messages/UserMessage.h>
+#include <src/components/messages/FileMessage.h>
 #include <src/components/messages/CrdtMessage.h>
 
 /**
@@ -28,20 +27,23 @@ private:
     ///The variable to undestand if user is logged
     bool userAuthN;
 
+    unsigned id;
+
 public:
 
-    ///Constructor
     explicit TcpSocket(QObject *parent = nullptr);
 
-    ///Method to find out if user is authN
-    bool isUserAuthN();
+    void setIdentifier(unsigned id);
 
-    ///Method to set user authN (or logged out)
-    void setUserAuthN(bool value);
+    unsigned getIdentifier();
 
-    bool operator==(const TcpSocket &b) { return this->socketDescriptor() == b.socketDescriptor();}
+    bool operator==(const TcpSocket &b) {
+      return this->socketDescriptor() == b.socketDescriptor();
+    }
 
-    bool operator==(const TcpSocket *b) { return this->socketDescriptor() == b->socketDescriptor();}
+    bool operator==(const TcpSocket *b) {
+      return this->socketDescriptor() == b->socketDescriptor();
+    }
 
     ///Operator overload to make simpler sending msg
     template<typename T, typename std::enable_if<std::is_base_of<BasicMessage, T>::value>::type * = nullptr>
@@ -59,12 +61,18 @@ public:
 
       //Depending on the Type, it will read a different message
       switch (type) {
+        case Type::REGISTER_KO :
+        case Type::FILE_KO :
+        case Type::LOGIN_KO :
         case Type::CONNECT : {
           msg = new BasicMessage();
           break;
         }
-        case Type::LOGIN : {
-          msg = new LoginMessage();
+        case Type::LOGIN :
+        case Type::LOGIN_OK :
+        case Type::REGISTER_OK :
+        case Type::REGISTER : {
+          msg = new UserMessage();
           break;
         }
         case Type::LISTING: {
@@ -79,22 +87,11 @@ public:
           msg = new RequestMessage();
           break;
         }
-        case Type::FILE_RESULT: {
-          msg = new ResultMessage();
+        case Type::FILE_OK: {
+          msg = new FileMessage();
           break;
         }
-        case Type::LOGIN_RESULT: {
-          msg = new ResultMessage();
-          break;
-        }
-        case Type::CONTENT: {
-          msg = new FileContentMessage();
-          break;
-        }
-        case Type::INSERT: {
-          msg = new CrdtMessage();
-          break;
-        }
+        case Type::INSERT :
         case Type::ERASE: {
           msg = new CrdtMessage();
           break;
