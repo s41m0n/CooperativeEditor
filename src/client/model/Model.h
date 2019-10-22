@@ -5,9 +5,9 @@
 #include <QString>
 #include <string>
 #include <memory>
+#include <src/common/File.h>
 
 #include "components/Symbol.h"
-#include "ClientFile.h"
 
 /**Model class for the client
  *
@@ -18,7 +18,7 @@ private:
 
     unsigned editorId;
 
-    std::unique_ptr<ClientFile> clientFile;
+    std::unique_ptr<File> clientFile;
 
     unsigned digitGenerator;
 

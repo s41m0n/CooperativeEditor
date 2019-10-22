@@ -68,7 +68,7 @@ std::string Model::textifyToStdString() {
 }
 
 void Model::setCurrentFile(const QString &filename) {
-  clientFile = std::make_unique<ClientFile>(filename);
+  clientFile = std::make_unique<File>(filename);
 }
 
 void Model::setCurrentFileContent(FileText &newContent) {

@@ -9,9 +9,9 @@ class File {
 protected:
     QString fileName;
     FileText fileText;
-    explicit File (QString name, FileText text = {});
 
 public:
+    explicit File (QString name, FileText text = {});
     QString getFileName();
     FileText& getFileText();
 };
