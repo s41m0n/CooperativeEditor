@@ -48,7 +48,8 @@ add_executable(CooperativeServer src/mainserver.cpp src/server/controller/Contro
         src/components/messages/FileMessage.cpp src/components/messages/RequestMessage.cpp src/components/messages/UserMessage.cpp
         src/components/messages/CrdtMessage.cpp src/components/messages/FileListingMessage.cpp src/include/lib/crdt/CrdtAlgorithm.cpp
         src/common/TcpSocket.cpp src/common/User.cpp src/common/TcpSocket.cpp src/common/File.cpp src/server/model/ServerFile.cpp
-        src/include/lib/serialization/Serializable.cpp src/components/messages/Header.cpp)
+        src/include/lib/serialization/Serializable.cpp src/components/messages/Header.cpp
+        src/server/database/Database.cpp)
 
 #Add libraries to compile the client
 if (CMAKE_G++_COMPILER_VERSION VERSION_LESS 9.0.0)

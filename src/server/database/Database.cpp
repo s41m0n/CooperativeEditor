@@ -20,7 +20,8 @@ void Database::createTableUser() {
                 "Password VARCHAR NOT NULL,"
                 "Name VARCHAR,"
                 "Surname VARCHAR,"
-                "Email VARCHAR NOT NULL UNIQUE);";
+                "Email VARCHAR NOT NULL UNIQUE,"
+                "PhotoPath     VARCHAR);";
     char* messaggeError;
     int exitCode = sqlite3_exec(this->DBConnection, sql.c_str(), NULL, 0, &messaggeError);
     if (exitCode != SQLITE_OK) {
@@ -69,42 +70,87 @@ int Database::openConnection() {
 
 }
 
-void Database::insertUser(std::string username, std::string password, std::string name,
-                          std::string surname, std::string email) {
+bool Database::insertUser(User user) {
+    bool retValue=false;
     openConnection();
-    std::string sql="INSERT INTO User VALUES(NULL,'"+username+"', '"+password+"', '"+name+"','"+surname+"','"+email+"');";
+    std::string sql="INSERT INTO User VALUES(NULL,'"+user.getUsername().toStdString()+"', '"+user.getPassword().toStdString()+"', '"+user.getName().toStdString()+"','"+user.getSurname().toStdString()+"','"+user.getEmail().toStdString()+"','path');";
     char* messaggeError;
     int exitCode = sqlite3_exec(DBConnection, sql.c_str(), NULL, 0, &messaggeError);
     if (exitCode != SQLITE_OK) {
         std::cerr << "Error Insert" << std::endl;
         sqlite3_free(messaggeError);
     }
-    else
+    else{
         std::cout << "User inserted successfully!" << std::endl;
+        retValue=true;
+    }
+
     sqlite3_close(this->DBConnection);
+    return  retValue;
 }
 
-void Database::queryUserPass(std::string username, std::string password) {
-    std::string query = "SELECT Password FROM User WHERE Username='"+username+"';";
-    sqlite3_exec(DBConnection, query.c_str(),callback, &password, NULL);
-}
-
-void Database::updateUser(std::string username, std::string password, std::string name,
-                          std::string surname, std::string email) {
+bool Database::queryUserPass(std::string username, std::string password, User& user) {
     openConnection();
-    std::string sql="UPDATE User set Password = '"+password+"', Name ='"+name+"' , Surname='"+surname+"', Email='"+email+"' where Username='"+username+"'; ";
+    bool retValue= false;
+    std::string sql="SELECT * FROM User WHERE Username='"+username+"' AND Password='"+password+"';";
+    const char* zTail = nullptr;
+    const char** pzTail = &zTail;
+    sqlite3_stmt* statement = nullptr;
+    int retval = sqlite3_prepare_v2(this->DBConnection, sql.c_str(), -1,&statement,pzTail);
+    if (retval != SQLITE_OK) {
+        std::cerr << "prepare: " << sqlite3_errstr(retval) << '\n';
+        return retval;
+    }
+    const int num_columns = sqlite3_column_count(statement);
+    retval = sqlite3_step(statement);
+    if (retval == SQLITE_ROW) {// There is another row after this one: read this row
+        User temp(reinterpret_cast<const char*>(sqlite3_column_text(statement, 6)),reinterpret_cast<const char*>(sqlite3_column_text(statement, 1)), reinterpret_cast<const char*>(sqlite3_column_text(statement, 3)), reinterpret_cast<const char*>(sqlite3_column_text(statement, 4)), reinterpret_cast<const char*>(sqlite3_column_text(statement, 5)));
+        user=temp;
+        /*for (int i = 0; i < num_columns; ++i) {
+            const unsigned char* row_element =sqlite3_column_text(statement, i);
+            std::cout << row_element << '\n';
+        }*/
+        std::cout << '\n';
+        retValue=true;
+    }
+    else if (retval == SQLITE_DONE) {
+        // no more rows: exit
+        std::cout << "Done\n";
+    }
+    else {
+        std::cerr << "step: " << sqlite3_errstr(retval) << '\n';
+    }
+    retval = sqlite3_finalize(statement);
+    if (retval != SQLITE_OK)
+        std::cerr << "finalize: " <<sqlite3_errstr(retval) << '\n';
+
+    sqlite3_close(this->DBConnection);
+    return retValue;
+
+}
+
+bool Database::updateUser(User user){
+    bool retValue=false;
+    openConnection();
+    std::string sql="UPDATE User set Password = '"+user.getPassword().toStdString()+"', Name ='"+user.getName().toStdString()
+            +"' , Surname='"+user.getSurname().toStdString()+"', Email='"+user.getEmail().toStdString()+"' where Username='"+user.getUsername().toStdString()+"'; ";
     char* messaggeError;
     int exitCode = sqlite3_exec(DBConnection, sql.c_str(), NULL, 0, &messaggeError);
     if (exitCode != SQLITE_OK) {
         std::cerr << "Error in Update user" << std::endl;
         sqlite3_free(messaggeError);
     }
-    else
+    else{
         std::cout << "User updated successfully!" << std::endl;
+        retValue=true;
+    }
+
     sqlite3_close(this->DBConnection);
+    return retValue;
 }
 
-void Database::deleteUser(std::string username) {
+bool Database::deleteUser(std::string username) {
+    bool retValue=false;
     openConnection();
     char* messaggeError;
     std::string sql="DELETE FROM User WHERE Username = '"+username+"';";
@@ -113,22 +159,13 @@ void Database::deleteUser(std::string username) {
         std::cerr << "Error DELETE" << std::endl;
         sqlite3_free(messaggeError);
     }
-    else
+    else{
         std::cout << "Record deleted Successfully!" << std::endl;
-    sqlite3_close(this->DBConnection);
-}
-
-int Database::callback(void *data, int colNum, char **dataRow, char **colName) {
-    int idx=0;
-    std::cout<<"There are"<<colNum<<" column(s)\n";
-
-    for (idx = 0; idx < colNum; idx++) {
-        printf("The data in column \"%s\" is: %s\n", colName[idx], dataRow[idx]);
+        retValue=true;
     }
 
-    printf("\n");
-
-    return 0;
+    sqlite3_close(this->DBConnection);
+    return retValue;
 }
 
 int Database::callbackCount (void* data, int colNum, char**dataRow, char** colName){

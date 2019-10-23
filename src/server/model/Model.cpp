@@ -118,3 +118,21 @@ void Model::removeConnection(unsigned connId) {
   std::lock_guard<std::mutex> lock(usersFileMutex);
   usersFile.erase(connId);
 }
+
+bool Model::logInUser(std::string username, std::string password, User user) {
+    bool retValue = Database::getInstance().queryUserPass(username,password,user);
+
+    return retValue;
+}
+
+bool Model::registerUser(User user) {
+    bool retValue = Database::getInstance().insertUser(user);
+
+    return retValue;
+}
+
+bool Model::updateUser(User user) {
+    bool retValue = Database::getInstance().updateUser(user);
+
+    return retValue;
+}

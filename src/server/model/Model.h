@@ -9,7 +9,10 @@
 #include <atomic>
 
 #include "components/Symbol.h"
+
 #include "ServerFile.h"
+#include "server/database/Database.h"
+#include "common/User.h"
 
 /**
  * Model server class
@@ -59,6 +62,15 @@ public:
 
     ///Returns the list of symbols for the file the user connId has requested
     FileText &getFileSymbolList(unsigned connId);
+
+    ///Returns a bool to indicate if the logIn credential are correct and set the User object
+    bool logInUser(std::string username, std::string password, User user);
+
+    ///Returns a bool to indicate if the registration was successful
+    bool registerUser(User user);
+
+    ///Returns a bool to indicate if the update was successful
+    bool updateUser(User user);
 
 };
 

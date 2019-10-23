@@ -7,6 +7,7 @@
 
 #include <sqlite3.h>
 #include <string>
+#include <src/common/User.h>
 
 
 class Database{
@@ -32,9 +33,6 @@ private:
     //Method to open a connection to the database
     int openConnection();
 
-    //Callback method used to manage a query result
-    static int callback(void *data, int colNum, char **dataRow, char **colName);
-
     //Callback method used to check if the User table exists
     static int callbackCount (void* data, int colNum, char**dataRow, char** colName);
 
@@ -49,16 +47,16 @@ public:
     }
 
     //Method to insert a new user in the database
-    void insertUser(std::string username, std::string password, std::string name, std::string surname, std::string email);
+    bool insertUser(User user);
 
     //Method to check the user password
-    void queryUserPass(std::string username, std::string password);
+    bool queryUserPass(std::string username, std::string password, User& user);
 
     //Method to update the user attributes
-    void updateUser(std::string username, std::string password, std::string name, std::string surname, std::string email);
+    bool updateUser(User user);
 
     //Method to delete an user
-    void deleteUser(std::string username);
+    bool deleteUser(std::string username);
 
 };
 
