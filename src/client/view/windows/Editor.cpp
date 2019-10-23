@@ -22,29 +22,43 @@ Editor::Editor(QWidget *parent) : QMainWindow(parent) {
 
 }
 
-void Editor::onRemoteUpdate(QString text) {
+void Editor::onRemoteUpdate(const QString& text) {
   textEdit->setText(text);
 }
 
-bool Editor::eventFilter(QObject *object, QEvent *event)
+bool Editor::eventFilter(QObject *object, QEvent *event) //TODO: gestisci ctrl+c e ctrl+v
 {
   if (object == textEdit && event->type() == QEvent::KeyPress) {
     auto keyEvent = dynamic_cast<QKeyEvent*>(event);
     auto characterInserted = keyEvent->text();
-    if (keyEvent->key() == Qt::Key_Backspace) {
-      //emit signal with position
-      emit symbolDeleted(getCursorPos() - 1);
-      return false;
-    } else if (characterInserted.isEmpty()){
-      //Shift, control, meta ecc, I ignore them
-    } else {
-      //emit signal with character and position
-      spdlog::debug("Length: {}", characterInserted.size());
-      emit symbolInserted(getCursorPos(), characterInserted.at(0));
-      //spdlog::debug("Carattere: {0}, Posizione: {1}", characterInserted.toStdString(), getCursorPos());
-      return false;
+
+    switch(keyEvent->key()) {
+      case Qt::Key_Escape: {
+        break;
+      }
+      case Qt::Key_Delete: {
+        if(getCursorPos() != textEdit->toPlainText().size()){
+          emit symbolDeleted(getCursorPos());
+        }
+        break;
+      }
+      case Qt::Key_Backspace: {
+        if (getCursorPos() != 0) {
+          emit symbolDeleted(getCursorPos() - 1);
+        }
+        break;
+      }
+      default: {
+        if (!characterInserted.isEmpty()) {
+          //spdlog::debug("Length: {}", characterInserted.size());
+          emit symbolInserted(getCursorPos(), characterInserted.at(0));
+          //spdlog::debug("Carattere: {0}, Posizione: {1}", characterInserted.toStdString(), getCursorPos());
+        }
+        break;
+      }
     }
   }
+
   return false;
 }
 
