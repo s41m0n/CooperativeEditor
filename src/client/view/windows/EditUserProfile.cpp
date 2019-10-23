@@ -100,6 +100,7 @@ EditUserProfile::EditUserProfile(QWidget *parent) {
                        switch (result) {
                          case QMessageBox::Yes:
                            this->close();
+                           //TODO: riapri editor
                            break;
                          case QMessageBox::No:
                            areYouSureQuit->close();
@@ -116,6 +117,7 @@ EditUserProfile::EditUserProfile(QWidget *parent) {
                                                                 tr("Open Image"),
                                                                 "/home",
                                                                 tr("Image Files (*.png *.jpg *.bmp)"));
+                       //TODO: size limit per immagine
                        if (!userImage.isEmpty()) {
                          buttonSelectImage->setText(userImage);
                        } else {
