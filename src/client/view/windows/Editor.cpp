@@ -40,6 +40,7 @@ bool Editor::eventFilter(QObject *object, QEvent *event)
       //Shift, control, meta ecc, I ignore them
     } else {
       //emit signal with character and position
+      spdlog::debug("Length: {}", characterInserted.size());
       emit symbolInserted(getCursorPos(), characterInserted.at(0));
       //spdlog::debug("Carattere: {0}, Posizione: {1}", characterInserted.toStdString(), getCursorPos());
       return false;

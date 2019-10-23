@@ -74,12 +74,14 @@ void Controller::onReadyRead() {
 void Controller::onCharInserted(int index, QChar value) {
 
   if (state() == QTcpSocket::ConnectedState) {
-    auto symbol = model->localInsert(index, value);
-
-    if (symbol != nullptr) {
-      CrdtMessage msg(Type::INSERT, *symbol, model->getEditorId());
+    try {
+      CrdtMessage msg(Type::INSERT, model->localInsert(index, value),
+                      model->getEditorId());
       sendMsg(msg);
+    } catch (std::exception &e) {
+      spdlog::error("Error on local insert:\nIndex-> {}\nMsg -> {}", index, e.what());
     }
+
   } else {
     emit serverUnreachable();
   }
@@ -89,12 +91,14 @@ void Controller::onCharInserted(int index, QChar value) {
 void Controller::onCharErased(int index) {
 
   if (state() == QTcpSocket::ConnectedState) {
-    auto symbol = model->localErase(index);
-
-    if (symbol != nullptr) {
-      CrdtMessage msg(Type::ERASE, *symbol, model->getEditorId());
+    try {
+      CrdtMessage msg(Type::ERASE, model->localErase(index),
+                      model->getEditorId());
       sendMsg(msg);
+    } catch (std::exception &e) {
+      spdlog::error("Error on local erase: Index-> {} @ Msg -> {}", index, e.what());
     }
+
   } else {
     emit serverUnreachable();
   }
