@@ -18,22 +18,28 @@ std::string Model::textifyToStdString() {
   return textify().toStdString();
 }
 
-Symbol *Model::localInsert(int index, QChar value) {
+Symbol &Model::localInsert(int index, QChar value) {
+
+  if(index > file.getFileText().size() || index < 0) {
+    throw std::runtime_error("No valid position: TextSize:" + std::to_string(file.getFileText().size()));
+  }
 
   file.getFileText().insert(file.getFileText().begin() + index,
                             generateSymbol(index, value));
 
-  return &file.getFileText()[index];
+  return file.getFileText()[index];
 }
 
-Symbol *Model::localErase(int index) {
-  auto s = (index < file.getFileText().size() && index >= 0) ?
-           &file.getFileText()[index] : nullptr;
+Symbol Model::localErase(int index) {
 
-  if (s != nullptr) {
-    file.getFileText().erase(file.getFileText().begin() + index);
+  if(index >= file.getFileText().size() || index < 0) {
+    throw std::runtime_error("No symbol to erase: TextSize:" + std::to_string(file.getFileText().size()));
   }
-  return s;
+
+  Symbol s = std::move(file.getFileText()[index]);
+  file.getFileText().erase(file.getFileText().begin() + index);
+
+  return std::move(s);
 }
 
 void Model::remoteInsert(Symbol symbol) {
@@ -55,7 +61,7 @@ Symbol Model::generateSymbol(int index, QChar value) {
                       index].getPos() : QVector<Identifier>();
   auto newPos = CrdtAlgorithm::generatePosBetween(pos1, pos2, editorId);
 
-  return Symbol(value, editorId, newPos);
+  return std::move(Symbol(value, editorId, newPos));
 }
 
 

@@ -32,10 +32,10 @@ public:
     Model();
 
     ///Crdt local method to insert a symbol
-    Symbol *localInsert(int index, QChar value);
+    Symbol &localInsert(int index, QChar value);
 
     ///Crdt local method to erase a symbol
-    Symbol *localErase(int index);
+    Symbol localErase(int index);
 
     ///Method to update the list of symbol after a remote insertion
     void remoteInsert(Symbol symbol);

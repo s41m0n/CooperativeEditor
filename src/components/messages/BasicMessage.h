@@ -3,6 +3,7 @@
 
 #include <string>
 #include <QDataStream>
+#include <src/include/lib/spdlog/spdlog.h>
 
 ///Enumeration to identify the type of the message
 enum class Type : qint32 {
@@ -40,7 +41,7 @@ public:
     BasicMessage(Type msgType, unsigned editorId);
 
     BasicMessage();
-
+    
     quint32 getEditorId();
 
     Type &getMsgType();
