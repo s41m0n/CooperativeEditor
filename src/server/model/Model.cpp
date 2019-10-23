@@ -8,19 +8,20 @@
 Model::Model() : idGenerator(1) {
 
   //Loading all files name in the directory
-  for (auto &p: std::filesystem::directory_iterator(".")) {
+  for (auto &p: std::filesystem::directory_iterator(std::filesystem::current_path())) {
     auto filename = p.path().string();
     auto pos = filename.find(".crdt");
+    auto pos2 = filename.rfind(std::filesystem::path::preferred_separator);
+
     if (pos != std::string::npos) {
-      filename.erase(pos, filename.length());
-      filename.erase(filename.begin(), filename.begin() + 2);
+      filename.erase(0, pos2 + 1);
       availableFiles.push_back(QString::fromStdString(filename));
     }
   }
 }
 
 void Model::storeFileSymbols(const std::shared_ptr<ServerFile> &serverFile) {
-  QFile file((serverFile->getFileName() + ".crdt"));
+  QFile file((serverFile->getFileName()));
 
   if (!file.open(QIODevice::WriteOnly)) {
     throw std::runtime_error("Unable to open file");
@@ -32,7 +33,7 @@ void Model::storeFileSymbols(const std::shared_ptr<ServerFile> &serverFile) {
 
 
 void Model::loadFileSymbols(const std::shared_ptr<ServerFile> &serverFile) {
-  QFile file((serverFile->getFileName() + ".crdt"));
+  QFile file((serverFile->getFileName()));
 
   if (!file.open(QIODevice::ReadOnly)) {
     throw std::runtime_error("Unable to load file");
@@ -73,7 +74,7 @@ bool Model::createFileByUser(unsigned connId, const QString &filename) {
   } else {
     std::lock_guard<std::mutex> guard(usersFileMutex);
     availableFiles.push_back(filename);
-    auto newFile = std::make_shared<ServerFile>(filename);
+    auto newFile = std::make_shared<ServerFile>(filename + ".crdt");
     usersFile[connId] = newFile;
     return true;
   }
