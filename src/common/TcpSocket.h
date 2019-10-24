@@ -46,11 +46,11 @@ public:
     BasicMessage *readMsg();
 
     bool operator==(const TcpSocket &b) {
-      return this->socketDescriptor() == b.socketDescriptor();
+      return this->id == b.id;
     }
 
     bool operator==(const TcpSocket *b) {
-      return this->socketDescriptor() == b->socketDescriptor();
+      return this->id == b->id;
     }
 
 };
