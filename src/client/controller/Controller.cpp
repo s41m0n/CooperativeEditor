@@ -3,6 +3,7 @@
 #include <QImage>
 #include <memory>
 #include <utility>
+#include <spdlog/spdlog.h>
 
 #include "src/components/messages/BasicMessage.h"
 #include "src/components/messages/FileMessage.h"
@@ -55,11 +56,15 @@ void Controller::onReadyRead() {
     }
     case Type::INSERT :
     case Type::ERASE : {
-      base->getMsgType() == Type::INSERT ? model->remoteInsert(
-              std::dynamic_pointer_cast<CrdtMessage>(base)->getSymbol())
-                                         : model->remoteErase(
-              std::dynamic_pointer_cast<CrdtMessage>(base)->getSymbol());
-      emit remoteUpdate(model->textify());
+      try {
+        base->getMsgType() == Type::INSERT ? model->remoteInsert(
+                std::dynamic_pointer_cast<CrdtMessage>(base)->getSymbol())
+                                           : model->remoteErase(
+                std::dynamic_pointer_cast<CrdtMessage>(base)->getSymbol());
+        emit remoteUpdate(model->textify());
+      } catch (std::exception &e) {
+        spdlog::error("Error on remote operation:\nMsg -> {}", e.what());
+      }
       break;
     }
     default :

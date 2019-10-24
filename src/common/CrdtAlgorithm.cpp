@@ -35,16 +35,16 @@ int CrdtAlgorithm::findPositionErase(Symbol &s, FileText &symbols) {
     return symbols.size();
 
   // binary search
-  while (left + 1 < right) {
-    mid = std::floor(left + static_cast<double>(right - left) / 2.0);
+  while (left <= right) {
+    mid = std::floor((right + left) / 2.0);
 
     int comp = s.compareTo(symbols[mid]);
     if (comp == 0)
       return mid;
     else if (comp < 0)
-      right = mid;
+      right = mid - 1;
     else
-      left = mid;
+      left = mid + 1;
   }
   return -1;
 }
@@ -141,12 +141,20 @@ QVector<Identifier> CrdtAlgorithm::generatePosBetween(
 
 void CrdtAlgorithm::remoteErase(Symbol &s, FileText &symbols) {
   int index = CrdtAlgorithm::findPositionErase(s, symbols);
-  if (index >= 0)
-    symbols.erase(symbols.begin() + index);
+
+  if (index < 0) {
+    throw std::runtime_error("Remote erase bad index" + std::to_string(index));
+  }
+
+  symbols.erase(symbols.begin() + index);
 }
 
 void CrdtAlgorithm::remoteInsert(Symbol &s, FileText &symbols) {
   int index = CrdtAlgorithm::findPositionInsert(s, symbols);
+
+  if (index < 0) {
+    throw std::runtime_error("Remote insert bad index" + std::to_string(index));
+  }
 
   symbols.insert(symbols.begin() + index, std::move(s));
 }

@@ -84,12 +84,16 @@ void Controller::onReadyRead() {
     case Type::INSERT :
     case Type::ERASE : {
       auto derived = std::dynamic_pointer_cast<CrdtMessage>(base);
-      base->getMsgType() == Type::INSERT ? model->userInsert(clientId,
-                                                             derived->getSymbol())
-                                         : model->userErase(clientId,
-                                                            derived->getSymbol());
-      std::lock_guard<std::mutex> guard2(queueMutex);
-      messages.push(derived);
+      try {
+        base->getMsgType() == Type::INSERT ? model->userInsert(clientId,
+                                                               derived->getSymbol())
+                                           : model->userErase(clientId,
+                                                              derived->getSymbol());
+        std::lock_guard<std::mutex> guard2(queueMutex);
+        messages.push(derived);
+      } catch (std::exception &e) {
+        spdlog::error("Error on remote operation:\nMsg -> {}", e.what());
+      }
       break;
     }
     case Type::CREATE :
