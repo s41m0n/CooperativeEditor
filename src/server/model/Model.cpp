@@ -43,9 +43,12 @@ void Model::loadFileSymbols(const std::shared_ptr<ServerFile> &serverFile) {
   ds >> serverFile->getFileText();
 }
 
-void Model::userInsert(unsigned int connId, Symbol &symbol) {
+void Model::userInsert(TcpSocket *socket, Symbol &symbol) {
 
-  auto serverFile = usersFile[connId];
+  auto serverFile = std::find_if(usersFile.begin(), usersFile.end(),
+                                  [socket] (auto& pair) {
+                                    return socket == pair.second;
+                                  })->first;
 
   std::lock_guard<std::mutex> guard(serverFile->mutex);
 
@@ -54,9 +57,12 @@ void Model::userInsert(unsigned int connId, Symbol &symbol) {
   storeFileSymbols(serverFile);
 }
 
-void Model::userErase(unsigned int connId, Symbol &symbol) {
+void Model::userErase(TcpSocket *socket, Symbol &symbol) {
 
-  auto serverFile = usersFile[connId];
+  auto serverFile = std::find_if(usersFile.begin(), usersFile.end(),
+                                 [socket] (auto& pair) {
+                                     return socket == pair.second;
+                                 })->first;
 
   std::lock_guard<std::mutex> guard(serverFile->mutex);
 
@@ -66,7 +72,7 @@ void Model::userErase(unsigned int connId, Symbol &symbol) {
 
 }
 
-bool Model::createFileByUser(unsigned connId, const QString &filename) {
+bool Model::createFileByUser(TcpSocket *socket, const QString &filename) {
 
   auto newFile = std::make_shared<ServerFile>(filename + ".crdt");
 
@@ -77,12 +83,12 @@ bool Model::createFileByUser(unsigned connId, const QString &filename) {
     storeFileSymbols(newFile);
     std::lock_guard<std::mutex> guard(usersFileMutex);
     availableFiles.push_back(newFile.get()->getFileName());
-    usersFile[connId] = newFile;
+    usersFile.emplace(newFile, socket);
     return true;
   }
 }
 
-bool Model::openFileByUser(unsigned connId, QString filename) {
+bool Model::openFileByUser(TcpSocket *socket, QString filename) {
 
   if (availableFiles.empty() ||
       std::find(availableFiles.begin(), availableFiles.end(), filename) ==
@@ -90,17 +96,17 @@ bool Model::openFileByUser(unsigned connId, QString filename) {
     return false;
   } else {
     auto file = std::find_if(usersFile.begin(), usersFile.end(),
-                             [&filename](auto srvFile) {
-                                 return srvFile.second->getFileName() ==
+                             [&filename](auto& srvFile) {
+                                 return srvFile.first->getFileName() ==
                                         filename;
                              });
     std::lock_guard<std::mutex> guard(usersFileMutex);
     if (file == usersFile.end()) {
       auto newFile = std::make_shared<ServerFile>(filename);
       loadFileSymbols(newFile);
-      usersFile[connId] = newFile;
+      usersFile.emplace(newFile, socket);
     } else {
-      usersFile[connId] = file->second;
+      usersFile.emplace(file->first, socket);
     }
     return true;
   }
@@ -110,13 +116,22 @@ QVector<QString> &Model::getAvailableFiles() {
   return availableFiles;
 }
 
-FileText &Model::getFileSymbolList(unsigned connId) {
-  return usersFile[connId]->getFileText();
+FileText &Model::getFileSymbolList(TcpSocket *socket) {
+  return std::find_if(usersFile.begin(), usersFile.end(),
+                   [socket] (auto& pair) {
+                       return socket == pair.second;
+                   })->first->getFileText();
 }
 
-void Model::removeConnection(unsigned connId) {
+void Model::removeConnection(TcpSocket *socket) {
   std::lock_guard<std::mutex> lock(usersFileMutex);
-  usersFile.erase(connId);
+  auto toErase = std::find_if(usersFile.begin(), usersFile.end(),
+                              [socket] (auto& pair) {
+                                  return socket == pair.second;
+                              });
+  if (toErase != usersFile.end()) {
+    usersFile.erase(toErase);
+  }
 }
 
 bool Model::logInUser(User& user) {

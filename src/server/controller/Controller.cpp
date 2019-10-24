@@ -44,10 +44,9 @@ void Controller::onNewConnection() {
 
 void
 Controller::onSocketStateChanged(QAbstractSocket::SocketState socketState) {
-  if (socketState == QAbstractSocket::UnconnectedState ||
-      socketState == QAbstractSocket::ClosingState) {
+  if (socketState == QAbstractSocket::ClosingState) {
     auto sender = dynamic_cast<TcpSocket *>(QObject::sender());
-    model->removeConnection(sender->getIdentifier());
+    model->removeConnection(sender);
     sender->deleteLater();
   }
 }
@@ -87,11 +86,9 @@ void Controller::onReadyRead() {
         auto derived = std::dynamic_pointer_cast<CrdtMessage>(base);
         try {
           header.getType() == Type::INSERT ? model->userInsert(
-                  clientId,
-                  derived->getSymbol())
+                  sender,derived->getSymbol())
                                            : model->userErase(
-                  clientId,
-                  derived->getSymbol());
+                  sender,derived->getSymbol());
           std::lock_guard<std::mutex> guard2(queueMutex);
           messages.push(derived);
         } catch (std::exception &e) {
@@ -106,10 +103,10 @@ void Controller::onReadyRead() {
         FileText symbolList;
 
         if (header.getType() == Type::OPEN &&
-            model->openFileByUser(clientId, filename)) {
-          symbolList = model->getFileSymbolList(clientId);
+            model->openFileByUser(sender, filename)) {
+          symbolList = model->getFileSymbolList(sender);
         } else if (header.getType() == Type::CREATE &&
-                   !model->createFileByUser(clientId, filename)) {
+                   !model->createFileByUser(sender, filename)) {
           BasicMessage newMsg(clientId);
           sender->sendMsg(Type::FILE_KO, newMsg);
           break;
