@@ -22,28 +22,58 @@ Editor::Editor(QWidget *parent) : QMainWindow(parent) {
 
 }
 
-void Editor::onRemoteUpdate(const QString& text) {
+void Editor::onRemoteUpdate(const QString &text) {
   textEdit->setText(text);
 }
 
-bool Editor::eventFilter(QObject *object, QEvent *event) //TODO: gestisci ctrl+c e ctrl+v
-{
+bool
+Editor::eventFilter(QObject *object, QEvent *event) { //key pression management
+
   if (object == textEdit && event->type() == QEvent::KeyPress) {
+
     auto keyEvent = dynamic_cast<QKeyEvent *>(event);
-    auto characterInserted = keyEvent->text();
     Qt::KeyboardModifiers modifiers = keyEvent->modifiers();
 
-    if (keyEvent->matches(QKeySequence::Paste)) { //I manage the paste action
-      auto clipboard = QApplication::clipboard();
-      QString selectedText = clipboard->text();
+    if (modifiers & Qt::ControlModifier) {
 
-      for (int i = 0; i < selectedText.size(); i++) {
-        emit symbolInserted(getCursorPos() + i, selectedText.at(i));
+      switch (keyEvent->key()) {
+        case Qt::Key_V: { //paste
+          paste();
+          break;
+        }
+        case Qt::Key_X: { //cut
+          deleteSelection();
+          break;
+        }
+        case Qt::Key_Z: {
+          //undo (now ignored)
+          return true;
+        }
+        case Qt::Key_Backspace: { //delete last word
+          QTextCursor cursor = textEdit->textCursor();
+          cursor.select(QTextCursor::WordUnderCursor);
+          auto selection = cursor.selectedText();
+
+          if(selection == ""){ //If the selection is empty (the cursor is after one or more space I don't delete anything)
+            return true;
+          }
+
+          for (int i = 0; i < selection.size(); i++) {
+            emit symbolDeleted(cursor.selectionStart());
+          }
+
+          break;
+        }
+          //we can add all the shortcuts we want here
+        default: {
+          //all the other shortcuts are handled by the default handler
+          return false;
+        }
       }
+    } else {
 
-    } else if (modifiers & Qt::ControlModifier) {
-        return false; //I don't emit any signal if I detect ctrl pressure
-    } else { //every other key pressure
+      auto characterInserted = keyEvent->text();
+
       switch (keyEvent->key()) {
         case Qt::Key_Escape: {
           break;
@@ -55,28 +85,56 @@ bool Editor::eventFilter(QObject *object, QEvent *event) //TODO: gestisci ctrl+c
           break;
         }
         case Qt::Key_Backspace: {
-          if (getCursorPos() != 0) {
-            emit symbolDeleted(getCursorPos() - 1);
+
+          if(!deleteSelection()) { //If I already deleted the selection I don't delete again
+            if (getCursorPos() != 0) {
+              emit symbolDeleted(getCursorPos() - 1);
+            }
           }
+
           break;
         }
         default: {
           if (!characterInserted.isEmpty()) {
+            deleteSelection();
             emit symbolInserted(getCursorPos(), characterInserted.at(0));
           }
           break;
         }
       }
+
     }
   }
 
   return false;
 }
 
-int Editor::getCursorPos(){
-  QTextCursor cursorPos;
-  cursorPos = textEdit->textCursor();
+int Editor::getCursorPos() {
+  QTextCursor cursorPos = textEdit->textCursor();
   return cursorPos.position();
+}
+
+void Editor::paste() {
+  auto clipboard = QApplication::clipboard();
+  QString selectedText = clipboard->text();
+
+  for (auto i : selectedText) {
+    emit symbolInserted(getCursorPos(), i);
+  }
+}
+
+bool Editor::deleteSelection() {
+  QTextCursor textCursor = textEdit->textCursor();
+  auto selection = textCursor.selectedText();
+
+  if (!selection.isEmpty()) {
+    for (int i = 0; i < selection.size(); i++) {
+      emit symbolDeleted(textCursor.selectionStart());
+    }
+    return true;
+  }
+
+  return false;
 }
 
 void Editor::createTopBar(QVBoxLayout *layout) {
