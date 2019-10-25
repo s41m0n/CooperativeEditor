@@ -11,6 +11,8 @@
 #include <QString>
 #include <QVBoxLayout>
 #include <QAction>
+#include <QApplication>
+#include <QClipboard>
 
 /**
  * Editor application window

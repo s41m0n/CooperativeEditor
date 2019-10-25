@@ -29,32 +29,43 @@ void Editor::onRemoteUpdate(const QString& text) {
 bool Editor::eventFilter(QObject *object, QEvent *event) //TODO: gestisci ctrl+c e ctrl+v
 {
   if (object == textEdit && event->type() == QEvent::KeyPress) {
-    auto keyEvent = dynamic_cast<QKeyEvent*>(event);
+    auto keyEvent = dynamic_cast<QKeyEvent *>(event);
     auto characterInserted = keyEvent->text();
+    Qt::KeyboardModifiers modifiers = keyEvent->modifiers();
 
-    switch(keyEvent->key()) {
-      case Qt::Key_Escape: {
-        break;
+    if (keyEvent->matches(QKeySequence::Paste)) { //I manage the paste action
+      auto clipboard = QApplication::clipboard();
+      QString selectedText = clipboard->text();
+
+      for (int i = 0; i < selectedText.size(); i++) {
+        emit symbolInserted(getCursorPos() + i, selectedText.at(i));
       }
-      case Qt::Key_Delete: {
-        if(getCursorPos() != textEdit->toPlainText().size()){
-          emit symbolDeleted(getCursorPos());
+
+    } else if (modifiers & Qt::ControlModifier) {
+        return false; //I don't emit any signal if I detect ctrl pressure
+    } else { //every other key pressure
+      switch (keyEvent->key()) {
+        case Qt::Key_Escape: {
+          break;
         }
-        break;
-      }
-      case Qt::Key_Backspace: {
-        if (getCursorPos() != 0) {
-          emit symbolDeleted(getCursorPos() - 1);
+        case Qt::Key_Delete: {
+          if (getCursorPos() != textEdit->toPlainText().size()) {
+            emit symbolDeleted(getCursorPos());
+          }
+          break;
         }
-        break;
-      }
-      default: {
-        if (!characterInserted.isEmpty()) {
-          //spdlog::debug("Length: {}", characterInserted.size());
-          emit symbolInserted(getCursorPos(), characterInserted.at(0));
-          //spdlog::debug("Carattere: {0}, Posizione: {1}", characterInserted.toStdString(), getCursorPos());
+        case Qt::Key_Backspace: {
+          if (getCursorPos() != 0) {
+            emit symbolDeleted(getCursorPos() - 1);
+          }
+          break;
         }
-        break;
+        default: {
+          if (!characterInserted.isEmpty()) {
+            emit symbolInserted(getCursorPos(), characterInserted.at(0));
+          }
+          break;
+        }
       }
     }
   }
