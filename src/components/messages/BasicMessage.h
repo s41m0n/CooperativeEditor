@@ -1,7 +1,6 @@
 #ifndef COOPERATIVEEDITOR_BASICMESSAGE_H
 #define COOPERATIVEEDITOR_BASICMESSAGE_H
 
-#include "MessageType.h"
 #include "common/Serializable.h"
 
 /**

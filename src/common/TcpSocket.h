@@ -5,6 +5,7 @@
 #include <QObject>
 #include <QTcpSocket>
 #include <QDataStream>
+#include <src/components/messages/Header.h>
 #include <components/messages/BasicMessage.h>
 #include <src/components/messages/FileListingMessage.h>
 #include <src/components/messages/RequestMessage.h>
@@ -24,10 +25,9 @@ private:
     ///The dedicated socket data stream
     QDataStream ds;
 
-    ///The variable to undestand if user is logged
-    bool userAuthN;
-
     unsigned id;
+
+    Header header;
 
 public:
 
@@ -36,6 +36,8 @@ public:
     void setIdentifier(unsigned id);
 
     unsigned getIdentifier();
+
+    bool isMessageAvailable();
 
     bool operator==(const TcpSocket &b) {
       return this->socketDescriptor() == b.socketDescriptor();
@@ -46,10 +48,9 @@ public:
     }
 
     ///Operator overload to make simpler sending msg
-    template<typename T, typename std::enable_if<std::is_base_of<BasicMessage, T>::value>::type * = nullptr>
-    void sendMsg(T &val) {
-      //It sends the Type before the entire message, like in networking protocols.
-      ds << val.getMsgType() << val;
+    void sendMsg(BasicMessage &val) {
+      Header header(sizeof(val), val.getMsgType());
+      ds << header << val;
       spdlog::debug("Sent Message!\n" + val.toStdString());
     }
 

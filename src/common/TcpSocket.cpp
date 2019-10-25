@@ -1,7 +1,6 @@
 #include "TcpSocket.h"
 
-TcpSocket::TcpSocket(QObject *parent) : QTcpSocket(parent), ds(this),
-                                        userAuthN(false), id(0) {}
+TcpSocket::TcpSocket(QObject *parent) : QTcpSocket(parent), ds(this), id(0) {}
 
 unsigned TcpSocket::getIdentifier() {
   return id;
@@ -9,4 +8,11 @@ unsigned TcpSocket::getIdentifier() {
 
 void TcpSocket::setIdentifier(unsigned idToSet) {
   id = idToSet;
+}
+
+bool TcpSocket::isMessageAvailable() {
+  if (!header.isValid() && bytesAvailable() >= sizeof(Header)) {
+    ds >> header;
+  }
+  return header.isValid() && bytesAvailable() >= header.getSize();
 }

@@ -20,58 +20,59 @@ Controller::Controller(Model *model, const std::string &host, int port)
 
 void Controller::onReadyRead() {
 
-  std::shared_ptr<BasicMessage> base(readMsg());
+  if (isMessageAvailable()) {
 
-  switch (base->getMsgType()) {
-    case Type::CONNECT : {
-      model->setEditorId(base->getEditorId());
-      setIdentifier(base->getEditorId());
-      break;
-    }
-    case Type::LOGIN_KO : {
-      emit loginResponse(false);
-      break;
-    }
-    case Type::LOGIN_OK : {
-      emit loginResponse(true);
-      model->setCurrentUser(
-              std::dynamic_pointer_cast<UserMessage>(base)->getUser());
-      break;
-    }
-    case Type::LISTING : {
-      emit fileListing(
-              std::dynamic_pointer_cast<FileListingMessage>(base)->getFiles());
-      break;
-    }
-    case Type::FILE_KO : {
-      emit fileResult(false);
-      break;
-    }
-    case Type::FILE_OK : {
-      emit fileResult(true);
-      model->setCurrentFile(std::dynamic_pointer_cast<FileMessage>(
-              base)->getFile());
-      emit remoteUpdate(model->textify());
-      break;
-    }
-    case Type::INSERT :
-    case Type::ERASE : {
-      try {
-        base->getMsgType() == Type::INSERT ? model->remoteInsert(
-                std::dynamic_pointer_cast<CrdtMessage>(base)->getSymbol())
-                                           : model->remoteErase(
-                std::dynamic_pointer_cast<CrdtMessage>(base)->getSymbol());
-        emit remoteUpdate(model->textify());
-      } catch (std::exception &e) {
-        spdlog::error("Error on remote operation:\nMsg -> {}", e.what());
+    std::shared_ptr<BasicMessage> base(readMsg());
+
+    switch (base->getMsgType()) {
+      case Type::CONNECT : {
+        model->setEditorId(base->getEditorId());
+        setIdentifier(base->getEditorId());
+        break;
       }
-      break;
+      case Type::LOGIN_KO : {
+        emit loginResponse(false);
+        break;
+      }
+      case Type::LOGIN_OK : {
+        emit loginResponse(true);
+        model->setCurrentUser(
+                std::dynamic_pointer_cast<UserMessage>(base)->getUser());
+        break;
+      }
+      case Type::LISTING : {
+        emit fileListing(
+                std::dynamic_pointer_cast<FileListingMessage>(
+                        base)->getFiles());
+        break;
+      }
+      case Type::FILE_KO : {
+        emit fileResult(false);
+        break;
+      }
+      case Type::FILE_OK : {
+        emit fileResult(true);
+        model->setCurrentFile(std::dynamic_pointer_cast<FileMessage>(
+                base)->getFile());
+        emit remoteUpdate(model->textify());
+        break;
+      }
+      case Type::INSERT :
+      case Type::ERASE : {
+        try {
+          base->getMsgType() == Type::INSERT ? model->remoteInsert(
+                  std::dynamic_pointer_cast<CrdtMessage>(base)->getSymbol())
+                                             : model->remoteErase(
+                  std::dynamic_pointer_cast<CrdtMessage>(base)->getSymbol());
+          emit remoteUpdate(model->textify());
+        } catch (std::exception &e) {
+          spdlog::error("Error on remote operation:\nMsg -> {}", e.what());
+        }
+        break;
+      }
+      default :
+        throw std::runtime_error("Unknown message received");
     }
-    default :
-      throw std::runtime_error("Unknown message received");
-  }
-  if (bytesAvailable()) {
-    onReadyRead();
   }
 
 }
@@ -84,7 +85,8 @@ void Controller::onCharInserted(int index, QChar value) {
                       model->getEditorId());
       sendMsg(msg);
     } catch (std::exception &e) {
-      spdlog::error("Error on local insert:\nIndex-> {}\nMsg -> {}", index, e.what());
+      spdlog::error("Error on local insert:\nIndex-> {}\nMsg -> {}", index,
+                    e.what());
     }
 
   } else {
@@ -101,7 +103,8 @@ void Controller::onCharErased(int index) {
                       model->getEditorId());
       sendMsg(msg);
     } catch (std::exception &e) {
-      spdlog::error("Error on local erase: Index-> {} @ Msg -> {}", index, e.what());
+      spdlog::error("Error on local erase: Index-> {} @ Msg -> {}", index,
+                    e.what());
     }
 
   } else {
