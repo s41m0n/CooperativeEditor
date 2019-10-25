@@ -22,12 +22,14 @@ std::string RequestMessage::toStdString(int level) {
          std::string(level, '\t') + "}";
 }
 
-void RequestMessage::serialize(QDataStream &stream) {
+QDataStream &RequestMessage::serialize(QDataStream &stream) const {
   BasicMessage::serialize(stream);
   stream << filename;
+  return stream;
 }
 
-void RequestMessage::deserialize(QDataStream &stream) {
+QDataStream &RequestMessage::deserialize(QDataStream &stream) {
   BasicMessage::deserialize(stream);
   stream >> filename;
+  return stream;
 }

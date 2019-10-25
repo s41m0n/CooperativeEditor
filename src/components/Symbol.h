@@ -2,7 +2,7 @@
 #define COOPERATIVEEDITOR_SYMBOL_H
 
 #include <QVector>
-#include <QDataStream>
+#include "common/Serializable.h"
 
 #include "Identifier.h"
 
@@ -10,7 +10,7 @@
  * Symbol class, to identify each inserted character
  *
  */
-class Symbol {
+class Symbol : public Serializable {
 
 private:
 
@@ -33,11 +33,11 @@ public:
 
     QVector<Identifier> &getPos();
 
-    std::string toStdString(int level = 0);
+    std::string toStdString(int level = 0) override;
 
-    friend QDataStream &operator<<(QDataStream &stream, const Symbol &val);
+    QDataStream &serialize(QDataStream &stream) const override;
 
-    friend QDataStream &operator>>(QDataStream &stream, Symbol &val);
+    QDataStream &deserialize(QDataStream &stream) override;
 
 };
 

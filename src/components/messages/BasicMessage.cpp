@@ -26,23 +26,12 @@ std::string BasicMessage::toStdString(int level) {
          std::string(level, '\t') + "}";
 }
 
-QDataStream &
-operator<<(QDataStream &stream, BasicMessage &val) {
-  val.serialize(stream);
+QDataStream &BasicMessage::serialize(QDataStream &stream) const {
+  stream << editorId << msgType;
   return stream;
 }
 
-QDataStream &operator>>(QDataStream &stream, BasicMessage &val) {
-  val.deserialize(stream);
-  return stream;
-}
-
-QDataStream &operator<<(QDataStream &stream, Type &val) {
-  stream << static_cast<qint32>(val);
-  return stream;
-}
-
-QDataStream &operator>>(QDataStream &stream, Type &val) {
-  stream >> reinterpret_cast<qint32 &>(val);
+QDataStream &BasicMessage::deserialize(QDataStream &stream) {
+  stream >> editorId >> msgType;
   return stream;
 }

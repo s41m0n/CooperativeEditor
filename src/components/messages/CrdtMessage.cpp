@@ -19,12 +19,14 @@ std::string CrdtMessage::toStdString(int level) {
          std::string(level, '\t') + "}";
 }
 
-void CrdtMessage::serialize(QDataStream &stream) {
+QDataStream &CrdtMessage::serialize(QDataStream &stream) const {
   BasicMessage::serialize(stream);
   stream << symbol;
+  return stream;
 }
 
-void CrdtMessage::deserialize(QDataStream &stream) {
+QDataStream &CrdtMessage::deserialize(QDataStream &stream) {
   BasicMessage::deserialize(stream);
   stream >> symbol;
+  return stream;
 }

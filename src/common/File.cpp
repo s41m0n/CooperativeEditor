@@ -14,12 +14,23 @@ FileText &File::getFileText() {
   return fileText;
 }
 
-QDataStream &operator<<(QDataStream &stream, const File &val) {
-  stream << val.fileName << val.fileText;
+QDataStream &File::serialize(QDataStream &stream) const {
+  stream << fileName << fileText;
   return stream;
 }
 
-QDataStream &operator>>(QDataStream &stream, File &val) {
-  stream >> val.fileName >> val.fileText;
+QDataStream &File::deserialize(QDataStream &stream) {
+  stream >> fileName >> fileText;
   return stream;
+}
+
+std::string File::toStdString(int level) {
+  std::string tmp(std::string(level, '\t') + "File{\n" +
+                  std::string(level + 1, '\t') + "filename: " +
+                  fileName.toStdString() + "\n" +
+                  std::string(level + 1, '\t') + "text: ");
+  for (auto val: fileText)
+    tmp += val.getChar().toLatin1();
+  tmp += "\n" + std::string(level, '\t') + "}";
+  return tmp;
 }

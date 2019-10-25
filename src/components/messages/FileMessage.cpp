@@ -23,12 +23,14 @@ std::string FileMessage::toStdString(int level) {
   return tmp;
 }
 
-void FileMessage::serialize(QDataStream &stream) {
+QDataStream &FileMessage::serialize(QDataStream &stream) const {
   BasicMessage::serialize(stream);
   stream << file;
+  return stream;
 }
 
-void FileMessage::deserialize(QDataStream &stream) {
+QDataStream &FileMessage::deserialize(QDataStream &stream) {
   BasicMessage::deserialize(stream);
   stream >> file;
+  return stream;
 }

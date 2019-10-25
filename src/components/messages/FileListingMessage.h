@@ -16,10 +16,6 @@ private:
 
     QVector<QString> files;
 
-    void serialize(QDataStream &stream) override;
-
-    void deserialize(QDataStream &stream) override;
-
 public:
 
     FileListingMessage(unsigned editorId,
@@ -30,6 +26,10 @@ public:
     QVector<QString> &getFiles();
 
     std::string toStdString(int level = 0) override;
+
+    QDataStream &serialize(QDataStream &stream) const override;
+
+    QDataStream &deserialize(QDataStream &stream) override;
 
 };
 

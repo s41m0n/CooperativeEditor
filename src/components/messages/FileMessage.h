@@ -4,7 +4,6 @@
 #include <QVector>
 
 #include "BasicMessage.h"
-#include "components/Symbol.h"
 #include "common/File.h"
 
 
@@ -18,10 +17,6 @@ private:
 
     File file;
 
-    void serialize(QDataStream &stream) override;
-
-    void deserialize(QDataStream &stream) override;
-
 public:
 
     FileMessage(unsigned editorId,
@@ -32,6 +27,10 @@ public:
     File &getFile();
 
     std::string toStdString(int level = 0) override;
+
+    QDataStream &serialize(QDataStream &stream) const override;
+
+    QDataStream &deserialize(QDataStream &stream) override;
 
 };
 

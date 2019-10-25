@@ -54,12 +54,12 @@ std::string Symbol::toStdString(int level) {
   return tmp;
 }
 
-QDataStream &operator<<(QDataStream &stream, const Symbol &val) {
-  stream << val.character << val.siteId << val.position;
+QDataStream &Symbol::serialize(QDataStream &stream) const {
+  stream << character << siteId << position;
   return stream;
 }
 
-QDataStream &operator>>(QDataStream &stream, Symbol &val) {
-  stream >> val.character >> val.siteId >> val.position;
+QDataStream &Symbol::deserialize(QDataStream &stream) {
+  stream >> character >> siteId >> position;
   return stream;
 }

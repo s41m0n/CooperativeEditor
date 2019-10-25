@@ -1,14 +1,14 @@
 #ifndef COOPERATIVEEDITOR_IDENTIFIER_H
 #define COOPERATIVEEDITOR_IDENTIFIER_H
 
-#include <QDataStream>
 #include <string>
+#include <common/Serializable.h>
 
 /**
  * Identifier class, used to identify a symbol
  *
  */
-class Identifier {
+class Identifier : public Serializable {
 
 private:
     unsigned editorId;
@@ -21,17 +21,17 @@ public:
 
     Identifier();
 
-    int compareTo(Identifier other);
-
-    friend QDataStream &operator<<(QDataStream &stream, const Identifier &val);
-
-    friend QDataStream &operator>>(QDataStream &stream, Identifier &val);
-
-    std::string toStdString(int level = 0);
+    int compareTo(const Identifier &other);
 
     unsigned getEditorId();
 
     unsigned getDigit();
+
+    std::string toStdString(int level = 0) override;
+
+    QDataStream &serialize(QDataStream &stream) const override;
+
+    QDataStream &deserialize(QDataStream &stream) override;
 
 };
 
