@@ -30,6 +30,8 @@ private:
     void createTopBar(QVBoxLayout *layout);
     void createToolBar(QVBoxLayout *layout);
     int getCursorPos();
+    void paste();
+    bool deleteSelection(); //true = deleted, false = nothing to delete
 
 public:
 
