@@ -16,6 +16,26 @@ Editor::Editor(QWidget *parent) : QMainWindow(parent) {
 
   createToolBar(layout);
 
+  fileCorrectlySaved = new QMessageBox();
+  fileCorrectlySaved->setText("File was correctly saved in your home directory");
+  fileCorrectlySaved->setStandardButtons(QMessageBox::Close);
+  fileCorrectlySaved->setFixedSize(this->minimumSize());
+
+  editorInfo = new QMessageBox();
+  editorInfo->setText("Editor totally developed in C++\n\n Copyright coglione");
+  editorInfo->setStandardButtons(QMessageBox::Close);
+  editorInfo->setFixedSize(this->minimumSize());
+
+  infoAboutUs = new QMessageBox();
+  infoAboutUs->setText(
+          "Authors:\n  "
+          "- Francesco Pavan: front-end developer di successo;\n  "
+          "- Simone Magnani: il suo refactoring non va;\n  "
+          "- Riccardo Marchi: non fa un commit dal '62;\n  "
+          "- Francesco Palmieri: PETARDO.");
+  infoAboutUs->setStandardButtons(QMessageBox::Close);
+  infoAboutUs->setFixedSize(this->minimumSize());
+
   textEdit = new QTextEdit(mainWidget);
   textEdit->installEventFilter(this);
   layout->addWidget(textEdit);
@@ -27,7 +47,7 @@ void Editor::onRemoteUpdate(const QString &text) {
 }
 
 bool
-Editor::eventFilter(QObject *object, QEvent *event) { //key pression management
+Editor::eventFilter(QObject *object, QEvent *event) { //key pression manager
 
   if (object == textEdit && event->type() == QEvent::KeyPress) {
 
@@ -46,7 +66,7 @@ Editor::eventFilter(QObject *object, QEvent *event) { //key pression management
           break;
         }
         case Qt::Key_Z: {
-          //undo (now ignored)
+          //undo (ignored)
           return true;
         }
         case Qt::Key_Backspace: { //delete last word
@@ -54,17 +74,22 @@ Editor::eventFilter(QObject *object, QEvent *event) { //key pression management
           cursor.select(QTextCursor::WordUnderCursor);
           auto selection = cursor.selectedText();
 
-          if(selection == ""){ //If the selection is empty (the cursor is after one or more space I don't delete anything)
-            return true;
-          }
-
-          for (int i = 0; i < selection.size(); i++) {
-            emit symbolDeleted(cursor.selectionStart());
+          if (selection ==
+              "") { //If the cursor is after one or more space I delete 1 space
+            if (getCursorPos() != 0) {
+              emit symbolDeleted(getCursorPos() - 1);
+              cursor.deletePreviousChar();
+              return true;
+            }
+          } else {
+            for (int i = 0; i < selection.size(); i++) {
+              emit symbolDeleted(cursor.selectionStart());
+            }
           }
 
           break;
         }
-          //we can add all the shortcuts we want here
+          //add desired shortcut here
         default: {
           //all the other shortcuts are handled by the default handler
           return false;
@@ -86,7 +111,7 @@ Editor::eventFilter(QObject *object, QEvent *event) { //key pression management
         }
         case Qt::Key_Backspace: {
 
-          if(!deleteSelection()) { //If I already deleted the selection I don't delete again
+          if (!deleteSelection()) { //If I already deleted the selection I don't delete again
             if (getCursorPos() != 0) {
               emit symbolDeleted(getCursorPos() - 1);
             }
@@ -143,46 +168,126 @@ void Editor::createTopBar(QVBoxLayout *layout) {
 
   auto file = new QMenu("File", topBar);
   topBar->addMenu(file);
-  auto actionSave = new QAction("Save As...", file);
+
+  auto actionSave = new QAction("Save As PDF", file);
+  QObject::connect(actionSave, &QAction::triggered, this,
+                   [this]() {
+                       fileToPDF();
+                       int result = fileCorrectlySaved->exec();
+
+                       switch (result) {
+                         case QMessageBox::Close:
+                           editorInfo->close();
+                           break;
+                         default:
+                           //error, should never be reached
+                           break;
+                       }
+                   });
   file->addAction(actionSave);
+
   file->addSeparator();
-  auto actionClose = new QAction("Close",
-                                 file); //torno al file visualizer
+
+  auto actionClose = new QAction("Select another file",
+                                 file);
+  QObject::connect(actionClose, &QAction::triggered, this,
+                   [this]() {
+                       emit openVisualizerFromEditor();
+                       this->close();
+                   });
   file->addAction(actionClose);
-  auto actionQuit = new QAction("Quit", file); //chiudo tutto
+
+  auto actionQuit = new QAction("Quit", file);
+  QObject::connect(actionQuit, &QAction::triggered, this,
+                   [this]() {
+                       this->close();
+                   });
   file->addAction(actionQuit);
+
   topBar->addSeparator();
 
   auto edit = new QMenu("Edit", topBar);
   topBar->addMenu(edit);
+
   auto actionCopy = new QAction("Copy", edit);
+  actionCopy->setShortcuts(QKeySequence::Copy);
+  QObject::connect(actionCopy, &QAction::triggered, this,
+                   [this]() {
+                       auto event = new QKeyEvent(QEvent::KeyPress, Qt::Key_C,
+                                                  Qt::ControlModifier);
+                       QCoreApplication::postEvent(textEdit, event);
+                   });
   edit->addAction(actionCopy);
+
   auto actionPaste = new QAction("Paste", edit);
+  actionPaste->setShortcuts(QKeySequence::Paste);
+  QObject::connect(actionPaste, &QAction::triggered, this,
+                   [this]() {
+                       auto event = new QKeyEvent(QEvent::KeyPress, Qt::Key_V,
+                                                  Qt::ControlModifier);
+                       QCoreApplication::postEvent(textEdit, event);
+                   });
   edit->addAction(actionPaste);
+
   auto actionCut = new QAction("Cut", edit);
+  actionCut->setShortcuts(QKeySequence::Cut);
+  QObject::connect(actionCut, &QAction::triggered, this,
+                   [this]() {
+                       auto event = new QKeyEvent(QEvent::KeyPress, Qt::Key_X,
+                                                  Qt::ControlModifier);
+                       QCoreApplication::postEvent(textEdit, event);
+                   });
   edit->addAction(actionCut);
+
   edit->addSeparator();
+
   auto actionEditProfile = new QAction("Edit your profile", edit);
+  QObject::connect(actionEditProfile, &QAction::triggered, this,
+                   [this]() {
+                       emit openEditProfileFromEditor(); //TODO:versione non definitva mancano dati utente (crea classe utente e fatti tornare dati al login)
+                       this->close();
+                   });
   edit->addAction(actionEditProfile);
   topBar->addSeparator();
 
   auto help = new QMenu("Help", topBar);
   topBar->addMenu(help);
+
   auto actionAboutEditor = new QAction("About the Editor", help);
+  QObject::connect(actionAboutEditor, &QAction::triggered, this,
+                   [this]() {
+                       int resultExit = editorInfo->exec();
+
+                       switch (resultExit) {
+                         case QMessageBox::Close:
+                           editorInfo->close();
+                           break;
+                         default:
+                           //error, should never be reached
+                           break;
+                       }
+                   });
   help->addAction(actionAboutEditor);
+
   help->addSeparator();
+
   auto actionAboutAuthors = new QAction("About Us", help);
+  QObject::connect(actionAboutAuthors, &QAction::triggered, this,
+                   [this]() {
+                       int result = infoAboutUs->exec();
+
+                       switch (result) {
+                         case QMessageBox::Close:
+                           infoAboutUs->close();
+                           break;
+                         default:
+                           //error, should never be reached
+                           break;
+                       }
+                   });
   help->addAction(actionAboutAuthors);
 
   layout->addWidget(topBar);
-
-  //TODO: aggiungere tutte le connect con le varie azioni, come quella qui sotto
-
-  QObject::connect(actionEditProfile, &QAction::triggered, this,
-                   [this]() {
-                       emit openEditProfileFromEditor(); //versione non definitva mancano dati utente (crea classe utente e fatti tornare dati al login)
-                       this->close();
-                   });
 }
 
 void Editor::createToolBar(QVBoxLayout *layout) {
@@ -203,5 +308,24 @@ void Editor::createToolBar(QVBoxLayout *layout) {
   layout->addWidget(toolBar);
 
   //TODO: aggiungere tutte le connect con le varie azioni dei pulsanti
+}
+
+void Editor::fileToPDF() {
+
+  QString fileName = "Prova"; //TODO: metti nome file vero
+  fileName.append(".pdf");
+
+  //QDir::setCurrent("/home");
+
+  QPrinter printer(QPrinter::PrinterResolution);
+  printer.setOutputFormat(QPrinter::PdfFormat);
+  printer.setPaperSize(QPrinter::A4);
+  printer.setOutputFileName(fileName);
+
+  QTextDocument doc;
+  doc.setPlainText(textEdit->toPlainText());
+  doc.setPageSize(printer.pageRect().size());
+  doc.print(&printer);
+
 }
 

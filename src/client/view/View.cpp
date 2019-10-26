@@ -22,6 +22,10 @@ void View::init() {
   QObject::connect(editor, &Editor::openEditProfileFromEditor, editProfile,
                    &EditUserProfile::show);
 
+  //Bottone semplice (azione da menu dropdown) da Editor a FileVisualizer per aprire un nuovo file
+  QObject::connect(editor, &Editor::openVisualizerFromEditor, fileVisualizer,
+                   &FileVisualizer::show);
+
   //Segnale dal fileVisualizer per chiedere al server di aprire un file
   QObject::connect(fileVisualizer, &FileVisualizer::fileRequest, controller,
                    &Controller::onFileRequest);
