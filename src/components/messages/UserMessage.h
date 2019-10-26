@@ -7,6 +7,7 @@
 class UserMessage : public BasicMessage {
 
 private:
+    
     User user;
 
 public:
@@ -22,6 +23,8 @@ public:
     QDataStream &serialize(QDataStream &stream) const override;
 
     QDataStream &deserialize(QDataStream &stream) override;
+
+    quint32 objectSize() override;
 
 };
 

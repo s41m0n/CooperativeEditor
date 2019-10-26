@@ -74,11 +74,16 @@ std::string User::toStdString(int level) {
 }
 
 QDataStream &User::serialize(QDataStream &stream) const {
-  stream << username << email << name << surname << icon << password;
+  stream << username << password << email << name << surname << icon;
   return stream;
 }
 
 QDataStream &User::deserialize(QDataStream &stream) {
-  stream >> username >> email >> name >> surname >> icon >> password;
+  stream >> username >> password >> email >> name >> surname >> icon;
   return stream;
+}
+
+quint32 User::objectSize() {
+  return (username.size() + email.size() + name.size() + surname.size() +
+          icon.size() + password.size()) * (sizeof(QChar));
 }

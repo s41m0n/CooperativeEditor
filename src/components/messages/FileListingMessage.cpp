@@ -34,3 +34,11 @@ QDataStream &FileListingMessage::deserialize(QDataStream &stream) {
   stream >> files;
   return stream;
 }
+
+quint32 FileListingMessage::objectSize() {
+  quint32 size = BasicMessage::objectSize();
+  for(auto &val : files) {
+    size += val.size() * sizeof(QChar);
+  }
+  return size;
+}

@@ -53,7 +53,8 @@ void Controller::onReadyRead() {
   auto sender = dynamic_cast<TcpSocket *>(QObject::sender());
   auto clientId = sender->getIdentifier();
 
-  if(sender->isMessageAvailable()) {
+  if (sender->isMessageAvailable()) {
+
     std::shared_ptr<BasicMessage> base(sender->readMsg());
 
     switch (base->getMsgType()) {
@@ -122,6 +123,9 @@ void Controller::onReadyRead() {
         throw std::runtime_error(
                 "Must never read different types of Message!!!");
     }
+  }
+  if(sender->isMessageAvailable()) {
+    onReadyRead();
   }
 }
 /*

@@ -34,3 +34,7 @@ QDataStream &FileMessage::deserialize(QDataStream &stream) {
   stream >> file;
   return stream;
 }
+
+quint32 FileMessage::objectSize() {
+  return BasicMessage::objectSize() + file.objectSize();
+}

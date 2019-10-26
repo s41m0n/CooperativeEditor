@@ -15,7 +15,7 @@ public:
 
     Header(quint32 size, Type type);
 
-    Header() = default;
+    Header();
 
     bool isValid();
 
@@ -28,6 +28,8 @@ public:
     QDataStream &serialize(QDataStream &stream) const override;
 
     QDataStream &deserialize(QDataStream &stream) override;
+
+    quint32 objectSize() override;
 };
 
 

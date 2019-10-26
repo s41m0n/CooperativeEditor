@@ -34,3 +34,11 @@ std::string File::toStdString(int level) {
   tmp += "\n" + std::string(level, '\t') + "}";
   return tmp;
 }
+
+quint32 File::objectSize() {
+  quint32 size = fileName.size();
+  for (auto &val : fileText) {
+    size += val.objectSize();
+  }
+  return size;
+}

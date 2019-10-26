@@ -30,3 +30,7 @@ QDataStream &CrdtMessage::deserialize(QDataStream &stream) {
   stream >> symbol;
   return stream;
 }
+
+quint32 CrdtMessage::objectSize() {
+  return BasicMessage::objectSize() + symbol.objectSize();
+}

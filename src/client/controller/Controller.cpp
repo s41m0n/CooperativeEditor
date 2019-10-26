@@ -74,6 +74,9 @@ void Controller::onReadyRead() {
         throw std::runtime_error("Unknown message received");
     }
   }
+  if(isMessageAvailable()) {
+    onReadyRead();
+  }
 
 }
 

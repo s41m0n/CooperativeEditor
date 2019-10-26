@@ -63,3 +63,11 @@ QDataStream &Symbol::deserialize(QDataStream &stream) {
   stream >> character >> siteId >> position;
   return stream;
 }
+
+quint32 Symbol::objectSize() {
+  quint32 size = sizeof(character) + sizeof(siteId);
+  for(auto &val : position) {
+    size += val.objectSize();
+  }
+  return size;
+}

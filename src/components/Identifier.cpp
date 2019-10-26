@@ -48,3 +48,7 @@ QDataStream &Identifier::deserialize(QDataStream &stream){
   stream >> editorId >> digit;
   return stream;
 }
+
+quint32 Identifier::objectSize() {
+  return sizeof(editorId) + sizeof(digit);
+}

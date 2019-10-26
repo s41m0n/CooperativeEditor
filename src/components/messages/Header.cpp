@@ -2,6 +2,8 @@
 
 Header::Header(quint32 size, Type type) : size(size), type(type) {}
 
+Header::Header() : size(0), type(Type::UNKNOWN){}
+
 bool Header::isValid() {
   return size != 0;
 }
@@ -31,4 +33,8 @@ Type &Header::getType() {
 
 quint32 Header::getSize() {
   return size;
+}
+
+quint32 Header::objectSize() {
+  return sizeof(type) + sizeof(size);
 }

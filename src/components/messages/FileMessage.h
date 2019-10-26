@@ -32,6 +32,8 @@ public:
 
     QDataStream &deserialize(QDataStream &stream) override;
 
+    quint32 objectSize() override;
+
 };
 
 #endif //COOPERATIVEEDITOR_FILEMESSAGE_H

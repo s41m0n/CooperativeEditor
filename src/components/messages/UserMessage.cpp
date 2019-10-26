@@ -29,3 +29,7 @@ QDataStream &UserMessage::deserialize(QDataStream &stream) {
   stream >> user;
   return stream;
 }
+
+quint32 UserMessage::objectSize() {
+  return BasicMessage::objectSize() + user.objectSize();
+}

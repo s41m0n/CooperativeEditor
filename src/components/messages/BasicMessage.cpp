@@ -35,3 +35,7 @@ QDataStream &BasicMessage::deserialize(QDataStream &stream) {
   stream >> editorId >> msgType;
   return stream;
 }
+
+quint32 BasicMessage::objectSize() {
+  return sizeof(msgType) + sizeof(editorId);
+}
