@@ -29,6 +29,7 @@ find_package(Threads)
 find_package(Qt5Widgets REQUIRED)
 find_package(Qt5Core REQUIRED)
 find_package(Qt5Network REQUIRED)
+find_package(Qt5PrintSupport REQUIRED)
 
 #Set the client executable
 add_executable(CooperativeClient src/mainclient.cpp src/client/controller/Controller.cpp src/client/model/Model.cpp
@@ -53,5 +54,5 @@ if (CMAKE_G++_COMPILER_VERSION VERSION_LESS 9.0.0)
     target_link_libraries(CooperativeServer "-lstdc++fs")
 endif ()
 
-target_link_libraries(CooperativeClient Qt5::Core Qt5::Network Qt5::Widgets)
-target_link_libraries(CooperativeServer Qt5::Core Qt5::Network Qt5::Widgets)
+target_link_libraries(CooperativeClient Qt5::Core Qt5::Network Qt5::Widgets Qt5::PrintSupport)
+target_link_libraries(CooperativeServer Qt5::Core Qt5::Network Qt5::Widgets Qt5::PrintSupport)

@@ -13,6 +13,10 @@
 #include <QAction>
 #include <QApplication>
 #include <QClipboard>
+#include <QDir>
+#include <QStandardPaths>
+#include <QtPrintSupport/QPrinter>
+#include <QTextStream>
 
 /**
  * Editor application window
@@ -26,12 +30,16 @@ private:
     QTextEdit *textEdit;
     QMenuBar *topBar;
     QToolBar *toolBar;
+    QMessageBox *fileCorrectlySaved;
+    QMessageBox *editorInfo;
+    QMessageBox *infoAboutUs;
 
     void createTopBar(QVBoxLayout *layout);
     void createToolBar(QVBoxLayout *layout);
     int getCursorPos();
     void paste();
     bool deleteSelection(); //true = deleted, false = nothing to delete
+    void fileToPDF();
 
 public:
 
@@ -47,6 +55,9 @@ signals:
 
     ///Signal emitted when the user wants to edit his profile
     void openEditProfileFromEditor();
+
+    ///Signal emitted when the user wants to go back to the file visualizer
+    void openVisualizerFromEditor();
 
     ///Signal emitted when the user inserts a symbol in the editor
     void symbolInserted(int position, QChar character);
