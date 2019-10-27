@@ -2,7 +2,7 @@
 #include <algorithm>
 #include <QFile>
 
-#include "common/CrdtAlgorithm.h"
+#include "src/include/lib/crdt/CrdtAlgorithm.h"
 #include "Model.h"
 
 Model::Model() : idGenerator(1) {

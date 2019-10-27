@@ -1,7 +1,7 @@
 #include "Model.h"
 
 #include <memory>
-#include "common/CrdtAlgorithm.h"
+#include "src/include/lib/crdt/CrdtAlgorithm.h"
 
 Model::Model() : editorId(0), digitGenerator(0), file(), user() {
 }

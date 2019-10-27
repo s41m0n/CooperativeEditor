@@ -3,10 +3,12 @@
 
 #include <QString>
 
+#include "src/include/lib/serialization/Serializable.h"
+
 /**
  * User class to define a User data structure
  */
-class User {
+class User : public Serializable {
 
 private:
 
@@ -46,11 +48,11 @@ public:
 
     QString &getIcon();
 
-    std::string toStdString(int level = 0);
+    std::string toStdString(int level = 0) override;
 
-    friend QDataStream &operator<<(QDataStream &stream, const User &val);
+    QDataStream &serialize(QDataStream &stream) const override;
 
-    friend QDataStream &operator>>(QDataStream &stream, User &val);
+    QDataStream &deserialize(QDataStream &stream) override;
 
 };
 
