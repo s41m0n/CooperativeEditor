@@ -37,7 +37,13 @@ public:
 
     unsigned getIdentifier();
 
+    Header &getHeader();
+
     bool isMessageAvailable();
+
+    void sendMsg(Type type, BasicMessage &val);
+
+    BasicMessage *readMsg();
 
     bool operator==(const TcpSocket &b) {
       return this->socketDescriptor() == b.socketDescriptor();
@@ -46,12 +52,6 @@ public:
     bool operator==(const TcpSocket *b) {
       return this->socketDescriptor() == b->socketDescriptor();
     }
-
-    ///Operator overload to make simpler sending msg
-    void sendMsg(BasicMessage &val);
-
-    ///Operator overload to make simpler receiving msg
-    BasicMessage *readMsg();
 
 };
 

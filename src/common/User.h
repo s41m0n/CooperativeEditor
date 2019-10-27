@@ -3,7 +3,7 @@
 
 #include <QString>
 
-#include "Serializable.h"
+#include "src/include/lib/serialization/Serializable.h"
 
 /**
  * User class to define a User data structure
@@ -53,8 +53,6 @@ public:
     QDataStream &serialize(QDataStream &stream) const override;
 
     QDataStream &deserialize(QDataStream &stream) override;
-
-    quint32 objectSize() override;
 
 };
 

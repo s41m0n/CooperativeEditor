@@ -1,7 +1,5 @@
 #include "File.h"
 
-#include <utility>
-
 File::File(QString name, FileText text) : fileName(std::move(name)),
                                           fileText(std::move(text)) {}
 
@@ -35,10 +33,3 @@ std::string File::toStdString(int level) {
   return tmp;
 }
 
-quint32 File::objectSize() {
-  quint32 size = fileName.size();
-  for (auto &val : fileText) {
-    size += val.objectSize();
-  }
-  return size;
-}

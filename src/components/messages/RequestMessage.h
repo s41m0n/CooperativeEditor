@@ -17,7 +17,7 @@ private:
 
 public:
 
-    RequestMessage(Type msgType, unsigned editorId, QString filename);
+    RequestMessage(unsigned editorId, QString filename);
 
     RequestMessage() = default;
 
@@ -28,8 +28,6 @@ public:
     QDataStream &serialize(QDataStream &stream) const override;
 
     QDataStream &deserialize(QDataStream &stream) override;
-
-    quint32 objectSize() override;
 
 };
 

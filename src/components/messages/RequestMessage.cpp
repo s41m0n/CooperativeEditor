@@ -1,10 +1,9 @@
 #include "RequestMessage.h"
 
-RequestMessage::RequestMessage(Type msgType, unsigned editorId,
-                               QString filename) : BasicMessage(msgType,
-                                                                editorId),
-                                                   filename(std::move(
-                                                           filename)) {
+RequestMessage::RequestMessage(unsigned editorId, QString filename)
+        : BasicMessage(editorId),
+          filename(std::move(
+                  filename)) {
 }
 
 QString &RequestMessage::getFilename() {
@@ -13,8 +12,6 @@ QString &RequestMessage::getFilename() {
 
 std::string RequestMessage::toStdString(int level) {
   return std::string(level, '\t') + "RequestMessage{\n" +
-         std::string(level + 1, '\t') + "msgType: " +
-         std::to_string(static_cast<int>(msgType)) + "\n" +
          std::string(level + 1, '\t') + "editorId: " +
          std::to_string(editorId) + "\n" +
          std::string(level + 1, '\t') + "file/s: " + filename.toStdString() +
@@ -32,8 +29,4 @@ QDataStream &RequestMessage::deserialize(QDataStream &stream) {
   BasicMessage::deserialize(stream);
   stream >> filename;
   return stream;
-}
-
-quint32 RequestMessage::objectSize() {
-  return BasicMessage::objectSize() + filename.size();
 }

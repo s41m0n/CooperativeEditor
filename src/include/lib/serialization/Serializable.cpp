@@ -1,7 +1,7 @@
 #include "Serializable.h"
 
 QDataStream &operator<<(QDataStream &stream, const Type &val) {
-  stream <<  static_cast<std::underlying_type_t<Type>>(val);
+  stream << static_cast<std::underlying_type_t<Type>>(val);
   return stream;
 }
 

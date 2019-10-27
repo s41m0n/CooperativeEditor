@@ -2,7 +2,7 @@
 #define COOPERATIVEEDITOR_SYMBOL_H
 
 #include <QVector>
-#include "common/Serializable.h"
+#include "src/include/lib/serialization/Serializable.h"
 
 #include "Identifier.h"
 
@@ -38,8 +38,6 @@ public:
     QDataStream &serialize(QDataStream &stream) const override;
 
     QDataStream &deserialize(QDataStream &stream) override;
-
-    quint32 objectSize() override;
 
 };
 

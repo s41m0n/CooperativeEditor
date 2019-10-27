@@ -82,8 +82,3 @@ QDataStream &User::deserialize(QDataStream &stream) {
   stream >> username >> password >> email >> name >> surname >> icon;
   return stream;
 }
-
-quint32 User::objectSize() {
-  return (username.size() + email.size() + name.size() + surname.size() +
-          icon.size() + password.size()) * (sizeof(QChar));
-}

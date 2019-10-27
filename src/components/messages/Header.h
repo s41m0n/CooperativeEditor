@@ -1,7 +1,7 @@
 #ifndef COOPERATIVEEDITOR_HEADER_H
 #define COOPERATIVEEDITOR_HEADER_H
 
-#include "common/Serializable.h"
+#include "src/include/lib/serialization/Serializable.h"
 
 class Header : public Serializable {
 
@@ -29,7 +29,7 @@ public:
 
     QDataStream &deserialize(QDataStream &stream) override;
 
-    quint32 objectSize() override;
+    quint32 objectSize();
 };
 
 

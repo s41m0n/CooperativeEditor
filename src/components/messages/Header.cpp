@@ -2,7 +2,7 @@
 
 Header::Header(quint32 size, Type type) : size(size), type(type) {}
 
-Header::Header() : size(0), type(Type::UNKNOWN){}
+Header::Header() : size(0), type(Type::UNKNOWN) {}
 
 bool Header::isValid() {
   return size != 0;
@@ -13,7 +13,8 @@ std::string Header::toStdString(int level) {
          std::string(level + 1, '\t') + "msgSize: " +
          std::to_string(size) + "\n" +
          std::string(level + 1, '\t') + "msgType: " +
-         std::to_string(static_cast<std::underlying_type_t<Type>>(type)) + "\n" +
+         std::to_string(static_cast<std::underlying_type_t<Type>>(type)) +
+         "\n" +
          std::string(level, '\t') + "}";
 }
 
@@ -36,5 +37,5 @@ quint32 Header::getSize() {
 }
 
 quint32 Header::objectSize() {
-  return sizeof(type) + sizeof(size);
+  return sizeof(type) + sizeof(std::underlying_type_t<Type>);
 }

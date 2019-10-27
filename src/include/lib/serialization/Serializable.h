@@ -14,8 +14,6 @@ public:
 
     virtual QDataStream &serialize(QDataStream &stream) const = 0;
 
-    virtual quint32 objectSize() = 0;
-
     ///Method to print in human-readable format the message using indent
     virtual std::string toStdString(int level = 0) = 0;
 };

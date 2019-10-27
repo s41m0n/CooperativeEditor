@@ -5,7 +5,7 @@
 #include <mutex>
 
 #include <src/components/Symbol.h>
-#include "Serializable.h"
+#include "src/include/lib/serialization/Serializable.h"
 
 class File : public Serializable {
 
@@ -30,8 +30,6 @@ public:
     QDataStream &serialize(QDataStream &stream) const override;
 
     QDataStream &deserialize(QDataStream &stream) override;
-
-    quint32 objectSize() override;
 
 };
 

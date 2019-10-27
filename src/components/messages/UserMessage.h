@@ -7,12 +7,12 @@
 class UserMessage : public BasicMessage {
 
 private:
-    
+
     User user;
 
 public:
 
-    explicit UserMessage(Type type, unsigned editorId, User user);
+    explicit UserMessage(unsigned editorId, User user);
 
     UserMessage() = default;
 
@@ -23,8 +23,6 @@ public:
     QDataStream &serialize(QDataStream &stream) const override;
 
     QDataStream &deserialize(QDataStream &stream) override;
-
-    quint32 objectSize() override;
 
 };
 

@@ -6,7 +6,7 @@ Identifier::Identifier(unsigned editorId, unsigned digit) : editorId(
 Identifier::Identifier() : editorId(-1), digit(0) {
 }
 
-int Identifier::compareTo(const Identifier& other) {
+int Identifier::compareTo(const Identifier &other) {
   if (this->digit < other.digit) {
     return -1;
   } else if (this->digit > other.digit) {
@@ -44,11 +44,7 @@ QDataStream &Identifier::serialize(QDataStream &stream) const {
   return stream;
 }
 
-QDataStream &Identifier::deserialize(QDataStream &stream){
+QDataStream &Identifier::deserialize(QDataStream &stream) {
   stream >> editorId >> digit;
   return stream;
-}
-
-quint32 Identifier::objectSize() {
-  return sizeof(editorId) + sizeof(digit);
 }

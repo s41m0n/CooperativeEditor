@@ -17,14 +17,17 @@ bool TcpSocket::isMessageAvailable() {
   return header.isValid() && bytesAvailable() >= header.getSize();
 }
 
-void TcpSocket::sendMsg(BasicMessage &val) {
-  QByteArray byteArray;
-  QDataStream dataStream(&byteArray, QIODevice::WriteOnly);
-  dataStream << val;
-  Header tmp(byteArray.size(), val.getMsgType());
+void TcpSocket::sendMsg(Type type, BasicMessage &val) {
 
-  ds << tmp << byteArray;
-  spdlog::debug("Sent Message! {}\n{}", byteArray.size(), val.toStdString());
+  QByteArray tmpBuffer;
+  QDataStream dataStream(&tmpBuffer, QIODevice::WriteOnly);
+  dataStream << val;
+
+  Header tmpHeader(tmpBuffer.size(), type);
+
+  ds << tmpHeader << val;
+  spdlog::debug("Sent Message!\n{}\n{}", tmpHeader.toStdString(),
+                val.toStdString());
 }
 
 BasicMessage *TcpSocket::readMsg() {
@@ -74,7 +77,12 @@ BasicMessage *TcpSocket::readMsg() {
     }
   }
   ds >> *msg;
-  spdlog::debug("Received Message!{}\n{}",header.objectSize() + msg->objectSize(), msg->toStdString());
+  spdlog::debug("Received Message!\n{}\n{}", header.toStdString(),
+                msg->toStdString());
   header = {};
   return msg;
+}
+
+Header &TcpSocket::getHeader() {
+  return header;
 }

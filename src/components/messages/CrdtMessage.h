@@ -16,7 +16,7 @@ private:
 
 public:
 
-    CrdtMessage(Type msgType, Symbol symbol, unsigned editorId);
+    CrdtMessage(Symbol symbol, unsigned editorId);
 
     CrdtMessage() = default;
 
@@ -27,8 +27,6 @@ public:
     QDataStream &serialize(QDataStream &stream) const override;
 
     QDataStream &deserialize(QDataStream &stream) override;
-
-    quint32 objectSize() override;
 
 };
 

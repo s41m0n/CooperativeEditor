@@ -1,8 +1,6 @@
 #ifndef COOPERATIVEEDITOR_FILEMESSAGE_H
 #define COOPERATIVEEDITOR_FILEMESSAGE_H
 
-#include <QVector>
-
 #include "BasicMessage.h"
 #include "common/File.h"
 
@@ -19,8 +17,7 @@ private:
 
 public:
 
-    FileMessage(unsigned editorId,
-                File &file);
+    FileMessage(unsigned editorId, File &file);
 
     FileMessage() = default;
 
@@ -31,8 +28,6 @@ public:
     QDataStream &serialize(QDataStream &stream) const override;
 
     QDataStream &deserialize(QDataStream &stream) override;
-
-    quint32 objectSize() override;
 
 };
 

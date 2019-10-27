@@ -2,7 +2,7 @@
 #define COOPERATIVEEDITOR_IDENTIFIER_H
 
 #include <string>
-#include <common/Serializable.h>
+#include <src/include/lib/serialization/Serializable.h>
 
 /**
  * Identifier class, used to identify a symbol
@@ -32,8 +32,6 @@ public:
     QDataStream &serialize(QDataStream &stream) const override;
 
     QDataStream &deserialize(QDataStream &stream) override;
-
-    quint32 objectSize() override;
 
 };
 

@@ -34,8 +34,8 @@ void Controller::onNewConnection() {
 
   spdlog::debug("Connected Editor {0:d}", clientId);
 
-  BasicMessage msg(Type::CONNECT, clientId);
-  clientSocket->sendMsg(msg);
+  BasicMessage msg(clientId);
+  clientSocket->sendMsg(Type::CONNECT, msg);
 
 }
 
@@ -55,9 +55,10 @@ void Controller::onReadyRead() {
 
   if (sender->isMessageAvailable()) {
 
+    auto header = sender->getHeader();
     std::shared_ptr<BasicMessage> base(sender->readMsg());
 
-    switch (base->getMsgType()) {
+    switch (header.getType()) {
 
       case Type::LOGIN : {
         auto derived = std::dynamic_pointer_cast<UserMessage>(base);
@@ -70,13 +71,13 @@ void Controller::onReadyRead() {
 
         if (result) {
           User tmp("icon", user.getUsername(), "name", "surname", "email", {});
-          UserMessage newMsg(Type::LOGIN_OK, clientId, tmp);
+          UserMessage newMsg(clientId, tmp);
           FileListingMessage newMsg2(clientId, model->getAvailableFiles());
-          sender->sendMsg(newMsg);
-          sender->sendMsg(newMsg2);
+          sender->sendMsg(Type::LOGIN_OK, newMsg);
+          sender->sendMsg(Type::LISTING, newMsg2);
         } else {
-          BasicMessage msg(Type::LOGIN_KO, clientId);
-          sender->sendMsg(msg);
+          BasicMessage msg(clientId);
+          sender->sendMsg(Type::LOGIN_KO, msg);
         }
         break;
       }
@@ -87,10 +88,12 @@ void Controller::onReadyRead() {
       case Type::ERASE : {
         auto derived = std::dynamic_pointer_cast<CrdtMessage>(base);
         try {
-          base->getMsgType() == Type::INSERT ? model->userInsert(clientId,
-                                                                 derived->getSymbol())
-                                             : model->userErase(clientId,
-                                                                derived->getSymbol());
+          header.getType() == Type::INSERT ? model->userInsert(
+                  clientId,
+                  derived->getSymbol())
+                                           : model->userErase(
+                  clientId,
+                  derived->getSymbol());
           std::lock_guard<std::mutex> guard2(queueMutex);
           messages.push(derived);
         } catch (std::exception &e) {
@@ -104,19 +107,19 @@ void Controller::onReadyRead() {
                 base)->getFilename();
         FileText symbolList;
 
-        if (base->getMsgType() == Type::OPEN &&
+        if (header.getType() == Type::OPEN &&
             model->openFileByUser(clientId, filename)) {
           symbolList = model->getFileSymbolList(clientId);
-        } else if (base->getMsgType() == Type::CREATE &&
+        } else if (header.getType() == Type::CREATE &&
                    !model->createFileByUser(clientId, filename)) {
-          BasicMessage newMsg(Type::FILE_KO, clientId);
-          sender->sendMsg(newMsg);
+          BasicMessage newMsg(clientId);
+          sender->sendMsg(Type::FILE_KO, newMsg);
           break;
         }
 
         File file(filename, symbolList);
         FileMessage newMsg2(clientId, file);
-        sender->sendMsg(newMsg2);
+        sender->sendMsg(Type::FILE_OK, newMsg2);
         break;
       }
       default :
@@ -124,7 +127,7 @@ void Controller::onReadyRead() {
                 "Must never read different types of Message!!!");
     }
   }
-  if(sender->isMessageAvailable()) {
+  if (sender->isMessageAvailable()) {
     onReadyRead();
   }
 }
