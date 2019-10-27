@@ -7,20 +7,23 @@
 class UserMessage : public BasicMessage {
 
 private:
+
     User user;
 
-    void serialize(QDataStream &stream) override;
-
-    void deserialize(QDataStream &stream) override;
-
 public:
-    explicit UserMessage(Type type, unsigned editorId, User user);
+
+    explicit UserMessage(unsigned editorId, User user);
 
     UserMessage() = default;
 
     User &getUser();
 
     std::string toStdString(int level = 0) override;
+
+    QDataStream &serialize(QDataStream &stream) const override;
+
+    QDataStream &deserialize(QDataStream &stream) override;
+
 };
 
 

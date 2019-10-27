@@ -3,6 +3,7 @@
 #include <QImage>
 #include <memory>
 #include <utility>
+#include <spdlog/spdlog.h>
 
 #include "src/components/messages/BasicMessage.h"
 #include "src/components/messages/FileMessage.h"
@@ -19,53 +20,62 @@ Controller::Controller(Model *model, const std::string &host, int port)
 
 void Controller::onReadyRead() {
 
-  std::shared_ptr<BasicMessage> base(readMsg());
+  if (isMessageAvailable()) {
 
-  switch (base->getMsgType()) {
-    case Type::CONNECT : {
-      model->setEditorId(base->getEditorId());
-      setIdentifier(base->getEditorId());
-      break;
+    auto header = getHeader();
+    std::shared_ptr<BasicMessage> base(readMsg());
+
+    switch (header.getType()) {
+      case Type::CONNECT : {
+        model->setEditorId(base->getEditorId());
+        setIdentifier(base->getEditorId());
+        break;
+      }
+      case Type::LOGIN_KO : {
+        emit loginResponse(false);
+        break;
+      }
+      case Type::LOGIN_OK : {
+        emit loginResponse(true);
+        model->setCurrentUser(
+                std::dynamic_pointer_cast<UserMessage>(base)->getUser());
+        break;
+      }
+      case Type::LISTING : {
+        emit fileListing(
+                std::dynamic_pointer_cast<FileListingMessage>(
+                        base)->getFiles());
+        break;
+      }
+      case Type::FILE_KO : {
+        emit fileResult(false);
+        break;
+      }
+      case Type::FILE_OK : {
+        emit fileResult(true);
+        model->setCurrentFile(std::dynamic_pointer_cast<FileMessage>(
+                base)->getFile());
+        emit remoteUpdate(model->textify());
+        break;
+      }
+      case Type::INSERT :
+      case Type::ERASE : {
+        try {
+          getHeader().getType() == Type::INSERT ? model->remoteInsert(
+                  std::dynamic_pointer_cast<CrdtMessage>(base)->getSymbol())
+                                           : model->remoteErase(
+                  std::dynamic_pointer_cast<CrdtMessage>(base)->getSymbol());
+          emit remoteUpdate(model->textify());
+        } catch (std::exception &e) {
+          spdlog::error("Error on remote operation:\nMsg -> {}", e.what());
+        }
+        break;
+      }
+      default :
+        throw std::runtime_error("Unknown message received");
     }
-    case Type::LOGIN_KO : {
-      emit loginResponse(false);
-      break;
-    }
-    case Type::LOGIN_OK : {
-      emit loginResponse(true);
-      model->setCurrentUser(
-              std::dynamic_pointer_cast<UserMessage>(base)->getUser());
-      break;
-    }
-    case Type::LISTING : {
-      emit fileListing(
-              std::dynamic_pointer_cast<FileListingMessage>(base)->getFiles());
-      break;
-    }
-    case Type::FILE_KO : {
-      emit fileResult(false);
-      break;
-    }
-    case Type::FILE_OK : {
-      emit fileResult(true);
-      model->setCurrentFile(std::dynamic_pointer_cast<FileMessage>(
-              base)->getFile());
-      emit remoteUpdate(model->textify());
-      break;
-    }
-    case Type::INSERT :
-    case Type::ERASE : {
-      base->getMsgType() == Type::INSERT ? model->remoteInsert(
-              std::dynamic_pointer_cast<CrdtMessage>(base)->getSymbol())
-                                         : model->remoteErase(
-              std::dynamic_pointer_cast<CrdtMessage>(base)->getSymbol());
-      emit remoteUpdate(model->textify());
-      break;
-    }
-    default :
-      throw std::runtime_error("Unknown message received");
   }
-  if (bytesAvailable()) {
+  if (isMessageAvailable()) {
     onReadyRead();
   }
 
@@ -75,11 +85,12 @@ void Controller::onCharInserted(int index, QChar value) {
 
   if (state() == QTcpSocket::ConnectedState) {
     try {
-      CrdtMessage msg(Type::INSERT, model->localInsert(index, value),
+      CrdtMessage msg(model->localInsert(index, value),
                       model->getEditorId());
-      sendMsg(msg);
+      sendMsg(Type::INSERT, msg);
     } catch (std::exception &e) {
-      spdlog::error("Error on local insert:\nIndex-> {}\nMsg -> {}", index, e.what());
+      spdlog::error("Error on local insert:\nIndex-> {}\nMsg -> {}", index,
+                    e.what());
     }
 
   } else {
@@ -92,11 +103,12 @@ void Controller::onCharErased(int index) {
 
   if (state() == QTcpSocket::ConnectedState) {
     try {
-      CrdtMessage msg(Type::ERASE, model->localErase(index),
+      CrdtMessage msg(model->localErase(index),
                       model->getEditorId());
-      sendMsg(msg);
+      sendMsg(Type::ERASE, msg);
     } catch (std::exception &e) {
-      spdlog::error("Error on local erase: Index-> {} @ Msg -> {}", index, e.what());
+      spdlog::error("Error on local erase: Index-> {} @ Msg -> {}", index,
+                    e.what());
     }
 
   } else {
@@ -111,9 +123,9 @@ Controller::onLoginRequest(const QString &username, const QString &password) {
     QByteArray hashedPassword = QCryptographicHash::hash(password.toUtf8(),
                                                          QCryptographicHash::Sha512);
 
-    UserMessage msg(Type::LOGIN, model->getEditorId(),
+    UserMessage msg(model->getEditorId(),
                     User(username, QString(hashedPassword.toHex())));
-    sendMsg(msg);
+    sendMsg(Type::LOGIN, msg);
 
   } else {
     emit serverUnreachable();
@@ -127,12 +139,12 @@ void Controller::onSignUpRequest(QString image, QString name, QString surname,
     QByteArray hashedPassword = QCryptographicHash::hash(password.toUtf8(),
                                                          QCryptographicHash::Sha512);
 
-    UserMessage msg(Type::REGISTER, model->getEditorId(),
+    UserMessage msg(model->getEditorId(),
                     User(std::move(image), std::move(username),
                          std::move(name), std::move(surname),
                          std::move(email),
                          QString(hashedPassword.toHex())));
-    sendMsg(msg);
+    sendMsg(Type::REGISTER, msg);
   } else {
     emit serverUnreachable();
   }
@@ -141,9 +153,8 @@ void Controller::onSignUpRequest(QString image, QString name, QString surname,
 void Controller::onFileRequest(const QString &filename, bool exists) {
 
   if (state() == QTcpSocket::ConnectedState) {
-    RequestMessage msg(exists ? Type::OPEN : Type::CREATE, model->getEditorId(),
-                       filename);
-    sendMsg(msg);
+    RequestMessage msg(model->getEditorId(), filename);
+    sendMsg(exists ? Type::OPEN : Type::CREATE, msg);
   } else {
     emit serverUnreachable();
   }

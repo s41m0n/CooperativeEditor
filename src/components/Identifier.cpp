@@ -6,7 +6,7 @@ Identifier::Identifier(unsigned editorId, unsigned digit) : editorId(
 Identifier::Identifier() : editorId(-1), digit(0) {
 }
 
-int Identifier::compareTo(Identifier other) {
+int Identifier::compareTo(const Identifier &other) {
   if (this->digit < other.digit) {
     return -1;
   } else if (this->digit > other.digit) {
@@ -31,20 +31,20 @@ std::string Identifier::toStdString(int level) {
                      std::string(level, '\t') + "}");
 }
 
-QDataStream &operator<<(QDataStream &stream, const Identifier &val) {
-  stream << val.editorId << val.digit;
-  return stream;
-}
-
-QDataStream &operator>>(QDataStream &stream, Identifier &val) {
-  stream >> val.editorId >> val.digit;
-  return stream;
-}
-
 unsigned Identifier::getEditorId() {
   return this->editorId;
 }
 
 unsigned Identifier::getDigit() {
   return this->digit;
+}
+
+QDataStream &Identifier::serialize(QDataStream &stream) const {
+  stream << editorId << digit;
+  return stream;
+}
+
+QDataStream &Identifier::deserialize(QDataStream &stream) {
+  stream >> editorId >> digit;
+  return stream;
 }

@@ -14,19 +14,19 @@ private:
 
     Symbol symbol;
 
-    void serialize(QDataStream &stream) override;
-
-    void deserialize(QDataStream &stream) override;
-
 public:
 
-    CrdtMessage(Type msgType, Symbol symbol, unsigned editorId);
+    CrdtMessage(Symbol symbol, unsigned editorId);
 
     CrdtMessage() = default;
 
     Symbol &getSymbol();
 
     std::string toStdString(int level = 0) override;
+
+    QDataStream &serialize(QDataStream &stream) const override;
+
+    QDataStream &deserialize(QDataStream &stream) override;
 
 };
 

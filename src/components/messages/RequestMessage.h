@@ -15,19 +15,19 @@ private:
 
     QString filename;
 
-    void serialize(QDataStream &stream) override;
-
-    void deserialize(QDataStream &stream) override;
-
 public:
 
-    RequestMessage(Type msgType, unsigned editorId, QString filename);
+    RequestMessage(unsigned editorId, QString filename);
 
     RequestMessage() = default;
 
     QString &getFilename();
 
     std::string toStdString(int level = 0) override;
+
+    QDataStream &serialize(QDataStream &stream) const override;
+
+    QDataStream &deserialize(QDataStream &stream) override;
 
 };
 

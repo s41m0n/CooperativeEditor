@@ -34,8 +34,8 @@ void Controller::onNewConnection() {
 
   spdlog::debug("Connected Editor {0:d}", clientId);
 
-  BasicMessage msg(Type::CONNECT, clientId);
-  clientSocket->sendMsg(msg);
+  BasicMessage msg(clientId);
+  clientSocket->sendMsg(Type::CONNECT, msg);
 
 }
 
@@ -53,71 +53,81 @@ void Controller::onReadyRead() {
   auto sender = dynamic_cast<TcpSocket *>(QObject::sender());
   auto clientId = sender->getIdentifier();
 
-  std::shared_ptr<BasicMessage> base(sender->readMsg());
+  if (sender->isMessageAvailable()) {
 
-  switch (base->getMsgType()) {
+    auto header = sender->getHeader();
+    std::shared_ptr<BasicMessage> base(sender->readMsg());
 
-    case Type::LOGIN : {
-      auto derived = std::dynamic_pointer_cast<UserMessage>(base);
+    switch (header.getType()) {
 
-      //TODO : Check into the DATABASE
-      auto user = derived->getUser();
-      bool result =
-              user.getUsername() == "hello" && user.getPassword() ==
-                                               "9b71d224bd62f3785d96d46ad3ea3d73319bfbc2890caadae2dff72519673ca72323c3d99ba5c11d7c7acc6e14b8c5da0c4663475c2e5c3adef46f73bcdec043";
+      case Type::LOGIN : {
+        auto derived = std::dynamic_pointer_cast<UserMessage>(base);
 
-      if (result) {
-        User tmp("icon", user.getUsername(), "name", "surname", "email", {});
-        UserMessage newMsg(Type::LOGIN_OK, clientId, tmp);
-        FileListingMessage newMsg2(clientId, model->getAvailableFiles());
-        sender->sendMsg(newMsg);
-        sender->sendMsg(newMsg2);
-      } else {
-        BasicMessage msg(Type::LOGIN_KO, clientId);
-        sender->sendMsg(msg);
-      }
-      break;
-    }
-    case Type::REGISTER : {
-      break;
-    }
-    case Type::INSERT :
-    case Type::ERASE : {
-      auto derived = std::dynamic_pointer_cast<CrdtMessage>(base);
-      base->getMsgType() == Type::INSERT ? model->userInsert(clientId,
-                                                             derived->getSymbol())
-                                         : model->userErase(clientId,
-                                                            derived->getSymbol());
-      std::lock_guard<std::mutex> guard2(queueMutex);
-      messages.push(derived);
-      break;
-    }
-    case Type::CREATE :
-    case Type::OPEN : {
-      auto filename = std::dynamic_pointer_cast<RequestMessage>(
-              base)->getFilename();
-      FileText symbolList;
+        //TODO : Check into the DATABASE
+        auto user = derived->getUser();
+        bool result =
+                user.getUsername() == "hello" && user.getPassword() ==
+                                                 "9b71d224bd62f3785d96d46ad3ea3d73319bfbc2890caadae2dff72519673ca72323c3d99ba5c11d7c7acc6e14b8c5da0c4663475c2e5c3adef46f73bcdec043";
 
-      if (base->getMsgType() == Type::OPEN &&
-          model->openFileByUser(clientId, filename)) {
-        symbolList = model->getFileSymbolList(clientId);
-      } else if (base->getMsgType() == Type::CREATE &&
-                 !model->createFileByUser(clientId, filename)) {
-        BasicMessage newMsg(Type::FILE_KO, clientId);
-        sender->sendMsg(newMsg);
+        if (result) {
+          User tmp("icon", user.getUsername(), "name", "surname", "email", {});
+          UserMessage newMsg(clientId, tmp);
+          FileListingMessage newMsg2(clientId, model->getAvailableFiles());
+          sender->sendMsg(Type::LOGIN_OK, newMsg);
+          sender->sendMsg(Type::LISTING, newMsg2);
+        } else {
+          BasicMessage msg(clientId);
+          sender->sendMsg(Type::LOGIN_KO, msg);
+        }
         break;
       }
+      case Type::REGISTER : {
+        break;
+      }
+      case Type::INSERT :
+      case Type::ERASE : {
+        auto derived = std::dynamic_pointer_cast<CrdtMessage>(base);
+        try {
+          header.getType() == Type::INSERT ? model->userInsert(
+                  clientId,
+                  derived->getSymbol())
+                                           : model->userErase(
+                  clientId,
+                  derived->getSymbol());
+          std::lock_guard<std::mutex> guard2(queueMutex);
+          messages.push(derived);
+        } catch (std::exception &e) {
+          spdlog::error("Error on remote operation:\nMsg -> {}", e.what());
+        }
+        break;
+      }
+      case Type::CREATE :
+      case Type::OPEN : {
+        auto filename = std::dynamic_pointer_cast<RequestMessage>(
+                base)->getFilename();
+        FileText symbolList;
 
-      File file(filename, symbolList);
-      FileMessage newMsg2(clientId, file);
-      sender->sendMsg(newMsg2);
-      break;
+        if (header.getType() == Type::OPEN &&
+            model->openFileByUser(clientId, filename)) {
+          symbolList = model->getFileSymbolList(clientId);
+        } else if (header.getType() == Type::CREATE &&
+                   !model->createFileByUser(clientId, filename)) {
+          BasicMessage newMsg(clientId);
+          sender->sendMsg(Type::FILE_KO, newMsg);
+          break;
+        }
+
+        File file(filename, symbolList);
+        FileMessage newMsg2(clientId, file);
+        sender->sendMsg(Type::FILE_OK, newMsg2);
+        break;
+      }
+      default :
+        throw std::runtime_error(
+                "Must never read different types of Message!!!");
     }
-    default :
-      throw std::runtime_error("Must never read different types of Message!!!");
   }
-  //TODO : Send also message size to read correctly
-  if (sender->bytesAvailable()) {
+  if (sender->isMessageAvailable()) {
     onReadyRead();
   }
 }

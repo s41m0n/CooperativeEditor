@@ -56,18 +56,6 @@ QString &User::getPassword() {
   return password;
 }
 
-QDataStream &operator<<(QDataStream &stream, const User &val) {
-  stream << val.username << val.email << val.name << val.surname << val.icon
-         << val.password;
-  return stream;
-}
-
-QDataStream &operator>>(QDataStream &stream, User &val) {
-  stream >> val.username >> val.email >> val.name >> val.surname >> val.icon
-         >> val.password;
-  return stream;
-}
-
 std::string User::toStdString(int level) {
   return std::string(std::string(level, '\t') + "User{\n" +
                      std::string(level + 1, '\t') + "username: " +
@@ -83,4 +71,14 @@ std::string User::toStdString(int level) {
                      std::string(level + 1, '\t') + "icon: " +
                      icon.toStdString() + "\n" + std::string(level + 1, '\t') +
                      "}");
+}
+
+QDataStream &User::serialize(QDataStream &stream) const {
+  stream << username << password << email << name << surname << icon;
+  return stream;
+}
+
+QDataStream &User::deserialize(QDataStream &stream) {
+  stream >> username >> password >> email >> name >> surname >> icon;
+  return stream;
 }

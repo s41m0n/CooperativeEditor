@@ -1,8 +1,7 @@
 #include "FileMessage.h"
 
-FileMessage::FileMessage(unsigned editorId,
-                         File &file)
-        : BasicMessage(Type::FILE_OK, editorId), file(file) {
+FileMessage::FileMessage(unsigned editorId, File &file)
+        : BasicMessage(editorId), file(file) {
 }
 
 File &FileMessage::getFile() {
@@ -12,8 +11,6 @@ File &FileMessage::getFile() {
 std::string FileMessage::toStdString(int level) {
   std::string tmp;
   tmp += std::string(level, '\t') + "FileMessage{\n";
-  tmp += std::string(level + 1, '\t') + "msgType: " +
-         std::to_string(static_cast<int>(msgType)) + "\n";
   tmp += std::string(level + 1, '\t') + "editorId: " +
          std::to_string(editorId) + "\n";
   tmp += std::string(level + 1, '\t') + "content: [\n";
@@ -23,12 +20,14 @@ std::string FileMessage::toStdString(int level) {
   return tmp;
 }
 
-void FileMessage::serialize(QDataStream &stream) {
+QDataStream &FileMessage::serialize(QDataStream &stream) const {
   BasicMessage::serialize(stream);
   stream << file;
+  return stream;
 }
 
-void FileMessage::deserialize(QDataStream &stream) {
+QDataStream &FileMessage::deserialize(QDataStream &stream) {
   BasicMessage::deserialize(stream);
   stream >> file;
+  return stream;
 }

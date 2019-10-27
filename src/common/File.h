@@ -1,11 +1,14 @@
 #ifndef COOPERATIVEEDITOR_FILE_H
 #define COOPERATIVEEDITOR_FILE_H
 
-#include <QtCore/QString>
-#include <src/components/Symbol.h>
+#include <QString>
 #include <mutex>
 
-class File {
+#include <src/components/Symbol.h>
+#include "src/include/lib/serialization/Serializable.h"
+
+class File : public Serializable {
+
 protected:
 
     QString fileName;
@@ -22,9 +25,11 @@ public:
 
     FileText &getFileText();
 
-    friend QDataStream &operator<<(QDataStream &stream, const File &val);
+    std::string toStdString(int level) override;
 
-    friend QDataStream &operator>>(QDataStream &stream, File &val);
+    QDataStream &serialize(QDataStream &stream) const override;
+
+    QDataStream &deserialize(QDataStream &stream) override;
 
 };
 
