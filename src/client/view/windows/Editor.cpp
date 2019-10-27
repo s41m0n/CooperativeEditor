@@ -315,8 +315,6 @@ void Editor::fileToPDF() {
   QString fileName = "Prova"; //TODO: metti nome file vero
   fileName.append(".pdf");
 
-  //QDir::setCurrent("/home");
-
   QPrinter printer(QPrinter::PrinterResolution);
   printer.setOutputFormat(QPrinter::PdfFormat);
   printer.setPaperSize(QPrinter::A4);
