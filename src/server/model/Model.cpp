@@ -68,13 +68,14 @@ void Model::userErase(unsigned int connId, Symbol &symbol) {
 
 bool Model::createFileByUser(unsigned connId, const QString &filename) {
 
-  if (std::find(availableFiles.begin(), availableFiles.end(), filename) !=
+  auto newFile = std::make_shared<ServerFile>(filename + ".crdt");
+
+  if (std::find(availableFiles.begin(), availableFiles.end(), newFile.get()->getFileName()) !=
       availableFiles.end()) {
     return false;
   } else {
     std::lock_guard<std::mutex> guard(usersFileMutex);
-    availableFiles.push_back(filename);
-    auto newFile = std::make_shared<ServerFile>(filename + ".crdt");
+    availableFiles.push_back(newFile.get()->getFileName());
     usersFile[connId] = newFile;
     return true;
   }
