@@ -120,19 +120,13 @@ void Model::removeConnection(unsigned connId) {
 }
 
 bool Model::logInUser(User& user) {
-    bool retValue = Database::getInstance().queryUserPass(user);
-
-    return retValue;
+    return Database::getInstance().loginUser(user);
 }
 
 bool Model::registerUser(User& user) {
-    bool retValue = Database::getInstance().insertUser(user);
-
-    return retValue;
+    return Database::getInstance().insertUser(user);
 }
 
 bool Model::updateUser(User& user) {
-    bool retValue = Database::getInstance().updateUser(user);
-
-    return retValue;
+    return Database::getInstance().updateUser(user);
 }

@@ -11,7 +11,7 @@
 #include "components/Symbol.h"
 
 #include "ServerFile.h"
-#include "server/database/Database.h"
+#include "Database.h"
 #include "common/User.h"
 
 /**
@@ -64,13 +64,13 @@ public:
     FileText &getFileSymbolList(unsigned connId);
 
     ///Returns a bool to indicate if the logIn credential are correct and set the User object
-    bool logInUser(User& user);
+    static bool logInUser(User& user);
 
     ///Returns a bool to indicate if the registration was successful
-    bool registerUser(User& user);
+    static bool registerUser(User& user);
 
     ///Returns a bool to indicate if the update was successful
-    bool updateUser(User& user);
+    static bool updateUser(User& user);
 
 };
 
