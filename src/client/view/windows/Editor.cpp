@@ -147,7 +147,6 @@ Editor::eventFilter(QObject *object, QEvent *event) { //key pression manager
           break;
         }
       }
-
     }
   }
 
@@ -163,8 +162,8 @@ void Editor::paste() {
   auto clipboard = QApplication::clipboard();
   QString selectedText = clipboard->text();
 
-  for (auto i : selectedText) {
-    emit symbolInserted(getCursorPos(), i);
+  for (int i = 0; i < selectedText.size(); i++) {
+    emit symbolInserted(getCursorPos() + i, selectedText.at(i));
   }
 }
 
