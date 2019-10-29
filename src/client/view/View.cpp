@@ -1,74 +1,121 @@
-#include "client/view/View.h"
+#include "View.h"
 
 View::View(Controller *controller) : controller(controller) {
+  msg = new QMessageBox();
+
+  QObject::connect(controller, &QAbstractSocket::connected, this,
+                   &View::init);
+
+  QObject::connect(controller, QOverload<QAbstractSocket::SocketError>::of(
+          &QAbstractSocket::error), this, [this]() {
+      msg->setText(
+              "Connection error, the server is unreachable. Try later, please.");
+      msg->exec();
+      exit(-1);
+  });
 }
 
 void View::init() {
-  auto login = new Login();
-  auto editor = new Editor();
-  auto fileVisualizer = new FileVisualizer();
-  auto signUp = new SignUp();
-  auto editProfile = new EditUserProfile();
+  login = new Login();
+  editor = new Editor();
+  fileVisualizer = new FileVisualizer();
+  signUp = new SignUp();
+  editProfile = new EditUserProfile();
 
-  //TODO: valutare ipotesi di creare le varie finestre solo quando sono necessarie, comporta creare come variabili di classe le varie finestre
+  ///Bottone semplice da Login a SignUp se non ho un account e voglio registrarmi
+  QObject::connect(login, &Login::signUp, this, [this]() {
+      signUp->show();
+      login->close();
+  });
 
-  //Bottone semplice da Login a SignUp se non ho un account e voglio registrarmi
-  QObject::connect(login, &Login::signUp, signUp, &SignUp::show);
+  ///Bottone semplice da SignUp a Login se non voglio registrarmi e tornare al login
+  QObject::connect(signUp, &SignUp::backToLogin, this, [this]() {
+      login->show();
+      signUp->close();
+  });
 
-  //Bottone semplice da SignUp a Login se non voglio registrarmi e tornare al login
-  QObject::connect(signUp, &SignUp::backToLogin, login, &Login::show);
+  ///Bottone semplice (azione da menu dropdown) da Editor e EditUserProfile per modificare il mio profilo
+  QObject::connect(editor, &Editor::openEditProfileFromEditor, this, [this]() {
+      editProfile->show();
+      editor->close();
+  });
 
-  //Bottone semplice (azione da menu dropdown) da Editor e EditUserProfile per modificare il mio profilo
-  QObject::connect(editor, &Editor::openEditProfileFromEditor, editProfile,
-                   &EditUserProfile::show);
+  ///Bottone semplice (azione da menu dropdown) da Editor a FileVisualizer per aprire un nuovo file
+  QObject::connect(editor, &Editor::openVisualizerFromEditor, this, [this]() {
+      fileVisualizer->show();
+      editor->close();
+  });
 
-  //Bottone semplice (azione da menu dropdown) da Editor a FileVisualizer per aprire un nuovo file
-  QObject::connect(editor, &Editor::openVisualizerFromEditor, fileVisualizer,
-                   &FileVisualizer::show);
-
-  //Segnale dal fileVisualizer per chiedere al server di aprire un file
+  ///Segnale dal fileVisualizer per chiedere al server di aprire un file
   QObject::connect(fileVisualizer, &FileVisualizer::fileRequest, controller,
                    &Controller::onFileRequest);
 
-  //Segnale dal login al controller per inviare al server la login request
+  ///Segnale dal login al controller per inviare al server la login request
   QObject::connect(login, &Login::loginRequest, controller,
                    &Controller::onLoginRequest);
 
-  //Segnale dal controller al login per notificare l'esito della login request
-  QObject::connect(controller, &Controller::loginResponse, login,
-                   &Login::onLoginResponse);
-
-  //Server unreachable nelle varie finestre
-  QObject::connect(controller, &Controller::serverUnreachable, login,
-                   &Login::onServerUnreachable);
-
-  QObject::connect(controller, &Controller::loginResponse,
-                   [fileVisualizer](bool isLogged) {
-                       if (isLogged) {
-                         fileVisualizer->show();
-                       }
-                   });
-  QObject::connect(controller, &Controller::fileListing, fileVisualizer,
-                   &FileVisualizer::onFileListing);
-  QObject::connect(controller, &Controller::fileResult, fileVisualizer,
-                   &FileVisualizer::onFileResult);
-
-  QObject::connect(controller, &Controller::fileResult,
-                   [editor](bool result) {
-                       if (result) {
-                         editor->show();
-                       }
-                   });
-
-  QObject::connect(controller, &Controller::remoteUpdate, editor,
-                   &Editor::onRemoteUpdate);
-
+  ///Segnale dal register al controller per inviare al server la register request
   QObject::connect(signUp, &SignUp::signUpRequest, controller,
                    &Controller::onSignUpRequest);
 
-  QObject::connect(editor, &Editor::symbolInserted, controller, &Controller::onCharInserted);
-  QObject::connect(editor, &Editor::symbolDeleted, controller, &Controller::onCharErased);
+
+  ///Risposta di login
+  QObject::connect(controller, &Controller::loginResponse,
+                   [this](bool isLogged) {
+                       if (isLogged) {
+                         fileVisualizer->show();
+                         login->close();
+                       } else {
+                         msg->setText(
+                                 "Username and Password are not correct.");
+                         msg->exec();
+                       }
+                   });
+
+  ///Risposta con la lista di file ricevuti
+  QObject::connect(controller, &Controller::fileListing, fileVisualizer,
+                   &FileVisualizer::onFileListing);
+
+  ///Risposta con risultato di apertura/creazione file
+  QObject::connect(controller, &Controller::fileResult, this,
+                   [this](bool result) {
+                       if (result) {
+                         editor->show();
+                         fileVisualizer->close();
+                       } else {
+                         msg->setText(
+                                 "Sorry, the action requested cannot be performed (have you inserted"
+                                 "an already existing file name?). Retry?");
+                         msg->setStandardButtons(
+                                 QMessageBox::Yes | QMessageBox::No);
+
+                         int dialogResult = msg->exec();
+
+                         switch (dialogResult) {
+                           case QMessageBox::Yes:
+                             msg->close();
+                             break;
+                           case QMessageBox::No:
+                             fileVisualizer->close();
+                             break;
+                           default:
+                             //error, should never be reached
+                             break;
+                         }
+                       }
+                   });
+
+  ///Nuovo testo da settare alla view in seguito ad un remote update
+  QObject::connect(controller, &Controller::remoteUpdate, editor,
+                   &Editor::onRemoteUpdate);
+
+  ///Segnale dall'editor al controller in seguito ad un inserimento
+  QObject::connect(editor, &Editor::symbolInserted, controller,
+                   &Controller::onCharInserted);
+
+  ///Segnale dall'editor al controller in seguito ad una cancellazione
+  QObject::connect(editor, &Editor::symbolDeleted, controller,
+                   &Controller::onCharErased);
 
   login->show();
-  //editor->show();
 }

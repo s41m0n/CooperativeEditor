@@ -47,18 +47,6 @@ void FileVisualizer::onFileListing(const QVector<QString> &filesArray) {
   areYouSureQuit->setStandardButtons(QMessageBox::Yes | QMessageBox::No);
   areYouSureQuit->setFixedSize(this->minimumSize());
 
-  errorNotConnected = new QMessageBox(this);
-  errorNotConnected->setText(
-          "Sorry, the server is unreachable. Try later, please.");
-  errorNotConnected->setFixedSize(this->minimumSize());
-
-  fileCannotBeOpened = new QMessageBox(this);
-  fileCannotBeOpened->setText(
-          "Sorry, the action requested cannot be performed (have you inserted"
-          "an already existing file name?). Retry?");
-  fileCannotBeOpened->setStandardButtons(QMessageBox::Yes | QMessageBox::No);
-  fileCannotBeOpened->setFixedSize(this->minimumSize());
-
   boxCreate = new QGroupBox("Click here to create a new file:", mainWidget);
   boxCreate->setLayout(new QVBoxLayout());
   layout->addWidget(boxCreate, 4, 0, 1, 2);
@@ -111,36 +99,8 @@ void FileVisualizer::onFileListing(const QVector<QString> &filesArray) {
                        }
                    });
 
-  QObject::connect(list, SIGNAL(itemDoubleClicked(QListWidgetItem*)), this,
-                   SLOT(performFileRequest(QListWidgetItem*)));
-}
-
-void FileVisualizer::onFileResult(bool result) {
-  if (result) {
-    //Il file può essere aperto/creato
-    this->close();
-  } else {
-
-    int dialogResult = fileCannotBeOpened->exec();
-
-    switch (dialogResult) {
-      case QMessageBox::Yes:
-        fileCannotBeOpened->close();
-        break;
-      case QMessageBox::No:
-        this->close();
-        break;
-      default:
-        //error, should never be reached
-        break;
-    }
-  }
-}
-
-void FileVisualizer::performFileRequest(QListWidgetItem* item){
-  emit fileRequest(item->text(), true);
-}
-
-void FileVisualizer::onServerUnreachable() {
-  errorNotConnected->exec();
+  QObject::connect(list, &QListWidget::itemDoubleClicked, this,
+                   [this](QListWidgetItem *item) {
+                       emit fileRequest(item->text(), true);
+                   });
 }

@@ -11,7 +11,10 @@
 Controller::Controller(Model *model, unsigned short port, QWidget *parent)
         : QTcpServer(parent),
           model(model) {
-  listen(QHostAddress::Any, port);
+  if(!listen(QHostAddress::Any, port)) {
+    spdlog::error("Unable to listen on address {} and port {}", QHostAddress::Any, port);
+    exit(-1);
+  }
   connect(this, SIGNAL(newConnection()), this, SLOT(onNewConnection()));
 }
 

@@ -74,6 +74,7 @@ bool Model::createFileByUser(unsigned connId, const QString &filename) {
       availableFiles.end()) {
     return false;
   } else {
+    storeFileSymbols(newFile);
     std::lock_guard<std::mutex> guard(usersFileMutex);
     availableFiles.push_back(newFile.get()->getFileName());
     usersFile[connId] = newFile;

@@ -40,14 +40,11 @@ private:
     QMessageBox *errorMessageEmptyFields;
     QMessageBox *errorMessageDifferentPasswords;
     QMessageBox *areYouSureQuit;
-    QMessageBox *errorNotConnected;
     QString userImage;
 
 public:
 
     explicit EditUserProfile(QWidget *parent = nullptr);
-
-public slots:
 
 };
 

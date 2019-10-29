@@ -97,11 +97,6 @@ SignUp::SignUp(QWidget *parent) : QMainWindow(parent) {
   errorMessageDifferentPasswords->setText("The two passwords must match.");
   errorMessageDifferentPasswords->setFixedSize(this->minimumSize());
 
-  errorNotConnected = new QMessageBox(this);
-  errorNotConnected->setText(
-          "Sorry, the server is unreachable. Try later, please.");
-  errorNotConnected->setFixedSize(this->minimumSize());
-
   buttonExit->setFocus();
 
   QObject::connect(buttonExit, &QAbstractButton::clicked, this,
@@ -137,7 +132,6 @@ SignUp::SignUp(QWidget *parent) : QMainWindow(parent) {
   QObject::connect(buttonBackToLogin, &QAbstractButton::clicked, this,
                    [this]() {
                        emit backToLogin();
-                       this->close();
                    });
 
   QObject::connect(buttonSignUp, &QAbstractButton::clicked, this,
@@ -164,9 +158,5 @@ SignUp::SignUp(QWidget *parent) : QMainWindow(parent) {
                          errorMessageEmptyFields->exec();
                        }
                    });
-}
-
-void SignUp::onServerUnreachable() {
-  errorNotConnected->exec();
 }
 

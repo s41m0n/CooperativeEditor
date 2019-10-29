@@ -63,7 +63,7 @@ void Controller::onReadyRead() {
         try {
           getHeader().getType() == Type::INSERT ? model->remoteInsert(
                   std::dynamic_pointer_cast<CrdtMessage>(base)->getSymbol())
-                                           : model->remoteErase(
+                                                : model->remoteErase(
                   std::dynamic_pointer_cast<CrdtMessage>(base)->getSymbol());
           emit remoteUpdate(model->textify());
         } catch (std::exception &e) {
@@ -83,80 +83,61 @@ void Controller::onReadyRead() {
 
 void Controller::onCharInserted(int index, QChar value) {
 
-  if (state() == QTcpSocket::ConnectedState) {
-    try {
-      CrdtMessage msg(model->localInsert(index, value),
-                      model->getEditorId());
-      sendMsg(Type::INSERT, msg);
-    } catch (std::exception &e) {
-      spdlog::error("Error on local insert:\nIndex-> {}\nMsg -> {}", index,
-                    e.what());
-    }
-
-  } else {
-    emit serverUnreachable();
+  try {
+    CrdtMessage msg(model->localInsert(index, value),
+                    model->getEditorId());
+    sendMsg(Type::INSERT, msg);
+  } catch (std::exception &e) {
+    spdlog::error("Error on local insert:\nIndex-> {}\nMsg -> {}", index,
+                  e.what());
   }
 
 }
 
 void Controller::onCharErased(int index) {
 
-  if (state() == QTcpSocket::ConnectedState) {
-    try {
-      CrdtMessage msg(model->localErase(index),
-                      model->getEditorId());
-      sendMsg(Type::ERASE, msg);
-    } catch (std::exception &e) {
-      spdlog::error("Error on local erase: Index-> {} @ Msg -> {}", index,
-                    e.what());
-    }
-
-  } else {
-    emit serverUnreachable();
+  try {
+    CrdtMessage msg(model->localErase(index),
+                    model->getEditorId());
+    sendMsg(Type::ERASE, msg);
+  } catch (std::exception &e) {
+    spdlog::error("Error on local erase: Index-> {} @ Msg -> {}", index,
+                  e.what());
   }
+
 }
 
 void
 Controller::onLoginRequest(const QString &username, const QString &password) {
 
-  if (state() == QTcpSocket::ConnectedState) {
-    QByteArray hashedPassword = QCryptographicHash::hash(password.toUtf8(),
-                                                         QCryptographicHash::Sha512);
+  QByteArray hashedPassword = QCryptographicHash::hash(password.toUtf8(),
+                                                       QCryptographicHash::Sha512);
 
-    UserMessage msg(model->getEditorId(),
-                    User(username, QString(hashedPassword.toHex())));
-    sendMsg(Type::LOGIN, msg);
+  UserMessage msg(model->getEditorId(),
+                  User(username, QString(hashedPassword.toHex())));
+  sendMsg(Type::LOGIN, msg);
 
-  } else {
-    emit serverUnreachable();
-  }
 }
 
 void Controller::onSignUpRequest(QString image, QString name, QString surname,
                                  QString username, QString email,
                                  const QString &password) {
-  if (state() == QTcpSocket::ConnectedState) {
-    QByteArray hashedPassword = QCryptographicHash::hash(password.toUtf8(),
-                                                         QCryptographicHash::Sha512);
 
-    UserMessage msg(model->getEditorId(),
-                    User(std::move(image), std::move(username),
-                         std::move(name), std::move(surname),
-                         std::move(email),
-                         QString(hashedPassword.toHex())));
-    sendMsg(Type::REGISTER, msg);
-  } else {
-    emit serverUnreachable();
-  }
+  QByteArray hashedPassword = QCryptographicHash::hash(password.toUtf8(),
+                                                       QCryptographicHash::Sha512);
+
+  UserMessage msg(model->getEditorId(),
+                  User(std::move(image), std::move(username),
+                       std::move(name), std::move(surname),
+                       std::move(email),
+                       QString(hashedPassword.toHex())));
+  sendMsg(Type::REGISTER, msg);
+
 }
 
 void Controller::onFileRequest(const QString &filename, bool exists) {
 
-  if (state() == QTcpSocket::ConnectedState) {
-    RequestMessage msg(model->getEditorId(), filename);
-    sendMsg(exists ? Type::OPEN : Type::CREATE, msg);
-  } else {
-    emit serverUnreachable();
-  }
+  RequestMessage msg(model->getEditorId(), filename);
+  sendMsg(exists ? Type::OPEN : Type::CREATE, msg);
 
 }

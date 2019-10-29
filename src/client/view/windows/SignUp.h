@@ -39,20 +39,17 @@ private:
     QPushButton *buttonSignUp;
     QPushButton *buttonExit;
     QGroupBox *alreadyRegisteredBox;
-    QPushButton *buttonBackToLogin;
     QMessageBox *errorMessageEmptyFields;
     QMessageBox *errorMessageDifferentPasswords;
     QMessageBox *areYouSureQuit;
-    QMessageBox *errorNotConnected;
     QString userImage;
+
+protected:
+
+    QPushButton *buttonBackToLogin;
 
 public:
     explicit SignUp(QWidget *parent = nullptr);
-
-public slots:
-
-    ///Slot to notify view when socket not connected to server
-    void onServerUnreachable();
 
 signals:
 

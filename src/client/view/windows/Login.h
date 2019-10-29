@@ -19,7 +19,6 @@ Q_OBJECT
 
 private:
     QWidget *mainWidget;
-    QLabel *title;
     QGroupBox *loginBox;
     QLabel *usernameLabel;
     QLineEdit *usernameTextField;
@@ -31,20 +30,10 @@ private:
     QPushButton *buttonExit;
     QMessageBox *errorMessageEmptyFields;
     QMessageBox *areYouSureQuit;
-    QMessageBox *errorNotConnected;
-    QMessageBox *errorNotLogged;
 
 public:
 
     explicit Login(QWidget *parent = nullptr);
-
-public slots:
-
-    ///Slot to notify view when socket not connected to server
-    void onServerUnreachable();
-
-    ///Slot to notify view when login response received
-    void onLoginResponse(bool result);
 
 signals:
 

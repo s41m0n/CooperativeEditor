@@ -2,22 +2,34 @@
 #define COOPERATIVEEDITOR_VIEW_H
 
 #include "client/controller/Controller.h"
-#include "client/view/windows/Login.h"
-#include "client/view/windows/Editor.h"
-#include "client/view/windows/FileVisualizer.h"
-#include "client/view/windows/EditUserProfile.h"
-#include "client/view/windows/SignUp.h"
+#include "windows/Login.h"
+#include "windows/Editor.h"
+#include "windows/FileVisualizer.h"
+#include "windows/EditUserProfile.h"
+#include "windows/SignUp.h"
 
 /**Class View, the responsible of the user interface
  *
  */
-class View {
+class View : public QObject {
+
+Q_OBJECT
 
 private:
     Controller *controller;
 
+    Login *login{};
+    SignUp *signUp{};
+    Editor *editor{};
+    FileVisualizer *fileVisualizer{};
+    EditUserProfile *editProfile{};
+
+    QMessageBox *msg;
+
 public:
     explicit View(Controller *controller);
+
+public slots:
 
     void init();
 
