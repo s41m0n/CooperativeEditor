@@ -19,15 +19,12 @@ class FileVisualizer : public QMainWindow {
 Q_OBJECT
 
 private:
-    QWidget *mainWidget;
-    QLabel *titleOpen;
-    QLabel *titleCreate;
-    QPushButton *buttonExit;
-    QPushButton *buttonCreate;
-    QMessageBox *areYouSureQuit;
-    QMessageBox *errorNotConnected;
-    QGroupBox *boxCreate;
-    QMessageBox *fileCannotBeOpened;
+    QWidget *mainWidget{};
+    QLabel *titleOpen{};
+    QPushButton *buttonExit{};
+    QPushButton *buttonCreate{};
+    QMessageBox *areYouSureQuit{};
+    QGroupBox *boxCreate{};
 
 public:
 
@@ -37,15 +34,6 @@ public slots:
 
     ///Slot to notify the editor that the list of files has been received
     void onFileListing(const QVector<QString> &filesArray);
-
-    ///Slot to notify the visualizer that the file can/cannot be opened/created
-    void onFileResult(bool result);
-
-    ///Slot to emit the signal fileRequest with the correct file
-    void performFileRequest(QListWidgetItem *item);
-
-    ///Slot to notify the client the server is unreachable
-    void onServerUnreachable();
 
 signals:
 

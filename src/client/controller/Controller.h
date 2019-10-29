@@ -55,9 +55,6 @@ signals:
     ///Signal to notify the view about the login
     void loginResponse(bool response);
 
-    ///Signal to notify the view that the client is not connected
-    void serverUnreachable();
-
     ///Signal to notify the view that the server has sent the list of files
     void fileListing(QVector<QString> files);
 

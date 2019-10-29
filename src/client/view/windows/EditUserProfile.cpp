@@ -1,6 +1,6 @@
 #include "EditUserProfile.h"
 
-EditUserProfile::EditUserProfile(QWidget *parent) {
+EditUserProfile::EditUserProfile(QWidget *parent) : QMainWindow(parent) {
 
   //TODO: vanno recuperati tutti i dati dell'utente e messi come placeholder dei vari campi di test, sarebbe figo mostrare l'icona
 
@@ -85,11 +85,6 @@ EditUserProfile::EditUserProfile(QWidget *parent) {
   errorMessageDifferentPasswords = new QMessageBox(this);
   errorMessageDifferentPasswords->setText("The two passwords must match.");
   errorMessageDifferentPasswords->setFixedSize(this->minimumSize());
-
-  errorNotConnected = new QMessageBox(this);
-  errorNotConnected->setText(
-          "Sorry, the server is unreachable. Try later, please.");
-  errorNotConnected->setFixedSize(this->minimumSize());
 
   buttonSaveAndBackToEditor->setFocus();
 

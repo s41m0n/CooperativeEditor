@@ -55,15 +55,6 @@ Login::Login(QWidget *parent) : QMainWindow(parent) {
   areYouSureQuit->setStandardButtons(QMessageBox::Yes | QMessageBox::No);
   areYouSureQuit->setFixedSize(this->minimumSize());
 
-  errorNotLogged = new QMessageBox(this);
-  errorNotLogged->setText("Username and Password are not correct.");
-  errorNotLogged->setFixedSize(this->minimumSize());
-
-  errorNotConnected = new QMessageBox(this);
-  errorNotConnected->setText(
-          "Sorry, the server is unreachable. Try later, please.");
-  errorNotConnected->setFixedSize(this->minimumSize());
-
   buttonExit->setFocus();
 
   QObject::connect(buttonExit, &QAbstractButton::clicked, this,
@@ -97,20 +88,5 @@ Login::Login(QWidget *parent) : QMainWindow(parent) {
   QObject::connect(buttonRegister, &QAbstractButton::clicked, this,
                    [this]() {
                        emit signUp();
-                       this->close();
                    });
 }
-
-void Login::onServerUnreachable() {
-  errorNotConnected->exec();
-}
-
-void Login::onLoginResponse(bool result) {
-  if (result) {
-    this->close();
-  } else {
-    errorNotLogged->exec();
-  }
-}
-
-
