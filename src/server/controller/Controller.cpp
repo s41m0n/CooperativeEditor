@@ -63,28 +63,23 @@ void Controller::onReadyRead() {
 
     switch (header.getType()) {
 
+      case Type::REGISTER :
       case Type::LOGIN : {
         auto derived = std::dynamic_pointer_cast<UserMessage>(base);
 
-        //TODO : Check into the DATABASE
         auto user = derived->getUser();
-        bool result =
-                user.getUsername() == "hello" && user.getPassword() ==
-                                                 "9b71d224bd62f3785d96d46ad3ea3d73319bfbc2890caadae2dff72519673ca72323c3d99ba5c11d7c7acc6e14b8c5da0c4663475c2e5c3adef46f73bcdec043";
+
+        bool result = header.getType() == Type::LOGIN? model->logInUser(user) : model->registerUser(user);
 
         if (result) {
-          User tmp("icon", user.getUsername(), "name", "surname", "email", {});
-          UserMessage newMsg(clientId, tmp);
+          UserMessage newMsg(clientId, user);
           FileListingMessage newMsg2(clientId, model->getAvailableFiles());
-          sender->sendMsg(Type::LOGIN_OK, newMsg);
+          sender->sendMsg(header.getType() == Type::LOGIN? Type::LOGIN_OK : Type::REGISTER_OK, newMsg);
           sender->sendMsg(Type::LISTING, newMsg2);
         } else {
           BasicMessage msg(clientId);
-          sender->sendMsg(Type::LOGIN_KO, msg);
+          sender->sendMsg(header.getType() == Type::LOGIN? Type::LOGIN_KO : Type::REGISTER_KO, msg);
         }
-        break;
-      }
-      case Type::REGISTER : {
         break;
       }
       case Type::INSERT :

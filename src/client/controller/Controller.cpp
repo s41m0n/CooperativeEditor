@@ -35,6 +35,7 @@ void Controller::onReadyRead() {
         emit loginResponse(false);
         break;
       }
+      case Type::REGISTER_OK:
       case Type::LOGIN_OK : {
         emit loginResponse(true);
         model->setCurrentUser(

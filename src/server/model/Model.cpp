@@ -1,6 +1,7 @@
 #include <filesystem>
 #include <algorithm>
 #include <QFile>
+#include <iostream>
 
 #include "src/include/lib/crdt/CrdtAlgorithm.h"
 #include "Model.h"
@@ -119,13 +120,13 @@ void Model::removeConnection(unsigned connId) {
   usersFile.erase(connId);
 }
 
-bool Model::logInUser(std::string username, std::string password, User user) {
-    bool retValue = Database::getInstance().queryUserPass(username,password,user);
+bool Model::logInUser(User& user) {
+    bool retValue = Database::getInstance().queryUserPass(user.getUsername().toStdString(),user.getPassword().toStdString(),user);
 
     return retValue;
 }
 
-bool Model::registerUser(User user) {
+bool Model::registerUser(User& user) {
     bool retValue = Database::getInstance().insertUser(user);
 
     return retValue;

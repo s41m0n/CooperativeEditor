@@ -47,7 +47,7 @@ public:
     }
 
     //Method to insert a new user in the database
-    bool insertUser(User user);
+    bool insertUser(User& user);
 
     //Method to check the user password
     bool queryUserPass(std::string username, std::string password, User& user);
