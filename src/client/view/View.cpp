@@ -65,6 +65,7 @@ void View::init() {
                        if (isLogged) {
                          fileVisualizer->show();
                          login->close();
+                         signUp->close();
                        } else {
                          msg->setText(
                                  "Username and Password are not correct.");

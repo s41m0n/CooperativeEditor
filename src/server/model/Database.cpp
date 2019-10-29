@@ -2,7 +2,7 @@
 #include <spdlog/spdlog.h>
 
 Database::Database() {
-  if (!openConnection()) {
+  if (openConnection()) {
     if (!checkTable()) {
       createTableUser();
     }
@@ -47,11 +47,11 @@ bool Database::checkTable() {
 }
 
 int Database::openConnection() {
-  return sqlite3_open(databaseName.c_str(), &DBConnection);
+  return sqlite3_open(databaseName.c_str(), &DBConnection) == 0;
 }
 
 bool Database::insertUser(User &user) {
-  if (!openConnection()) {
+  if (openConnection()) {
     std::string sql = "INSERT INTO User VALUES(NULL,?,?,?,?,?,'path');";
     const char *zTail = nullptr;
     const char **pzTail = &zTail;
@@ -91,7 +91,7 @@ bool Database::insertUser(User &user) {
 }
 
 bool Database::loginUser(User &user) {
-  if (!openConnection()) {
+  if (openConnection()) {
     std::string sql = "SELECT * FROM User WHERE Username=? AND Password=?;";
     const char *zTail = nullptr;
     const char **pzTail = &zTail;
@@ -132,7 +132,7 @@ bool Database::loginUser(User &user) {
 }
 
 bool Database::updateUser(User &user) {
-  if (!openConnection()) {
+  if (openConnection()) {
     std::string sql = "UPDATE User set Password = ?, Name= ?, Surname = ?, Email = ? where Username = ?;";
     const char *zTail = nullptr;
     const char **pzTail = &zTail;
@@ -172,7 +172,7 @@ bool Database::updateUser(User &user) {
 }
 
 bool Database::deleteUser(User user) {
-  if (!openConnection()) {
+  if (openConnection()) {
     char *messaggeError;
     std::string sql = "DELETE FROM User WHERE Username = '" +
                       user.getUsername().toStdString() + "';";

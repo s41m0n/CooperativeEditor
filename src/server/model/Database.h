@@ -10,7 +10,7 @@ class Database {
 
 private:
 
-    const std::string databaseName = "cooperative_database";
+    const std::string databaseName = "cooperative_database.db";
 
     sqlite3 *DBConnection{};
 
