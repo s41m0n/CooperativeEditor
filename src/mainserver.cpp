@@ -1,5 +1,6 @@
 #include <spdlog/spdlog.h>
 #include <QApplication>
+#include <iostream>
 
 #include "server/controller/Controller.h"
 #include "server/model/Model.h"

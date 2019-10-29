@@ -50,13 +50,13 @@ public:
     bool insertUser(User& user);
 
     //Method to check the user password
-    bool queryUserPass(std::string username, std::string password, User& user);
+    bool queryUserPass(User& user);
 
     //Method to update the user attributes
-    bool updateUser(User user);
+    bool updateUser(User& user);
 
     //Method to delete an user
-    bool deleteUser(std::string username);
+    bool deleteUser(User user);
 
 };
 

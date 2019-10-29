@@ -31,6 +31,7 @@ void Controller::onReadyRead() {
         setIdentifier(base->getEditorId());
         break;
       }
+      case Type::REGISTER_KO:
       case Type::LOGIN_KO : {
         emit loginResponse(false);
         break;

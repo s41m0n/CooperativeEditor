@@ -70,7 +70,7 @@ public:
     bool registerUser(User& user);
 
     ///Returns a bool to indicate if the update was successful
-    bool updateUser(User user);
+    bool updateUser(User& user);
 
 };
 
