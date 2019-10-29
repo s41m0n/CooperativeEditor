@@ -57,4 +57,4 @@ if (CMAKE_G++_COMPILER_VERSION VERSION_LESS 9.0.0)
 endif ()
 
 target_link_libraries(CooperativeClient Qt5::Core Qt5::Network Qt5::Widgets Qt5::PrintSupport)
-target_link_libraries(CooperativeServer Qt5::Core Qt5::Network Qt5::Widgets Qt5::PrintSupport)
+target_link_libraries(CooperativeServer sqlite3 Qt5::Core Qt5::Network Qt5::Widgets Qt5::PrintSupport)
