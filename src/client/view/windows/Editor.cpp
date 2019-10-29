@@ -6,8 +6,10 @@ Editor::Editor(QWidget *parent) : QMainWindow(parent) {
   //TODO: fileVisualizer mi passa il nome del file
   //this->setWindowTitle("File Selection");
 
+  this->setMinimumWidth(500);
+
   mainWidget = new QWidget(this);
-  auto layout = new QVBoxLayout(mainWidget);
+  auto layout = new QGridLayout(mainWidget);
 
   setCentralWidget(mainWidget);
   mainWidget->setLayout(layout);
@@ -38,7 +40,25 @@ Editor::Editor(QWidget *parent) : QMainWindow(parent) {
 
   textEdit = new QTextEdit(mainWidget);
   textEdit->installEventFilter(this);
-  layout->addWidget(textEdit);
+  layout->addWidget(textEdit, 2, 0, 4, 2);
+
+  auto users = new QLabel("Users online:");
+  users->setFixedHeight(30);
+  layout->addWidget(users, 2, 2, 1, 1);
+
+  userOnline = new QGroupBox(mainWidget);
+  userOnline->setLayout(new QVBoxLayout);
+
+  //TODO: devi farti inviare i client connessi al file
+  auto user1 = new QLabel("User 1");
+  userOnline->layout()->addWidget(user1);
+  auto user2 = new QLabel("User 2");
+  userOnline->layout()->addWidget(user2);
+
+  userOnline->setFixedHeight(70); //TODO: setta a seconda del numero di client
+  userOnline->setFixedWidth(250);
+
+  layout->addWidget(userOnline, 3, 2, 1, 1);
 
 }
 
@@ -162,7 +182,7 @@ bool Editor::deleteSelection() {
   return false;
 }
 
-void Editor::createTopBar(QVBoxLayout *layout) {
+void Editor::createTopBar(QGridLayout *layout) {
 
   topBar = new QMenuBar(mainWidget);
 
@@ -287,10 +307,12 @@ void Editor::createTopBar(QVBoxLayout *layout) {
                    });
   help->addAction(actionAboutAuthors);
 
-  layout->addWidget(topBar);
+  topBar->setFixedHeight(35);
+
+  layout->addWidget(topBar, 0, 0, 1, 2);
 }
 
-void Editor::createToolBar(QVBoxLayout *layout) {
+void Editor::createToolBar(QGridLayout *layout) {
 
   toolBar = new QToolBar(mainWidget);
 
@@ -305,7 +327,9 @@ void Editor::createToolBar(QVBoxLayout *layout) {
   auto actionUnderlined = new QAction("Underlined", toolBar);
   toolBar->addAction(actionUnderlined);
 
-  layout->addWidget(toolBar);
+  toolBar->setFixedHeight(30);
+
+  layout->addWidget(toolBar, 1, 0, 1, 2);
 
   //TODO: aggiungere tutte le connect con le varie azioni dei pulsanti
 }

@@ -36,8 +36,8 @@ private:
     QMessageBox *infoAboutUs;
     QGroupBox *userOnline;
 
-    void createTopBar(QVBoxLayout *layout);
-    void createToolBar(QVBoxLayout *layout);
+    void createTopBar(QGridLayout *layout);
+    void createToolBar(QGridLayout *layout);
     int getCursorPos();
     void paste();
     bool deleteSelection(); //true = deleted, false = nothing to delete
