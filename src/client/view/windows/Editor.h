@@ -35,6 +35,9 @@ private:
     QMessageBox *editorInfo;
     QMessageBox *infoAboutUs;
     QGroupBox *userOnline;
+    bool bold;
+    bool underlined;
+    bool italic;
 
     void createTopBar(QGridLayout *layout);
     void createToolBar(QGridLayout *layout);

@@ -19,7 +19,8 @@ Editor::Editor(QWidget *parent) : QMainWindow(parent) {
   createToolBar(layout);
 
   fileCorrectlySaved = new QMessageBox();
-  fileCorrectlySaved->setText("File was correctly saved in your home directory");
+  fileCorrectlySaved->setText(
+          "File was correctly saved in your home directory");
   fileCorrectlySaved->setStandardButtons(QMessageBox::Close);
   fileCorrectlySaved->setFixedSize(this->minimumSize());
 
@@ -306,31 +307,89 @@ void Editor::createTopBar(QGridLayout *layout) {
                    });
   help->addAction(actionAboutAuthors);
 
-  topBar->setFixedHeight(35);
+  topBar->setFixedHeight(34);
 
   layout->addWidget(topBar, 0, 0, 1, 2);
 }
 
-void Editor::createToolBar(QGridLayout *layout) {
+void Editor::createToolBar(QGridLayout *layout) { //TODO: aggiungi emissione segnali per dire al server che un carattere è stato modificato
 
   toolBar = new QToolBar(mainWidget);
 
-  auto actionBold = new QAction("Bold", toolBar);
+  const QIcon boldIcon = QIcon::fromTheme("format-text-bold", QIcon(":/images/mac/textbold.png"));
+  auto actionBold = new QAction(boldIcon,"Bold", toolBar);
+  actionBold->setCheckable(true);
+  QObject::connect(actionBold, &QAction::triggered, this,
+                   [this, actionBold]() {
+                       QTextCharFormat format;
+                        if(!textEdit->textCursor().selectedText().isEmpty()) { //some text is selected
+                          if (textEdit->textCursor().charFormat().fontWeight() ==
+                              QFont::Bold) {
+                            format.setFontWeight(QFont::Normal);
+                            textEdit->textCursor().mergeCharFormat(format);
+                            actionBold->setChecked(false);
+                          } else {
+                            format.setFontWeight(QFont::Bold);
+                            textEdit->textCursor().mergeCharFormat(format);
+                            actionBold->setChecked(true);
+                          }
+                        } else { //text is not selected
+                          bold = !actionBold->isChecked();
+                        }
+                   });
   toolBar->addAction(actionBold);
+
   toolBar->addSeparator();
 
-  auto actionItalic = new QAction("Italic", toolBar);
+  const QIcon italicIcon = QIcon::fromTheme("format-text-italic", QIcon(":/images/mac/textitalic.png"));
+  auto actionItalic = new QAction(italicIcon, "Italic", toolBar);
+  actionItalic->setCheckable(true);
+  QObject::connect(actionItalic, &QAction::triggered, this,
+                   [this, actionItalic]() {
+                       QTextCharFormat format;
+                       if(!textEdit->textCursor().selectedText().isEmpty()) { //some text is selected
+                         if (textEdit->textCursor().charFormat().fontItalic()) {
+                           format.setFontItalic(false);
+                           textEdit->textCursor().mergeCharFormat(format);
+                           actionItalic->setChecked(false);
+                         } else {
+                           format.setFontItalic(true);
+                           textEdit->textCursor().mergeCharFormat(format);
+                           actionItalic->setChecked(true);
+                         }
+                       } else {
+                         italic = !actionItalic->isChecked();
+                       }
+                   });
   toolBar->addAction(actionItalic);
+
   toolBar->addSeparator();
 
-  auto actionUnderlined = new QAction("Underlined", toolBar);
+  const QIcon underlineIcon = QIcon::fromTheme("format-text-underline", QIcon(":images/mac/textunder.png"));
+  auto actionUnderlined = new QAction(underlineIcon, "Underlined", toolBar);
+  actionUnderlined->setCheckable(true);
+  QObject::connect(actionUnderlined, &QAction::triggered, this,
+                   [this, actionUnderlined]() {
+                       QTextCharFormat format;
+                       if(!textEdit->textCursor().selectedText().isEmpty()) { //some text is selected
+                         if (textEdit->textCursor().charFormat().fontUnderline()) {
+                           format.setFontUnderline(false);
+                           textEdit->textCursor().mergeCharFormat(format);
+                           actionUnderlined->setChecked(false);
+                         } else {
+                           format.setFontUnderline(true);
+                           textEdit->textCursor().mergeCharFormat(format);
+                           actionUnderlined->setChecked(true);
+                         }
+                       } else {
+                         underlined = !actionUnderlined->isChecked();
+                       }
+                   });
   toolBar->addAction(actionUnderlined);
 
-  toolBar->setFixedHeight(30);
+  toolBar->setFixedHeight(20);
 
   layout->addWidget(toolBar, 1, 0, 1, 2);
-
-  //TODO: aggiungere tutte le connect con le varie azioni dei pulsanti
 }
 
 void Editor::fileToPDF() {
@@ -349,4 +408,3 @@ void Editor::fileToPDF() {
   doc.print(&printer);
 
 }
-
