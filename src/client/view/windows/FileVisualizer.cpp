@@ -54,7 +54,8 @@ void FileVisualizer::onFileListing(const QVector<QString> &filesArray) {
 
   fileCannotBeOpened = new QMessageBox(this);
   fileCannotBeOpened->setText(
-          "Sorry, the file you selected cannot be opened. Do you want to choose another file?");
+          "Sorry, the action requested cannot be performed (have you inserted"
+          "an already existing file name?). Retry?");
   fileCannotBeOpened->setStandardButtons(QMessageBox::Yes | QMessageBox::No);
   fileCannotBeOpened->setFixedSize(this->minimumSize());
 
@@ -100,9 +101,7 @@ void FileVisualizer::onFileListing(const QVector<QString> &filesArray) {
                                                             &ok); //ok = button ok on the dialog
 
                        if (ok && !name.isEmpty()) { //ok clicked + text provided
-                         name = name.append(".crdt");
                          emit fileRequest(name, false);
-                         this->close();
                        } else if (ok) { //ok clicked but no text provided
                          auto nameEmpty = new QMessageBox(this);
                          nameEmpty->setText(
@@ -119,10 +118,8 @@ void FileVisualizer::onFileListing(const QVector<QString> &filesArray) {
 void FileVisualizer::onFileResult(bool result) {
   if (result) {
     //Il file può essere aperto/creato
-    spdlog::debug("Action OK");
     this->close();
   } else {
-    spdlog::debug("Action KO");
 
     int dialogResult = fileCannotBeOpened->exec();
 

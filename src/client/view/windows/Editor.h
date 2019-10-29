@@ -17,6 +17,7 @@
 #include <QStandardPaths>
 #include <QtPrintSupport/QPrinter>
 #include <QTextStream>
+#include <QGroupBox>
 
 /**
  * Editor application window
@@ -33,6 +34,7 @@ private:
     QMessageBox *fileCorrectlySaved;
     QMessageBox *editorInfo;
     QMessageBox *infoAboutUs;
+    QGroupBox *userOnline;
 
     void createTopBar(QVBoxLayout *layout);
     void createToolBar(QVBoxLayout *layout);
