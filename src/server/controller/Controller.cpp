@@ -89,8 +89,17 @@ void Controller::onReadyRead() {
                   sender,derived->getSymbol())
                                            : model->userErase(
                   sender,derived->getSymbol());
-          std::lock_guard<std::mutex> guard2(queueMutex);
-          messages.push(derived);
+          auto fileName = model->getFileBySocket(sender).getFileName();
+          auto fileConnections = model->getFileConnections(fileName);
+          if (!fileConnections.empty()) {
+            std::for_each(fileConnections.begin(), fileConnections.end(),
+                    [&](auto& socket){
+                      if (socket != sender) {
+                        socket->sendMsg(header, *derived);
+                        spdlog::debug("Dispatched message from {} to {}", sender->getIdentifier(), socket->getIdentifier());
+                      }
+                    });
+          }
         } catch (std::exception &e) {
           spdlog::error("Error on remote operation:\nMsg -> {}", e.what());
         }
@@ -104,7 +113,7 @@ void Controller::onReadyRead() {
 
         if (header.getType() == Type::OPEN &&
             model->openFileByUser(sender, filename)) {
-          symbolList = model->getFileSymbolList(sender);
+          symbolList = model->getFileBySocket(sender).getFileText();
         } else if (header.getType() == Type::CREATE &&
                    !model->createFileByUser(sender, filename)) {
           BasicMessage newMsg(clientId);
@@ -126,28 +135,3 @@ void Controller::onReadyRead() {
     onReadyRead();
   }
 }
-/*
-
-void Controller::dispatch() {
-
-  while (connections.size() >= 2) {
-
-    std::lock_guard<std::mutex> guard1(queueMutex);
-
-    for (int i = 0, size = this->messages.size(); i < size; i++) {
-
-      auto &msg = this->messages.front();
-
-      std::lock_guard<std::mutex> guard2(connectionsMutex);
-
-      for (auto &conn : connections) {
-        if (conn.second != msg.getEditorId()) {
-          QDataStream ds(conn.first);
-          ds << msg;
-        }
-      }
-      this->messages.pop();
-    }
-  }
-}
-*/

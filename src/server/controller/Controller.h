@@ -23,18 +23,8 @@ Q_OBJECT
 private:
     Model *model;
 
-    ///The queue containing all the messages
-    std::queue<std::shared_ptr<CrdtMessage>> messages;
-
-    ///The mutex used for the message queue
-    std::mutex queueMutex;
-
-    ///Method to dispatch messages
-    void dispatch();
-
 public:
     Controller(Model *model, unsigned short port, QWidget *parent = nullptr);
-
 
 protected:
     void incomingConnection(qintptr handle) override;
