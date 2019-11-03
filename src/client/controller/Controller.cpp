@@ -63,7 +63,7 @@ void Controller::onReadyRead() {
       case Type::INSERT :
       case Type::ERASE : {
         try {
-          getHeader().getType() == Type::INSERT ? model->remoteInsert(
+          header.getType() == Type::INSERT ? model->remoteInsert(
                   std::dynamic_pointer_cast<CrdtMessage>(base)->getSymbol())
                                                 : model->remoteErase(
                   std::dynamic_pointer_cast<CrdtMessage>(base)->getSymbol());
