@@ -62,7 +62,7 @@ public:
     QVector<QString> &getAvailableFiles();
 
     ///Returns the list of symbols for the file the user connId has requested
-    FileText &getFileSymbolList(TcpSocket *socket);
+    ServerFile &getFileBySocket(TcpSocket *socket);
 
     ///Returns a bool to indicate if the logIn credential are correct and set the User object
     static bool logInUser(User& user);
@@ -73,6 +73,7 @@ public:
     ///Returns a bool to indicate if the update was successful
     static bool updateUser(User& user);
 
+    std::vector<TcpSocket *> getFileConnections(const QString& fileName);
 };
 
 

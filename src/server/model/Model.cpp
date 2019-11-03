@@ -116,11 +116,11 @@ QVector<QString> &Model::getAvailableFiles() {
   return availableFiles;
 }
 
-FileText &Model::getFileSymbolList(TcpSocket *socket) {
-  return std::find_if(usersFile.begin(), usersFile.end(),
+ServerFile &Model::getFileBySocket(TcpSocket *socket) {
+  return *std::find_if(usersFile.begin(), usersFile.end(),
                    [socket] (auto& pair) {
                        return socket == pair.second;
-                   })->first->getFileText();
+                   })->first.get();
 }
 
 void Model::removeConnection(TcpSocket *socket) {
@@ -144,4 +144,14 @@ bool Model::registerUser(User& user) {
 
 bool Model::updateUser(User& user) {
     return Database::getInstance().updateUser(user);
+}
+
+std::vector<TcpSocket *> Model::getFileConnections(const QString &fileName) {
+  std::vector<TcpSocket *> fileConnections;
+  std::for_each(usersFile.begin(), usersFile.end(), [&] (auto& pair) {
+    if (pair.first->getFileName() == fileName) {
+      fileConnections.push_back(pair.second);
+    }
+  });
+  return fileConnections;
 }
