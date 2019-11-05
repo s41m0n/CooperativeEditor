@@ -38,10 +38,10 @@ public:
     Symbol localErase(int index);
 
     ///Method to update the list of symbol after a remote insertion
-    void remoteInsert(Symbol symbol);
+    void remoteInsert(Symbol &symbol);
 
     ///Method to update the list of symbol after a remote deletion
-    void remoteErase(Symbol symbol);
+    void remoteErase(Symbol &symbol);
 
     void setEditorId(unsigned newEditorId);
 

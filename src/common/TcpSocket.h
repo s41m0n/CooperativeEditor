@@ -43,14 +43,16 @@ public:
 
     void sendMsg(Type type, BasicMessage &val);
 
+    void sendMsg(Header &headerToSend, BasicMessage &val);
+
     BasicMessage *readMsg();
 
     bool operator==(const TcpSocket &b) {
-      return this->socketDescriptor() == b.socketDescriptor();
+      return this->id == b.id;
     }
 
     bool operator==(const TcpSocket *b) {
-      return this->socketDescriptor() == b->socketDescriptor();
+      return this->id == b->id;
     }
 
 };

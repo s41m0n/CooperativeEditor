@@ -31,6 +31,9 @@ public:
 
     QDataStream &deserialize(QDataStream &stream) override;
 
+    bool operator==(const QString& name) {
+      return this->fileName == name;
+    }
 };
 
 #endif //COOPERATIVEEDITOR_FILE_H

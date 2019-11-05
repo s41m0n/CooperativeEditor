@@ -30,6 +30,12 @@ void TcpSocket::sendMsg(Type type, BasicMessage &val) {
                 val.toStdString());
 }
 
+void TcpSocket::sendMsg(Header &headerToSend, BasicMessage &val) {
+    ds << headerToSend << val;
+    spdlog::debug("Sent Message!\n{}\n{}", headerToSend.toStdString(),
+                  val.toStdString());
+}
+
 BasicMessage *TcpSocket::readMsg() {
   BasicMessage *msg = nullptr;
 

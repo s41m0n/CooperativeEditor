@@ -5,7 +5,6 @@
 #include <string>
 #include <src/common/User.h>
 
-
 class Database {
 
 private:
@@ -13,13 +12,6 @@ private:
     const std::string databaseName = "cooperative_database.db";
 
     sqlite3 *DBConnection{};
-
-    //The constructor (private because is a singleton class)
-    Database();
-
-    void createTableUser();
-
-    bool checkTable();
 
     int openConnection();
 
@@ -29,15 +21,7 @@ private:
 
 public:
 
-    Database(const Database &) = delete;
-
-    void operator=(const Database &) = delete;
-
-    //Static method to get the singleton instance
-    static Database &getInstance() {
-      static Database DBinstance;
-      return DBinstance;
-    }
+    Database();
 
     bool insertUser(User &user);
 
