@@ -1,6 +1,7 @@
 #include "Model.h"
 
 #include <memory>
+
 #include "src/include/lib/crdt/CrdtAlgorithm.h"
 
 Model::Model() : editorId(0), digitGenerator(0), file(), user() {
@@ -42,11 +43,11 @@ Symbol Model::localErase(int index) {
   return std::move(s);
 }
 
-void Model::remoteInsert(Symbol symbol) {
+void Model::remoteInsert(Symbol &symbol) {
   CrdtAlgorithm::remoteInsert(symbol, file.getFileText());
 }
 
-void Model::remoteErase(Symbol symbol) {
+void Model::remoteErase(Symbol &symbol) {
   CrdtAlgorithm::remoteErase(symbol, file.getFileText());
 }
 

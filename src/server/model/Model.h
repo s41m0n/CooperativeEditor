@@ -22,6 +22,8 @@ class Model {
 
 private:
 
+    Database database;
+
     ///Set of all available files
     QVector<QString> availableFiles;
 
@@ -45,10 +47,10 @@ public:
     Model();
 
     ///Method to handle user remote insertion
-    void userInsert(TcpSocket *socket, Symbol &symbol);
+    void userInsert(TcpSocket *socket, Symbol symbol);
 
     ///Method to handle user remote deletion
-    void userErase(TcpSocket *socket, Symbol &symbol);
+    void userErase(TcpSocket *socket, Symbol symbol);
 
     void removeConnection(TcpSocket *socket);
 
@@ -65,15 +67,18 @@ public:
     ServerFile &getFileBySocket(TcpSocket *socket);
 
     ///Returns a bool to indicate if the logIn credential are correct and set the User object
-    static bool logInUser(User& user);
+    bool logInUser(User &user);
 
     ///Returns a bool to indicate if the registration was successful
-    static bool registerUser(User& user);
+    bool registerUser(User &user);
 
     ///Returns a bool to indicate if the update was successful
-    static bool updateUser(User& user);
+    bool updateUser(User &user);
 
-    std::vector<TcpSocket *> getFileConnections(const QString& fileName);
+    ///Returns a bool to indicate if the update was successful
+    bool deleteUser(User &user);
+
+    std::vector<TcpSocket *> getFileConnections(const QString &fileName);
 };
 
 

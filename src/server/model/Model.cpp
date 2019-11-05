@@ -5,10 +5,11 @@
 #include "src/include/lib/crdt/CrdtAlgorithm.h"
 #include "Model.h"
 
-Model::Model() : idGenerator(1) {
+Model::Model() : idGenerator(1), database() {
 
   //Loading all files name in the directory
-  for (auto &p: std::filesystem::directory_iterator(std::filesystem::current_path())) {
+  for (auto &p: std::filesystem::directory_iterator(
+          std::filesystem::current_path())) {
     auto filename = p.path().string();
     auto pos = filename.find(".crdt");
     auto pos2 = filename.rfind(std::filesystem::path::preferred_separator);
@@ -43,12 +44,12 @@ void Model::loadFileSymbols(const std::shared_ptr<ServerFile> &serverFile) {
   ds >> serverFile->getFileText();
 }
 
-void Model::userInsert(TcpSocket *socket, Symbol &symbol) {
+void Model::userInsert(TcpSocket *socket, Symbol symbol) {
 
   auto serverFile = std::find_if(usersFile.begin(), usersFile.end(),
-                                  [socket] (auto& pair) {
-                                    return socket == pair.second;
-                                  })->first;
+                                 [socket](auto &pair) {
+                                     return socket == pair.second;
+                                 })->first;
 
   std::lock_guard<std::mutex> guard(serverFile->mutex);
 
@@ -57,10 +58,10 @@ void Model::userInsert(TcpSocket *socket, Symbol &symbol) {
   storeFileSymbols(serverFile);
 }
 
-void Model::userErase(TcpSocket *socket, Symbol &symbol) {
+void Model::userErase(TcpSocket *socket, Symbol symbol) {
 
   auto serverFile = std::find_if(usersFile.begin(), usersFile.end(),
-                                 [socket] (auto& pair) {
+                                 [socket](auto &pair) {
                                      return socket == pair.second;
                                  })->first;
 
@@ -76,7 +77,8 @@ bool Model::createFileByUser(TcpSocket *socket, const QString &filename) {
 
   auto newFile = std::make_shared<ServerFile>(filename + ".crdt");
 
-  if (std::find(availableFiles.begin(), availableFiles.end(), newFile.get()->getFileName()) !=
+  if (std::find(availableFiles.begin(), availableFiles.end(),
+                newFile.get()->getFileName()) !=
       availableFiles.end()) {
     return false;
   } else {
@@ -96,7 +98,7 @@ bool Model::openFileByUser(TcpSocket *socket, QString filename) {
     return false;
   } else {
     auto file = std::find_if(usersFile.begin(), usersFile.end(),
-                             [&filename](auto& srvFile) {
+                             [&filename](auto &srvFile) {
                                  return srvFile.first->getFileName() ==
                                         filename;
                              });
@@ -118,15 +120,15 @@ QVector<QString> &Model::getAvailableFiles() {
 
 ServerFile &Model::getFileBySocket(TcpSocket *socket) {
   return *std::find_if(usersFile.begin(), usersFile.end(),
-                   [socket] (auto& pair) {
-                       return socket == pair.second;
-                   })->first.get();
+                       [socket](auto &pair) {
+                           return socket == pair.second;
+                       })->first.get();
 }
 
 void Model::removeConnection(TcpSocket *socket) {
   std::lock_guard<std::mutex> lock(usersFileMutex);
   auto toErase = std::find_if(usersFile.begin(), usersFile.end(),
-                              [socket] (auto& pair) {
+                              [socket](auto &pair) {
                                   return socket == pair.second;
                               });
   if (toErase != usersFile.end()) {
@@ -134,24 +136,28 @@ void Model::removeConnection(TcpSocket *socket) {
   }
 }
 
-bool Model::logInUser(User& user) {
-    return Database::getInstance().loginUser(user);
+bool Model::logInUser(User &user) {
+  return database.loginUser(user);
 }
 
-bool Model::registerUser(User& user) {
-    return Database::getInstance().insertUser(user);
+bool Model::registerUser(User &user) {
+  return database.insertUser(user);
 }
 
-bool Model::updateUser(User& user) {
-    return Database::getInstance().updateUser(user);
+bool Model::updateUser(User &user) {
+  return database.updateUser(user);
+}
+
+bool Model::deleteUser(User &user) {
+  return database.deleteUser(user);
 }
 
 std::vector<TcpSocket *> Model::getFileConnections(const QString &fileName) {
   std::vector<TcpSocket *> fileConnections;
-  std::for_each(usersFile.begin(), usersFile.end(), [&] (auto& pair) {
-    if (pair.first->getFileName() == fileName) {
-      fileConnections.push_back(pair.second);
-    }
+  std::for_each(usersFile.begin(), usersFile.end(), [&](auto &pair) {
+      if (pair.first->getFileName() == fileName) {
+        fileConnections.push_back(pair.second);
+      }
   });
   return fileConnections;
 }
