@@ -24,6 +24,16 @@ int main(int argc, char **argv) {
   QApplication app(argc, argv);
 
   Model model;
+
+  /*User user("path","Ciccio2","Frank","Palm","frank2@email","Ciccione");
+  model.registerUser(user);
+  User user2("Ciccio2","Ciccione");
+  model.logInUser(user2);
+  User user3(user2.getUsername(),"Francesco","Palmieri","frank2@email.it","Ciccione",user2.getPicture());
+  model.updateUser(user3);
+  User user4("Ciccio2","Ciccione");
+  model.logInUser(user4);*/
+
   Controller controller(&model, std::stoi(argv[1]));
 
 

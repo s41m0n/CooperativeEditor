@@ -1,8 +1,8 @@
 #include "Database.h"
 #include <spdlog/spdlog.h>
-
+#include <fstream>
+#include <iostream>
 Database::Database() {
-
   if (openConnection()) {
     char *messaggeError;
     std::string sql = "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='User';";
@@ -41,7 +41,11 @@ int Database::openConnection() {
 
 bool Database::insertUser(User &user) {
   if (openConnection()) {
-    std::string sql = "INSERT INTO User VALUES(NULL,?,?,?,?,?,'path');";
+    std::string sql = "INSERT INTO User VALUES(NULL,?,?,?,?,?,'path',?);";
+    std::string path="/home/francesco/Scaricati/profile.jpg";
+    getUserPic(path,user.getPicture());
+    int size=0;
+    char * buffer = convertQimage(user.getPicture(),size);
     const char *zTail = nullptr;
     const char **pzTail = &zTail;
     sqlite3_stmt *statement = nullptr;
@@ -62,6 +66,7 @@ bool Database::insertUser(User &user) {
                         SQLITE_TRANSIENT);
       sqlite3_bind_text(statement, 5, user.getEmail().toStdString().c_str(), -1,
                         SQLITE_TRANSIENT);
+      sqlite3_bind_blob(statement, 6, buffer, size, SQLITE_TRANSIENT);
 
       exitCode = sqlite3_step(statement);
 
@@ -108,8 +113,8 @@ bool Database::loginUser(User &user) {
                                                                    4)),
                 reinterpret_cast<const char *>(sqlite3_column_text(statement,
                                                                    5)));
-      }
 
+      }
       sqlite3_finalize(statement);
       sqlite3_close(this->DBConnection);
       return ret == SQLITE_ROW;
@@ -121,15 +126,17 @@ bool Database::loginUser(User &user) {
 
 bool Database::updateUser(User &user) {
   if (openConnection()) {
-    std::string sql = "UPDATE User set Password = ?, Name= ?, Surname = ?, Email = ? where Username = ?;";
+    std::string sql = "UPDATE User set Password = ?, Name= ?, Surname = ?, Email = ?, ProfilePic = ? where Username = ?;";
     const char *zTail = nullptr;
     const char **pzTail = &zTail;
     sqlite3_stmt *statement = nullptr;
+    int size=0;
+    char * buffer = convertQimage(user.getPicture(),size);
     int exitCode = sqlite3_prepare_v2(this->DBConnection, sql.c_str(), -1,
                                       &statement, pzTail);
     if (exitCode == SQLITE_OK) {
 
-      sqlite3_bind_text(statement, 5, user.getUsername().toStdString().c_str(),
+      sqlite3_bind_text(statement, 6, user.getUsername().toStdString().c_str(),
                         -1,
                         SQLITE_TRANSIENT);
       sqlite3_bind_text(statement, 1, user.getPassword().toStdString().c_str(),
@@ -142,11 +149,11 @@ bool Database::updateUser(User &user) {
                         SQLITE_TRANSIENT);
       sqlite3_bind_text(statement, 4, user.getEmail().toStdString().c_str(), -1,
                         SQLITE_TRANSIENT);
+      sqlite3_bind_blob(statement, 5, buffer, size, SQLITE_TRANSIENT);
 
       exitCode = sqlite3_step(statement);
 
       if (exitCode == SQLITE_DONE) {
-
         user = User(user.getIcon(), user.getUsername(), user.getName(),
                     user.getSurname(), user.getEmail());
       }
@@ -190,5 +197,41 @@ int Database::callbackCount(void *data, int colNum, char **dataRow,
     return 0;
   }
   return 1;
+}
+
+//function to do in the client
+bool Database::getUserPic(std::string path, QImage& userPic) {
+   /*std::ifstream file(path.c_str(), std::ios::in | std::ios::binary);
+    if (!file)
+        return false;
+    file.seekg(0, std::ifstream::end);
+    std::streampos size = file.tellg();
+    file.seekg(0);
+    char* buffer = new char[size];
+    file.read(buffer, size);
+    bool ret;
+    ret=userPic.loadFromData((uchar*)buffer,size,"JPG");
+    delete[] buffer;
+    if(ret)return true;
+    else return false;*/
+
+    QString qpath = QString::fromStdString(path);
+    bool ret = userPic.load(qpath, "jpg");
+    if (ret == true)
+        return true;
+    return false;
+}
+
+char* Database::convertQimage(QImage userPic, int& size) {
+    QByteArray bytes;
+    QBuffer buffer(&bytes);
+    buffer.open(QIODevice::WriteOnly);
+    userPic.save(&buffer, "JPG");
+    buffer.close();
+
+    char *data = new char [bytes.size()];
+    memcpy(data, reinterpret_cast<unsigned char *>(bytes.data()), bytes.size());
+    size=bytes.size();
+    return data;
 }
 

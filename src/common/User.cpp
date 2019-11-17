@@ -2,6 +2,36 @@
 
 #include <utility>
 
+User::User(QString username, QString name,
+           QString surname, QString email, QString password, QImage picture) :
+                                                               username(
+                                                                       std::move(
+                                                                               username)),
+                                                               name(std::move(
+                                                                       name)),
+                                                               password(
+                                                                       std::move(
+                                                                               password)),
+                                                               surname(std::move(
+                                                                       surname)),
+                                                               email(std::move(
+                                                                       email)),
+                                                               picture(std::move(picture)){
+}
+
+User::User(QString username, QString name,
+        QString surname, QString email, QImage picture) : username(
+        std::move(
+                username)),
+                                                          name(std::move(
+                                                                  name)),
+                                                          surname(std::move(
+                                                                  surname)),
+                                                          email(std::move(
+                                                                  email)),
+                                                          picture(std::move(picture)){
+}
+
 User::User(QString icon, QString username, QString name,
            QString surname, QString email, QString password) : icon(
         std::move(icon)),
@@ -21,10 +51,17 @@ User::User(QString icon, QString username, QString name,
 
 
 User::User(QString icon, QString username, QString name, QString surname,
-           QString email) : User(std::move(icon), std::move(username),
-                                 std::move(name), std::move(surname),
-                                 std::move(email),
-                                 {}) {
+           QString email) : icon(
+        std::move(icon)),
+                            username(
+                                    std::move(
+                                            username)),
+                            name(std::move(
+                                    name)),
+                            surname(std::move(
+                                    surname)),
+                            email(std::move(
+                                    email)) {
 }
 
 User::User(QString username, QString password) : User({}, std::move(username),
@@ -56,6 +93,10 @@ QString &User::getPassword() {
   return password;
 }
 
+QImage &User::getPicture() {
+    return picture;
+}
+
 std::string User::toStdString(int level) {
   return std::string(std::string(level, '\t') + "User{\n" +
                      std::string(level + 1, '\t') + "username: " +
@@ -82,3 +123,5 @@ QDataStream &User::deserialize(QDataStream &stream) {
   stream >> username >> password >> email >> name >> surname >> icon;
   return stream;
 }
+
+

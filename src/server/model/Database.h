@@ -31,6 +31,11 @@ public:
 
     bool deleteUser(User user);
 
+    bool getUserPic(std::string path, QImage& userPic);//function to add in the client
+
+    char* convertQimage(QImage userPic, int& size);
+
+
 };
 
 
