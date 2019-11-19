@@ -151,8 +151,10 @@ Editor::eventFilter(QObject *object, QEvent *event) { //key pression manager
           break;
         }
         case Qt::Key_Delete: {
-          if (getCursorPos() != textEdit->toPlainText().size()) {
-            emit symbolDeleted(getCursorPos());
+          if(!deleteSelection()) { //If I already deleted the selection I don't delete again
+            if (getCursorPos() != textEdit->toPlainText().size()) {
+              emit symbolDeleted(getCursorPos());
+            }
           }
           break;
         }
@@ -163,7 +165,6 @@ Editor::eventFilter(QObject *object, QEvent *event) { //key pression manager
               emit symbolDeleted(getCursorPos() - 1);
             }
           }
-
           break;
         }
         default: {
@@ -181,7 +182,8 @@ Editor::eventFilter(QObject *object, QEvent *event) { //key pression manager
               mergeFormat(fmt);
             }
 
-            emit symbolInserted(getCursorPos(), characterInserted.at(0)); //TODO: cambiare symbol inserted per passare i flag
+            emit symbolInserted(getCursorPos(), characterInserted.at(
+                    0)); //TODO: cambiare symbol inserted per passare i flag
           }
           break;
         }
@@ -207,6 +209,7 @@ void Editor::paste() {
 }
 
 bool Editor::deleteSelection() {
+
   QTextCursor textCursor = textEdit->textCursor();
   auto selection = textCursor.selectedText();
 
@@ -214,10 +217,10 @@ bool Editor::deleteSelection() {
     for (int i = 0; i < selection.size(); i++) {
       emit symbolDeleted(textCursor.selectionStart());
     }
+    selection.clear();
     return true;
   }
 
-  selection.clear();
   return false;
 }
 
