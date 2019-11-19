@@ -35,9 +35,9 @@ private:
     QMessageBox *editorInfo;
     QMessageBox *infoAboutUs;
     QGroupBox *userOnline;
-    bool bold;
-    bool underlined;
-    bool italic;
+    QAction *actionBold;
+    QAction *actionItalic;
+    QAction *actionUnderlined;
 
     void createTopBar(QGridLayout *layout);
     void createToolBar(QGridLayout *layout);
@@ -45,6 +45,7 @@ private:
     void paste();
     bool deleteSelection(); //true = deleted, false = nothing to delete
     void fileToPDF();
+    void mergeFormat(const QTextCharFormat &format);
 
 public:
 
