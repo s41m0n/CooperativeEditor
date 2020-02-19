@@ -255,15 +255,13 @@ void Editor::createTopBar(QGridLayout *layout) {
   QObject::connect(actionClose, &QAction::triggered, this,
                    [this]() {
                        emit openVisualizerFromEditor();
-                       this->close();
+                       this->hide();
                    });
   file->addAction(actionClose);
 
   auto actionQuit = new QAction("Quit", file);
   QObject::connect(actionQuit, &QAction::triggered, this,
-                   [this]() {
-                       this->close();
-                   });
+                   &QMainWindow::hide);
   file->addAction(actionQuit);
 
   topBar->addSeparator();
@@ -307,7 +305,7 @@ void Editor::createTopBar(QGridLayout *layout) {
   QObject::connect(actionEditProfile, &QAction::triggered, this,
                    [this]() {
                        emit openEditProfileFromEditor(); //TODO:versione non definitva mancano dati utente (crea classe utente e fatti tornare dati al login)
-                       this->close();
+                       this->hide();
                    });
   edit->addAction(actionEditProfile);
   topBar->addSeparator();

@@ -128,7 +128,10 @@ SignUp::SignUp(QWidget *parent) : QMainWindow(parent) {
         }
       });
   QObject::connect(buttonBackToLogin, &QAbstractButton::clicked, this,
-                   [this]() { emit backToLogin(); });
+                   [this]() {
+                     emit backToLogin();
+                     this->hide();
+                   });
 
   QObject::connect(buttonSignUp, &QAbstractButton::clicked, this, [this]() {
     if (!userImage.isNull() && !nameTextField->text().isEmpty() &&
