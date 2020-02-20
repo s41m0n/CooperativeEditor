@@ -13,8 +13,6 @@ class User : public Serializable {
 
 private:
 
-    QString icon;
-
     QString username;
 
     QString password;
@@ -32,10 +30,10 @@ public:
     User(QString username, QString name, QString surname,
          QString email, QString password, QImage picture);
 
-    User(QString icon, QString username, QString name, QString surname,
+    User(QString username, QString name, QString surname,
          QString email, QString password);
 
-    User(QString icon, QString username, QString name, QString surname,
+    User(QString username, QString name, QString surname,
          QString email);
 
     User(QString username, QString name, QString surname,
@@ -54,8 +52,6 @@ public:
     QString &getSurname();
 
     QString &getEmail();
-
-    QString &getIcon();
 
     QImage &getPicture();
 

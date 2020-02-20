@@ -1,9 +1,9 @@
-#include <spdlog/spdlog.h>
 #include <QApplication>
+#include <spdlog/spdlog.h>
 
 #include "client/controller/Controller.h"
-#include "client/view/View.h"
 #include "client/model/Model.h"
+#include "client/view/View.h"
 
 int main(int argc, char **argv) {
 
@@ -12,7 +12,7 @@ int main(int argc, char **argv) {
     exit(-1);
   }
 
-  //Setting logging level
+  // Setting logging level
   if (argc == 4 && (std::strncmp(argv[3], "-d", 2) == 0 ||
                     std::strncmp(argv[3], "--debug", 7) == 0)) {
     spdlog::set_level(spdlog::level::debug);

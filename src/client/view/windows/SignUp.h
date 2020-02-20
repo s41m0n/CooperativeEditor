@@ -42,7 +42,7 @@ private:
     QMessageBox *errorMessageEmptyFields;
     QMessageBox *errorMessageDifferentPasswords;
     QMessageBox *areYouSureQuit;
-    QString userImage;
+    QImage userImage;
 
 protected:
 
@@ -54,7 +54,7 @@ public:
 signals:
 
     ///Signal to notify the server an user wants to sign up
-    void signUpRequest(QString image, QString name, QString surname,
+    void signUpRequest(QImage image, QString name, QString surname,
                        QString username,
                        QString email, QString password);
 
