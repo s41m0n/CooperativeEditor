@@ -20,7 +20,7 @@ Controller::Controller(Model *model, const std::string &host, int port)
 
 void Controller::onReadyRead() {
 
-  if (isMessageAvailable()) {
+  while (isMessageAvailable()) {
 
     auto header = getHeader();
     std::shared_ptr<BasicMessage> base(readMsg());
@@ -76,9 +76,6 @@ void Controller::onReadyRead() {
     default:
       throw std::runtime_error("Unknown message received");
     }
-  }
-  if (isMessageAvailable()) {
-    onReadyRead();
   }
 }
 

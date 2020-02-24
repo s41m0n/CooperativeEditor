@@ -23,28 +23,16 @@ void View::init() {
   editProfile = new EditUserProfile();
 
   ///Bottone semplice da Login a SignUp se non ho un account e voglio registrarmi
-  QObject::connect(login, &Login::signUp, this, [this]() {
-      signUp->show();
-      login->close();
-  });
+  QObject::connect(login, &Login::signUp, signUp, &QMainWindow::show);
 
   ///Bottone semplice da SignUp a Login se non voglio registrarmi e tornare al login
-  QObject::connect(signUp, &SignUp::backToLogin, this, [this]() {
-      login->show();
-      signUp->close();
-  });
+  QObject::connect(signUp, &SignUp::backToLogin, login, &QMainWindow::show);
 
   ///Bottone semplice (azione da menu dropdown) da Editor e EditUserProfile per modificare il mio profilo
-  QObject::connect(editor, &Editor::openEditProfileFromEditor, this, [this]() {
-      editProfile->show();
-      editor->close();
-  });
+  QObject::connect(editor, &Editor::openEditProfileFromEditor, editProfile, &QMainWindow::show);
 
   ///Bottone semplice (azione da menu dropdown) da Editor a FileVisualizer per aprire un nuovo file
-  QObject::connect(editor, &Editor::openVisualizerFromEditor, this, [this]() {
-      fileVisualizer->show();
-      editor->close();
-  });
+  QObject::connect(editor, &Editor::openVisualizerFromEditor, fileVisualizer, &QMainWindow::show);
 
   ///Segnale dal fileVisualizer per chiedere al server di aprire un file
   QObject::connect(fileVisualizer, &FileVisualizer::fileRequest, controller,
@@ -58,14 +46,13 @@ void View::init() {
   QObject::connect(signUp, &SignUp::signUpRequest, controller,
                    &Controller::onSignUpRequest);
 
-
   ///Risposta di login
   QObject::connect(controller, &Controller::loginResponse,
                    [this](bool isLogged) {
                        if (isLogged) {
-                         fileVisualizer->show();
-                         login->close();
-                         signUp->close();
+                           fileVisualizer->show();
+                           login->hide();
+                           signUp->hide();
                        } else {
                          msg->setText(
                                  "Username and Password are not correct.");
@@ -82,7 +69,7 @@ void View::init() {
                    [this](bool result) {
                        if (result) {
                          editor->show();
-                         fileVisualizer->close();
+                         fileVisualizer->hide();
                        } else {
                          msg->setText(
                                  "Sorry, the action requested cannot be performed (have you inserted"
@@ -97,7 +84,7 @@ void View::init() {
                              msg->close();
                              break;
                            case QMessageBox::No:
-                             fileVisualizer->close();
+                             fileVisualizer->hide();
                              break;
                            default:
                              //error, should never be reached

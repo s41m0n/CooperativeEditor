@@ -88,5 +88,6 @@ Login::Login(QWidget *parent) : QMainWindow(parent) {
   QObject::connect(buttonRegister, &QAbstractButton::clicked, this,
                    [this]() {
                        emit signUp();
+                       this->hide();
                    });
 }

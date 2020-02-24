@@ -58,7 +58,7 @@ signals:
                        QString username,
                        QString email, QString password);
 
-    ///Signl to go back to the login page
+    ///Signal to go back to the login page
     void backToLogin();
 
 

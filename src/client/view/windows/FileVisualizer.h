@@ -19,12 +19,14 @@ class FileVisualizer : public QMainWindow {
 Q_OBJECT
 
 private:
+
     QWidget *mainWidget{};
     QLabel *titleOpen{};
     QPushButton *buttonExit{};
     QPushButton *buttonCreate{};
     QMessageBox *areYouSureQuit{};
     QGroupBox *boxCreate{};
+    QListWidget *list;
 
 public:
 

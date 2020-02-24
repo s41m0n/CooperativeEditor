@@ -35,13 +35,17 @@ private:
     QMessageBox *editorInfo;
     QMessageBox *infoAboutUs;
     QGroupBox *userOnline;
+    QAction *actionBold;
+    QAction *actionItalic;
+    QAction *actionUnderlined;
 
-    void createTopBar(QVBoxLayout *layout);
-    void createToolBar(QVBoxLayout *layout);
+    void createTopBar(QGridLayout *layout);
+    void createToolBar(QGridLayout *layout);
     int getCursorPos();
     void paste();
     bool deleteSelection(); //true = deleted, false = nothing to delete
     void fileToPDF();
+    void mergeFormat(const QTextCharFormat &format);
 
 public:
 
