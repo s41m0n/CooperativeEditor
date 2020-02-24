@@ -16,7 +16,7 @@ SignUp::SignUp(QWidget *parent) : QMainWindow(parent) {
   layout->addWidget(title, 0, 0);
 
   registerBox = new QGroupBox(
-          "Fill the following fields to sign up to the system:", mainWidget);
+      "Fill the following fields to sign up to the system:", mainWidget);
   registerBox->setLayout(new QVBoxLayout());
   layout->addWidget(registerBox, 1, 0, 1, 2);
 
@@ -71,8 +71,8 @@ SignUp::SignUp(QWidget *parent) : QMainWindow(parent) {
   buttonSignUp->setAutoDefault(true);
   registerBox->layout()->addWidget(buttonSignUp);
 
-  alreadyRegisteredBox = new QGroupBox("Are you already registered?",
-                                       mainWidget);
+  alreadyRegisteredBox =
+      new QGroupBox("Are you already registered?", mainWidget);
   alreadyRegisteredBox->setLayout(new QVBoxLayout());
   layout->addWidget(alreadyRegisteredBox, 2, 0, 1, 2);
 
@@ -99,64 +99,53 @@ SignUp::SignUp(QWidget *parent) : QMainWindow(parent) {
 
   buttonExit->setFocus();
 
-  QObject::connect(buttonExit, &QAbstractButton::clicked, this,
-                   [this]() {
-                       int result = areYouSureQuit->exec();
+  QObject::connect(buttonExit, &QAbstractButton::clicked, this, [this]() {
+    int result = areYouSureQuit->exec();
 
-                       switch (result) {
-                         case QMessageBox::Yes:
-                           this->close();
-                           break;
-                         case QMessageBox::No:
-                           areYouSureQuit->close();
-                           break;
-                         default:
-                           //error, should never be reached
-                           break;
-                       }
-                   });
+    switch (result) {
+    case QMessageBox::Yes:
+      this->close();
+      break;
+    case QMessageBox::No:
+      areYouSureQuit->close();
+      break;
+    default:
+      // error, should never be reached
+      break;
+    }
+  });
 
-  QObject::connect(buttonSelectImage, &QAbstractButton::clicked, this,
-                   [this]() {
-                       userImage = QFileDialog::getOpenFileName(this,
-                                                                tr("Open Image"),
-                                                                "/home",
-                                                                tr("Image Files (*.png *.jpg *.bmp)"));
-                       if (!userImage.isEmpty()) {
-                         buttonSelectImage->setText(userImage);
-                       } else {
-                         buttonSelectImage->setText("Select File");
-                       }
-                   });
-
+  QObject::connect(
+      buttonSelectImage, &QAbstractButton::clicked, this, [this]() {
+        auto path =
+            QFileDialog::getOpenFileName(this, tr("Open Image"), "/home",
+                                         tr("Image Files (*.png *.jpg *.bmp)"));
+        if (!path.isEmpty()) {
+          buttonSelectImage->setText(path);
+          userImage = QImage(path);
+        } else {
+          buttonSelectImage->setText("Select File");
+        }
+      });
   QObject::connect(buttonBackToLogin, &QAbstractButton::clicked, this,
-                   [this]() {
-                       emit backToLogin();
-                   });
+                   [this]() { emit backToLogin(); });
 
-  QObject::connect(buttonSignUp, &QAbstractButton::clicked, this,
-                   [this]() {
-                       if (!userImage.isEmpty() &&
-                           !nameTextField->text().isEmpty() &&
-                           !surnameTextField->text().isEmpty() &&
-                           !usernameTextField->text().isEmpty() &&
-                           !emailTextField->text().isEmpty() &&
-                           !passwordTextField->text().isEmpty()) {
+  QObject::connect(buttonSignUp, &QAbstractButton::clicked, this, [this]() {
+    if (!userImage.isNull() && !nameTextField->text().isEmpty() &&
+        !surnameTextField->text().isEmpty() &&
+        !usernameTextField->text().isEmpty() &&
+        !emailTextField->text().isEmpty() &&
+        !passwordTextField->text().isEmpty()) {
 
-                         if (passwordTextField->text() ==
-                             passwordTextFieldConfirm->text()) {
-                           emit signUpRequest(userImage,
-                                              nameTextField->text(),
-                                              surnameTextField->text(),
-                                              usernameTextField->text(),
-                                              emailTextField->text(),
-                                              passwordTextField->text());
-                         } else {
-                           errorMessageDifferentPasswords->exec();
-                         }
-                       } else {
-                         errorMessageEmptyFields->exec();
-                       }
-                   });
+      if (passwordTextField->text() == passwordTextFieldConfirm->text()) {
+        emit signUpRequest(userImage, nameTextField->text(),
+                           surnameTextField->text(), usernameTextField->text(),
+                           emailTextField->text(), passwordTextField->text());
+      } else {
+        errorMessageDifferentPasswords->exec();
+      }
+    } else {
+      errorMessageEmptyFields->exec();
+    }
+  });
 }
-

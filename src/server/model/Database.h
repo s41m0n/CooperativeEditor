@@ -2,36 +2,53 @@
 #define COOPERATIVEEDITOR_DATABASE_H
 
 #include <sqlite3.h>
-#include <string>
 #include <src/common/User.h>
+#include <string>
 
 class Database {
 
 private:
+  const std::string databaseName = "cooperative_database.db";
 
-    const std::string databaseName = "cooperative_database.db";
+  sqlite3 *DBConnection{};
 
-    sqlite3 *DBConnection{};
+  // The constructor (private because is a singleton class)
+  Database();
 
-    int openConnection();
+  void createTableUser();
 
-    //Callback method used to check if the User table exists
-    static int
-    callbackCount(void *data, int colNum, char **dataRow, char **colName);
+  bool checkTable();
+
+  bool openConnection();
+
+  //Method to convert a QImage into a QByteArray
+  static QByteArray convertFromQImage(const QImage &userPic);
+
+  //Method to recreate a QImage given a QByteArray
+  static QImage convertIntoQImage(QByteArray buffer);
+
+  // Callback method used to check if the User table exists
+  static int callbackCount(void *data, int colNum, char **dataRow,
+                           char **colName);
 
 public:
+  Database(const Database &) = delete;
 
-    Database();
+  void operator=(const Database &) = delete;
 
-    bool insertUser(User &user);
+  // Static method to get the singleton instance
+  static Database &getInstance() {
+    static Database DBinstance;
+    return DBinstance;
+  }
 
-    bool loginUser(User &user);
+  bool insertUser(User &user);
 
-    bool updateUser(User &user);
+  bool loginUser(User &user);
 
-    bool deleteUser(User user);
+  bool updateUser(User &user);
 
+  bool deleteUser(User user);
 };
 
-
-#endif //COOPERATIVEEDITOR_DATABASE_H
+#endif // COOPERATIVEEDITOR_DATABASE_H

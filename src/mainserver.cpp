@@ -1,10 +1,7 @@
-#include <spdlog/spdlog.h>
-#include <QApplication>
-#include <iostream>
-
 #include "server/controller/Controller.h"
 #include "server/model/Model.h"
-
+#include <QApplication>
+#include <spdlog/spdlog.h>
 
 int main(int argc, char **argv) {
 
@@ -13,7 +10,7 @@ int main(int argc, char **argv) {
     exit(-1);
   }
 
-  //Setting logging level
+  // Setting logging level
   if (argc == 3 && (std::strncmp(argv[2], "-d", 2) == 0 ||
                     std::strncmp(argv[2], "--debug", 7) == 0)) {
     spdlog::set_level(spdlog::level::debug);
@@ -22,10 +19,8 @@ int main(int argc, char **argv) {
   }
 
   QApplication app(argc, argv);
-
   Model model;
   Controller controller(&model, std::stoi(argv[1]));
-
 
   return app.exec();
 }

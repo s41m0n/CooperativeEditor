@@ -2,6 +2,7 @@
 #define COOPERATIVEEDITOR_USER_H
 
 #include <QString>
+#include <QtGui/QImage>
 
 #include "src/include/lib/serialization/Serializable.h"
 
@@ -11,8 +12,6 @@
 class User : public Serializable {
 
 private:
-
-    QString icon;
 
     QString username;
 
@@ -24,13 +23,21 @@ private:
 
     QString email;
 
-public:
+    QImage picture;
 
-    User(QString icon, QString username, QString name, QString surname,
+
+public:
+    User(QString username, QString name, QString surname,
+         QString email, QString password, QImage picture);
+
+    User(QString username, QString name, QString surname,
          QString email, QString password);
 
-    User(QString icon, QString username, QString name, QString surname,
+    User(QString username, QString name, QString surname,
          QString email);
+
+    User(QString username, QString name, QString surname,
+         QString email, QImage picture);
 
     User(QString username, QString password);
 
@@ -46,7 +53,7 @@ public:
 
     QString &getEmail();
 
-    QString &getIcon();
+    QImage &getPicture();
 
     std::string toStdString(int level = 0) override;
 
