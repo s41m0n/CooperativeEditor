@@ -168,8 +168,9 @@ Editor::eventFilter(QObject *object, QEvent *event) { //key pression manager
           break;
         }
         default: {
-          if (!characterInserted.isEmpty()) {
-            deleteSelection();
+          if (!characterInserted.isEmpty()){
+
+            simulateBackspacePression();
 
             QTextCharFormat fmt;
             if (actionBold->isChecked() || actionItalic->isChecked() ||
@@ -222,6 +223,22 @@ bool Editor::deleteSelection() {
   }
 
   return false;
+}
+
+void Editor::simulateBackspacePression(){
+  QTextCursor textCursor = textEdit->textCursor();
+  auto selection = textCursor.selectedText();
+
+  if (!selection.isEmpty()) { //I need this trick because the delete selection function does not keep the right position of the cursor
+    QKeyEvent pressEvent = QKeyEvent(QEvent::KeyPress,
+                                     Qt::Key_Backspace,
+                                     Qt::NoModifier);
+    QKeyEvent releaseEvent = QKeyEvent(QEvent::KeyRelease,
+                                       Qt::Key_Backspace,
+                                       Qt::NoModifier);
+    QCoreApplication::sendEvent(textEdit, &pressEvent);
+    QCoreApplication::sendEvent(textEdit, &releaseEvent);
+  }
 }
 
 void Editor::createTopBar(QGridLayout *layout) {
