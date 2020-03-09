@@ -22,6 +22,8 @@ private:
     QWidget *mainWidget;
     QGroupBox *registerBox;
     QLabel *imageLabel;
+    QGroupBox *imageBorder;
+    QLabel *displayImage;
     QLabel *nameLabel;
     QLineEdit *nameTextField;
     QLabel *surnameLabel;
@@ -37,10 +39,10 @@ private:
     QPushButton *buttonSelectImage;
     QPushButton *buttonExit;
     QPushButton *buttonSaveAndBackToEditor;
-    QMessageBox *errorMessageEmptyFields;
+    QPushButton *buttonDeleteProfile;
     QMessageBox *errorMessageDifferentPasswords;
     QMessageBox *areYouSureQuit;
-    QString userImage;
+    QImage userImage;
 
 public:
 

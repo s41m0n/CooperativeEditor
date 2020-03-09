@@ -2,8 +2,7 @@
 
 EditUserProfile::EditUserProfile(QWidget *parent) : QMainWindow(parent) {
 
-  //TODO: vanno recuperati tutti i dati dell'utente e messi come placeholder dei vari campi di test, sarebbe figo mostrare l'icona. I dati sono nel model del client, non serve chiederli al server
-  //TODO: crea pulsante che faccia eliminare l'utente
+  //TODO: vanno recuperati tutti i dati dell'utente e messi come placeholder dei vari campi di test. I dati sono nel model del client, non serve chiederli al server
 
   this->setWindowTitle("Edit User Profile");
   this->setFixedSize(this->minimumSize());
@@ -15,14 +14,23 @@ EditUserProfile::EditUserProfile(QWidget *parent) : QMainWindow(parent) {
   mainWidget->setLayout(layout);
 
   registerBox = new QGroupBox(
-          "Edit your profile:", mainWidget);
+          "Change the following fields to edit your profile:", mainWidget);
   registerBox->setLayout(new QVBoxLayout());
-  layout->addWidget(registerBox, 1, 0, 1, 3);
+  layout->addWidget(registerBox, 1, 0, 1, 2);
 
-  imageLabel = new QLabel("Select your image:");
+  imageLabel = new QLabel("Icon:");
   registerBox->layout()->addWidget(imageLabel);
 
-  buttonSelectImage = new QPushButton("Select file", registerBox);
+  imageBorder = new QGroupBox(registerBox);
+  imageBorder->setLayout(new QVBoxLayout);
+  imageBorder->setFixedSize(90, 90);
+  registerBox->layout()->addWidget(imageBorder);
+  registerBox->layout()->setAlignment(imageBorder, Qt::AlignCenter);
+
+  displayImage = new QLabel(registerBox);
+  registerBox->layout()->addWidget(displayImage);
+
+  buttonSelectImage = new QPushButton("Select New Icon", registerBox);
   buttonSelectImage->setAutoDefault(true);
   registerBox->layout()->addWidget(buttonSelectImage);
 
@@ -68,15 +76,15 @@ EditUserProfile::EditUserProfile(QWidget *parent) : QMainWindow(parent) {
 
   buttonSaveAndBackToEditor = new QPushButton("Save and Exit", mainWidget);
   buttonSaveAndBackToEditor->setAutoDefault(true);
-  layout->addWidget(buttonSaveAndBackToEditor, 2, 1, 1, 1);
+  layout->addWidget(buttonSaveAndBackToEditor, 2, 0, 1, 2);
 
-  buttonExit = new QPushButton("Exit without saving", mainWidget);
+  buttonExit = new QPushButton("Exit Without Saving", mainWidget);
   buttonExit->setAutoDefault(true);
-  layout->addWidget(buttonExit, 2, 0, 1, 1);
+  layout->addWidget(buttonExit, 3, 0, 1, 2);
 
-  errorMessageEmptyFields = new QMessageBox(this);
-  errorMessageEmptyFields->setText("Please fill all the requested fields.");
-  errorMessageEmptyFields->setFixedSize(this->minimumSize());
+  buttonDeleteProfile = new QPushButton("Delete Your Profile", mainWidget);
+  buttonDeleteProfile->setAutoDefault(true);
+  layout->addWidget(buttonDeleteProfile, 4, 0, 1, 2);
 
   areYouSureQuit = new QMessageBox(this);
   areYouSureQuit->setText("Are you sure you want to exit?");
@@ -109,15 +117,19 @@ EditUserProfile::EditUserProfile(QWidget *parent) : QMainWindow(parent) {
 
   QObject::connect(buttonSelectImage, &QAbstractButton::clicked, this,
                    [this]() {
-                       userImage = QFileDialog::getOpenFileName(this,
-                                                                tr("Open Image"),
-                                                                "/home",
-                                                                tr("Image Files (*.png *.jpg *.bmp)"));
-                       //TODO: size limit per immagine
-                       if (!userImage.isEmpty()) {
-                         buttonSelectImage->setText(userImage);
+                       auto path =
+                               QFileDialog::getOpenFileName(this, tr("Open Image"), "/home",
+                                                            tr("Image Files (*.png *.jpg *.bmp)"));
+                       if (!path.isEmpty()) {
+                         userImage = QImage(path);
+                         displayImage->setPixmap(QPixmap::fromImage(userImage).scaled(75, 75,  Qt::KeepAspectRatio));
+
+                         imageBorder->layout()->addWidget(displayImage);
+                         imageBorder->show();
+                         displayImage->show();
+                         buttonSelectImage->setText("Select Another Icon");
                        } else {
-                         buttonSelectImage->setText("Select File");
+                         buttonSelectImage->setText("Select Icon");
                        }
                    });
 

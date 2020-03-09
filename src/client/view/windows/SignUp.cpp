@@ -20,10 +20,21 @@ SignUp::SignUp(QWidget *parent) : QMainWindow(parent) {
   registerBox->setLayout(new QVBoxLayout());
   layout->addWidget(registerBox, 1, 0, 1, 2);
 
-  imageLabel = new QLabel("Select your image:");
+  imageLabel = new QLabel("Icon:", registerBox);
   registerBox->layout()->addWidget(imageLabel);
 
-  buttonSelectImage = new QPushButton("Select file", registerBox);
+  imageBorder = new QGroupBox(registerBox);
+  imageBorder->setLayout(new QVBoxLayout);
+  imageBorder->setFixedSize(90, 90);
+  imageBorder->hide();
+  registerBox->layout()->addWidget(imageBorder);
+  registerBox->layout()->setAlignment(imageBorder, Qt::AlignCenter);
+
+  displayImage = new QLabel(registerBox);
+  displayImage->hide();
+  registerBox->layout()->addWidget(displayImage);
+
+  buttonSelectImage = new QPushButton("Select Icon", registerBox);
   buttonSelectImage->setAutoDefault(true);
   registerBox->layout()->addWidget(buttonSelectImage);
 
@@ -121,12 +132,18 @@ SignUp::SignUp(QWidget *parent) : QMainWindow(parent) {
             QFileDialog::getOpenFileName(this, tr("Open Image"), "/home",
                                          tr("Image Files (*.png *.jpg *.bmp)"));
         if (!path.isEmpty()) {
-          buttonSelectImage->setText(path);
           userImage = QImage(path);
+          displayImage->setPixmap(QPixmap::fromImage(userImage).scaled(75, 75,  Qt::KeepAspectRatio));
+
+          imageBorder->layout()->addWidget(displayImage);
+          imageBorder->show();
+          displayImage->show();
+          buttonSelectImage->setText("Select Another Icon");
         } else {
-          buttonSelectImage->setText("Select File");
+          buttonSelectImage->setText("Select Icon");
         }
       });
+
   QObject::connect(buttonBackToLogin, &QAbstractButton::clicked, this,
                    [this]() {
                      emit backToLogin();
