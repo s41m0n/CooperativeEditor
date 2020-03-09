@@ -2,8 +2,6 @@
 
 EditUserProfile::EditUserProfile(QWidget *parent) : QMainWindow(parent) {
 
-  //TODO: vanno recuperati tutti i dati dell'utente e messi come placeholder dei vari campi di test. I dati sono nel model del client, non serve chiederli al server
-
   this->setWindowTitle("Edit User Profile");
   this->setFixedSize(this->minimumSize());
 
@@ -18,7 +16,7 @@ EditUserProfile::EditUserProfile(QWidget *parent) : QMainWindow(parent) {
   registerBox->setLayout(new QVBoxLayout());
   layout->addWidget(registerBox, 1, 0, 1, 2);
 
-  imageLabel = new QLabel("Icon:");
+  imageLabel = new QLabel("Icon (MaxSize 1 MB):");
   registerBox->layout()->addWidget(imageLabel);
 
   imageBorder = new QGroupBox(registerBox);
@@ -56,23 +54,33 @@ EditUserProfile::EditUserProfile(QWidget *parent) : QMainWindow(parent) {
   registerBox->layout()->addWidget(usernameLabel);
 
   usernameTextField = new QLineEdit();
+  usernameTextField->setReadOnly(true);
   registerBox->layout()->addWidget(usernameTextField);
 
-  passwordLabel = new QLabel("Password:", registerBox);
-  registerBox->layout()->addWidget(passwordLabel);
+  oldPasswordLabel = new QLabel("Old Password:", registerBox);
+  registerBox->layout()->addWidget(oldPasswordLabel);
 
-  passwordTextField = new QLineEdit(registerBox);
-  passwordTextField->setEchoMode(passwordTextField->Password);
-  passwordTextField->setStyleSheet("lineedit-password-character: 42");
-  registerBox->layout()->addWidget(passwordTextField);
+  oldPasswordTextField = new QLineEdit(registerBox);
+  oldPasswordTextField->setEchoMode(oldPasswordTextField->Password);
+  oldPasswordTextField->setStyleSheet("lineedit-password-character: 42");
+  registerBox->layout()->addWidget(oldPasswordTextField);
 
-  passwordLabelConfirm = new QLabel("Repeat Password:", registerBox);
-  registerBox->layout()->addWidget(passwordLabelConfirm);
+  newPasswordLabel = new QLabel("New Password:", registerBox);
+  registerBox->layout()->addWidget(newPasswordLabel);
 
-  passwordTextFieldConfirm = new QLineEdit(registerBox);
-  passwordTextFieldConfirm->setEchoMode(passwordTextFieldConfirm->Password);
-  passwordTextFieldConfirm->setStyleSheet("lineedit-password-character: 42");
-  registerBox->layout()->addWidget(passwordTextFieldConfirm);
+  newPasswordTextField = new QLineEdit(registerBox);
+  newPasswordTextField->setEchoMode(newPasswordTextField->Password);
+  newPasswordTextField->setStyleSheet("lineedit-password-character: 42");
+  registerBox->layout()->addWidget(newPasswordTextField);
+
+  newPasswordLabelConfirm = new QLabel("Repeat New Password:", registerBox);
+  registerBox->layout()->addWidget(newPasswordLabelConfirm);
+
+  newPasswordTextFieldConfirm = new QLineEdit(registerBox);
+  newPasswordTextFieldConfirm->setEchoMode(
+          newPasswordTextFieldConfirm->Password);
+  newPasswordTextFieldConfirm->setStyleSheet("lineedit-password-character: 42");
+  registerBox->layout()->addWidget(newPasswordTextFieldConfirm);
 
   buttonSaveAndBackToEditor = new QPushButton("Save and Exit", mainWidget);
   buttonSaveAndBackToEditor->setAutoDefault(true);
@@ -93,7 +101,13 @@ EditUserProfile::EditUserProfile(QWidget *parent) : QMainWindow(parent) {
 
   errorMessageDifferentPasswords = new QMessageBox(this);
   errorMessageDifferentPasswords->setText("The two passwords must match.");
+  errorMessageDifferentPasswords->setWindowTitle("Error");
   errorMessageDifferentPasswords->setFixedSize(this->minimumSize());
+
+  errorMessageWrongOldPassword = new QMessageBox(this);
+  errorMessageWrongOldPassword->setText("The old password inserted is wrong.");
+  errorMessageWrongOldPassword->setWindowTitle("Error");
+  errorMessageWrongOldPassword->setFixedSize(this->minimumSize());
 
   buttonSaveAndBackToEditor->setFocus();
 
@@ -118,16 +132,31 @@ EditUserProfile::EditUserProfile(QWidget *parent) : QMainWindow(parent) {
   QObject::connect(buttonSelectImage, &QAbstractButton::clicked, this,
                    [this]() {
                        auto path =
-                               QFileDialog::getOpenFileName(this, tr("Open Image"), "/home",
+                               QFileDialog::getOpenFileName(this,
+                                                            tr("Open Image"),
+                                                            "/home",
                                                             tr("Image Files (*.png *.jpg *.bmp)"));
                        if (!path.isEmpty()) {
                          userImage = QImage(path);
-                         displayImage->setPixmap(QPixmap::fromImage(userImage).scaled(75, 75,  Qt::KeepAspectRatio));
 
-                         imageBorder->layout()->addWidget(displayImage);
-                         imageBorder->show();
-                         displayImage->show();
-                         buttonSelectImage->setText("Select Another Icon");
+                         if (userImage.sizeInBytes() > 1048576) { //maxSize = 1MB
+                           auto errorSizeLimit = new QMessageBox(this);
+                           errorSizeLimit->setText(
+                                   "The image you have selected is too big. Try again.");
+                           errorSizeLimit->setFixedSize(this->minimumSize());
+                           errorSizeLimit->setWindowTitle("Error");
+                           errorSizeLimit->show();
+                           userImage = QImage();
+                         }else{
+                           displayImage->setPixmap(
+                                   QPixmap::fromImage(userImage).scaled(75, 75,
+                                                                        Qt::KeepAspectRatio));
+
+                           imageBorder->layout()->addWidget(displayImage);
+                           imageBorder->show();
+                           displayImage->show();
+                           buttonSelectImage->setText("Select Another Icon");
+                         }
                        } else {
                          buttonSelectImage->setText("Select Icon");
                        }
@@ -135,7 +164,26 @@ EditUserProfile::EditUserProfile(QWidget *parent) : QMainWindow(parent) {
 
   QObject::connect(buttonSaveAndBackToEditor, &QAbstractButton::clicked, this,
                    [this]() {
-                       //TODO: devo mandare i nuovi dati al server che deve salvarli + aprire di nuovo l'editor con il file di prima
+                       //TODO: devo mandare i nuovi dati al server che deve salvarli + aprire di nuovo l'editor con il file di prima + check vecchia password
                        this->close();
                    });
+}
+
+void
+EditUserProfile::onUserProfileInfo(const QImage &image, const QString &name,
+                                   const QString &surname,
+                                   const QString &email,
+                                   const QString &username) {
+  displayImage->setPixmap(
+          QPixmap::fromImage(image).scaled(75, 75, Qt::KeepAspectRatio));
+  imageBorder->layout()->addWidget(displayImage);
+  nameTextField->setText(name);
+  surnameTextField->setText(surname);
+  emailTextField->setText(email);
+  usernameTextField->setText(username);
+}
+
+void EditUserProfile::showEvent(QShowEvent *ev) {
+  QWidget::showEvent(ev);
+  emit requestUserProfile();
 }

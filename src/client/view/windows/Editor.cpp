@@ -25,7 +25,7 @@ Editor::Editor(QWidget *parent) : QMainWindow(parent) {
   fileCorrectlySaved->setFixedSize(this->minimumSize());
 
   editorInfo = new QMessageBox();
-  editorInfo->setText("Editor totally developed in C++\n\n Copyright coglione");
+  editorInfo->setText("Editor totally developed in C++\n\n Copyright fastidioso");
   editorInfo->setStandardButtons(QMessageBox::Close);
   editorInfo->setFixedSize(this->minimumSize());
 
@@ -33,8 +33,8 @@ Editor::Editor(QWidget *parent) : QMainWindow(parent) {
   infoAboutUs->setText(
           "Authors:\n  "
           "- Francesco Pavan: front-end developer di successo;\n  "
-          "- Simone Magnani: il suo refactoring non va;\n  "
-          "- Riccardo Marchi: non fa un commit dal '62;\n  "
+          "- Simone Magnani: vuole le icone tonde perché le ha Google;\n  "
+          "- Riccardo Marchi: sa solo tagliare e cucinare cipolle;\n  "
           "- Francesco Palmieri: PETARDO.");
   infoAboutUs->setStandardButtons(QMessageBox::Close);
   infoAboutUs->setFixedSize(this->minimumSize());
@@ -321,7 +321,7 @@ void Editor::createTopBar(QGridLayout *layout) {
   auto actionEditProfile = new QAction("Edit your profile", edit);
   QObject::connect(actionEditProfile, &QAction::triggered, this,
                    [this]() {
-                       emit openEditProfileFromEditor(); //TODO:versione non definitva mancano dati utente (crea classe utente e fatti tornare dati al login)
+                       emit openEditProfileFromEditor();
                        this->hide();
                    });
   edit->addAction(actionEditProfile);

@@ -7,6 +7,10 @@
 Model::Model() : editorId(0), digitGenerator(0), file(), user() {
 }
 
+User Model::getUser() {
+  return this->user;
+}
+
 QString Model::textify() {
   QString str;
   for (auto &val : file.getFileText()) {

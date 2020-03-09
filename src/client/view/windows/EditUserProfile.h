@@ -32,21 +32,36 @@ private:
     QLineEdit *usernameTextField;
     QLabel *emailLabel;
     QLineEdit *emailTextField;
-    QLabel *passwordLabel;
-    QLineEdit *passwordTextField;
-    QLabel *passwordLabelConfirm;
-    QLineEdit *passwordTextFieldConfirm;
+    QLabel *oldPasswordLabel;
+    QLineEdit *oldPasswordTextField;
+    QLabel *newPasswordLabel;
+    QLineEdit *newPasswordTextField;
+    QLabel *newPasswordLabelConfirm;
+    QLineEdit *newPasswordTextFieldConfirm;
     QPushButton *buttonSelectImage;
     QPushButton *buttonExit;
     QPushButton *buttonSaveAndBackToEditor;
     QPushButton *buttonDeleteProfile;
     QMessageBox *errorMessageDifferentPasswords;
+    QMessageBox *errorMessageWrongOldPassword;
     QMessageBox *areYouSureQuit;
     QImage userImage;
 
-public:
+protected:
+    void showEvent(QShowEvent *ev);
 
+public:
     explicit EditUserProfile(QWidget *parent = nullptr);
+
+public slots:
+
+    void onUserProfileInfo(const QImage &image, const QString &name,
+                           const QString &surname, const QString &email,
+                           const QString &username);
+
+signals:
+
+    void requestUserProfile();
 
 };
 
