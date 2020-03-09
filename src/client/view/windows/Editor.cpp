@@ -278,7 +278,7 @@ void Editor::createTopBar(QGridLayout *layout) {
 
   auto actionQuit = new QAction("Quit", file);
   QObject::connect(actionQuit, &QAction::triggered, this,
-                   &QMainWindow::hide);
+                   &QMainWindow::close);
   file->addAction(actionQuit);
 
   topBar->addSeparator();
