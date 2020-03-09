@@ -5,7 +5,7 @@
 Database::Database() {
   if (openConnection()) {
     if (!checkTable()) {
-      createTableUser();
+      createDB();
     }
     sqlite3_close(this->DBConnection);
   } else {
@@ -13,7 +13,7 @@ Database::Database() {
   }
 }
 
-void Database::createTableUser() {
+void Database::createDB() {
   std::string sql = "CREATE TABLE User ("
                     "ID INTEGER PRIMARY KEY AUTOINCREMENT,"
                     "Username VARCHAR NOT NULL UNIQUE,"
@@ -21,7 +21,11 @@ void Database::createTableUser() {
                     "Name VARCHAR,"
                     "Surname VARCHAR,"
                     "Email VARCHAR NOT NULL UNIQUE,"
-                    "ProfilePic BLOB);";
+                    "ProfilePic BLOB);"
+
+                    "CREATE TABLE Invites ("
+                    "ID INTEGER PRIMARY KEY AUTOINCREMENT,"
+                    "Link VARCHAR NOT NULL UNIQUE);";
   char *messaggeError;
   int exitCode = sqlite3_exec(this->DBConnection, sql.c_str(), nullptr, nullptr,
                               &messaggeError);
@@ -29,14 +33,14 @@ void Database::createTableUser() {
   if (exitCode != SQLITE_OK) {
     sqlite3_free(messaggeError);
   } else {
-    spdlog::error("Error performing createTableUser : {}", messaggeError);
+    spdlog::error("Error performing createDB : {}", messaggeError);
   }
 }
 
 bool Database::checkTable() {
   char *messageError;
   std::string sql =
-      "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='User';";
+      "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='User' OR name='Invites';";
   int count;
   int exitCode = sqlite3_exec(this->DBConnection, sql.c_str(), callbackCount,
                               &count, &messageError);
@@ -45,7 +49,7 @@ bool Database::checkTable() {
     spdlog::error("Error performing checkTable : {}", messageError);
     return false;
   }
-  return count == 1;
+  return count == 2;
 }
 
 bool Database::openConnection() {
@@ -205,4 +209,71 @@ QByteArray Database::convertFromQImage(const QImage &userPic) {
   QDataStream ds(&bytes, QIODevice::WriteOnly);
   ds << userPic;
   return bytes;
+}
+bool Database::checkInvite(const QString& link) {
+  bool isValid = false;
+  if (openConnection()) {
+    std::string sql = "SELECT COUNT(*) FROM Invites WHERE Link=?;";
+    const char *zTail = nullptr;
+    const char **pzTail = &zTail;
+    sqlite3_stmt *statement = nullptr;
+    int ret = sqlite3_prepare_v2(this->DBConnection, sql.c_str(), -1,
+                                 &statement, pzTail);
+    sqlite3_bind_text(statement, 1, link.toStdString().c_str(),
+                      -1, SQLITE_TRANSIENT);
+
+    if(ret == SQLITE_OK) {
+      ret = sqlite3_step(statement);
+      if (ret  == SQLITE_ROW) {
+        isValid = sqlite3_column_int(statement, 0) == 1;
+        sqlite3_finalize(statement);
+        sqlite3_close(this->DBConnection);
+      }
+    }
+  }
+  return isValid;
+}
+bool Database::insertInvite(const QString &link) {
+  if (openConnection()) {
+    std::string sql = "INSERT INTO Invites VALUES(NULL,?);";
+    const char *zTail = nullptr;
+    const char **pzTail = &zTail;
+    sqlite3_stmt *statement = nullptr;
+    int exitCode = sqlite3_prepare_v2(this->DBConnection, sql.c_str(), -1,
+                                      &statement, pzTail);
+    if (exitCode == SQLITE_OK) {
+      sqlite3_bind_text(statement, 1, link.toStdString().c_str(),
+                        -1, SQLITE_TRANSIENT);
+      exitCode = sqlite3_step(statement);
+
+      if (exitCode == SQLITE_DONE) {
+        sqlite3_finalize(statement);
+        sqlite3_close(this->DBConnection);
+        return true;
+      }
+    }
+  }
+  return false;
+}
+bool Database::deleteInvite(const QString &link) {
+  if (openConnection()) {
+    std::string sql = "DELETE FROM Invites WHERE Link=?;";
+    const char *zTail = nullptr;
+    const char **pzTail = &zTail;
+    sqlite3_stmt *statement = nullptr;
+    int ret = sqlite3_prepare_v2(this->DBConnection, sql.c_str(), -1,
+                                 &statement, pzTail);
+    sqlite3_bind_text(statement, 1, link.toStdString().c_str(),
+                      -1, SQLITE_TRANSIENT);
+
+    if(ret == SQLITE_OK) {
+      ret = sqlite3_step(statement);
+      if (ret  == SQLITE_DONE) {
+        sqlite3_finalize(statement);
+        sqlite3_close(this->DBConnection);
+        return true;
+      }
+    }
+  }
+  return false;
 }

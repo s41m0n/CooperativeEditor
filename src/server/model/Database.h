@@ -15,7 +15,7 @@ private:
   // The constructor (private because is a singleton class)
   Database();
 
-  void createTableUser();
+  void createDB();
 
   bool checkTable();
 
@@ -49,6 +49,12 @@ public:
   bool updateUser(User &user);
 
   bool deleteUser(User user);
+
+  bool checkInvite(const QString& link);
+
+  bool insertInvite(const QString& link);
+
+  bool deleteInvite(const QString& link);
 };
 
 #endif // COOPERATIVEEDITOR_DATABASE_H
