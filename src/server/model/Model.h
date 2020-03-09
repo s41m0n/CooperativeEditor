@@ -76,6 +76,15 @@ public:
   /// Returns a bool to indicate if the update was successful
   static bool deleteUser(User &user);
 
+  /// Return a bool to indicate if the invite is valid
+  static bool checkInvite(const QString &link);
+
+  /// Return a bool to indicate if the invite has been correctly inserted
+  static bool insertInvite(const QString &username, const QString &filename);
+
+  /// Return a bool to indicate if the invite has been correctly deleted
+  static bool deleteInvite(const QString &link);
+
   std::vector<TcpSocket *> getFileConnections(const QString &fileName);
 };
 

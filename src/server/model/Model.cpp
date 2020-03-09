@@ -152,3 +152,13 @@ bool Model::updateUser(User &user) {
 bool Model::deleteUser(User &user) {
   return Database::getInstance().deleteUser(user);
 }
+bool Model::checkInvite(const QString &link) {
+  return Database::getInstance().checkInvite(link);
+}
+bool Model::insertInvite(const QString &username, const QString &filename) {
+  QString hashedLink = QString(QCryptographicHash::hash(QString(username+filename).toUtf8(), QCryptographicHash::Sha512).toHex());
+  return Database::getInstance().insertInvite(hashedLink);
+}
+bool Model::deleteInvite(const QString &link) {
+  return Database::getInstance().deleteInvite(link);
+}
