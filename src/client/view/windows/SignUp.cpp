@@ -16,14 +16,25 @@ SignUp::SignUp(QWidget *parent) : QMainWindow(parent) {
   layout->addWidget(title, 0, 0);
 
   registerBox = new QGroupBox(
-      "Fill the following fields to sign up to the system:", mainWidget);
+          "Fill the following fields to sign up to the system:", mainWidget);
   registerBox->setLayout(new QVBoxLayout());
   layout->addWidget(registerBox, 1, 0, 1, 2);
 
-  imageLabel = new QLabel("Select your image:");
+  imageLabel = new QLabel("Icon (MaxSize 1 MB):", registerBox);
   registerBox->layout()->addWidget(imageLabel);
 
-  buttonSelectImage = new QPushButton("Select file", registerBox);
+  imageBorder = new QGroupBox(registerBox);
+  imageBorder->setLayout(new QVBoxLayout);
+  imageBorder->setFixedSize(90, 90);
+  imageBorder->hide();
+  registerBox->layout()->addWidget(imageBorder);
+  registerBox->layout()->setAlignment(imageBorder, Qt::AlignCenter);
+
+  displayImage = new QLabel(registerBox);
+  displayImage->hide();
+  registerBox->layout()->addWidget(displayImage);
+
+  buttonSelectImage = new QPushButton("Select Icon", registerBox);
   buttonSelectImage->setAutoDefault(true);
   registerBox->layout()->addWidget(buttonSelectImage);
 
@@ -72,8 +83,9 @@ SignUp::SignUp(QWidget *parent) : QMainWindow(parent) {
   registerBox->layout()->addWidget(buttonSignUp);
 
   alreadyRegisteredBox =
-      new QGroupBox("Are you already registered?", mainWidget);
+          new QGroupBox("Are you already registered?", mainWidget);
   alreadyRegisteredBox->setLayout(new QVBoxLayout());
+  alreadyRegisteredBox->setWindowTitle("Error");
   layout->addWidget(alreadyRegisteredBox, 2, 0, 1, 2);
 
   buttonBackToLogin = new QPushButton("Log In", alreadyRegisteredBox);
@@ -86,6 +98,7 @@ SignUp::SignUp(QWidget *parent) : QMainWindow(parent) {
 
   errorMessageEmptyFields = new QMessageBox(this);
   errorMessageEmptyFields->setText("Please fill all the requested fields.");
+  errorMessageEmptyFields->setWindowTitle("Error");
   errorMessageEmptyFields->setFixedSize(this->minimumSize());
 
   areYouSureQuit = new QMessageBox(this);
@@ -95,60 +108,82 @@ SignUp::SignUp(QWidget *parent) : QMainWindow(parent) {
 
   errorMessageDifferentPasswords = new QMessageBox(this);
   errorMessageDifferentPasswords->setText("The two passwords must match.");
+  errorMessageDifferentPasswords->setWindowTitle("Error");
   errorMessageDifferentPasswords->setFixedSize(this->minimumSize());
 
   buttonExit->setFocus();
 
   QObject::connect(buttonExit, &QAbstractButton::clicked, this, [this]() {
-    int result = areYouSureQuit->exec();
+      int result = areYouSureQuit->exec();
 
-    switch (result) {
-    case QMessageBox::Yes:
-      this->close();
-      break;
-    case QMessageBox::No:
-      areYouSureQuit->close();
-      break;
-    default:
-      // error, should never be reached
-      break;
-    }
+      switch (result) {
+        case QMessageBox::Yes:
+          this->close();
+          break;
+        case QMessageBox::No:
+          areYouSureQuit->close();
+          break;
+        default:
+          // error, should never be reached
+          break;
+      }
   });
 
   QObject::connect(
-      buttonSelectImage, &QAbstractButton::clicked, this, [this]() {
-        auto path =
-            QFileDialog::getOpenFileName(this, tr("Open Image"), "/home",
-                                         tr("Image Files (*.png *.jpg *.bmp)"));
-        if (!path.isEmpty()) {
-          buttonSelectImage->setText(path);
-          userImage = QImage(path);
-        } else {
-          buttonSelectImage->setText("Select File");
-        }
-      });
+          buttonSelectImage, &QAbstractButton::clicked, this, [this]() {
+              auto path =
+                      QFileDialog::getOpenFileName(this, tr("Open Image"),
+                                                   "/home",
+                                                   tr("Image Files (*.png *.jpg *.bmp)"));
+              if (!path.isEmpty()) {
+                userImage = QImage(path);
+
+                if (userImage.sizeInBytes() > 1048576) { //maxSize = 1MB
+                  auto errorSizeLimit = new QMessageBox(this);
+                  errorSizeLimit->setWindowTitle("Error");
+                  errorSizeLimit->setText(
+                          "The image you have selected is too big. Try again.");
+                  errorSizeLimit->setFixedSize(this->minimumSize());
+                  errorSizeLimit->show();
+                  userImage = QImage();
+                } else {
+                  displayImage->setPixmap(
+                          QPixmap::fromImage(userImage).scaled(75, 75,
+                                                               Qt::KeepAspectRatio));
+
+                  imageBorder->layout()->addWidget(displayImage);
+                  imageBorder->show();
+                  displayImage->show();
+                  buttonSelectImage->setText("Select Another Icon");
+                }
+              } else {
+                buttonSelectImage->setText("Select Icon");
+              }
+          });
+
   QObject::connect(buttonBackToLogin, &QAbstractButton::clicked, this,
                    [this]() {
-                     emit backToLogin();
-                     this->hide();
+                       emit backToLogin();
+                       this->hide();
                    });
 
   QObject::connect(buttonSignUp, &QAbstractButton::clicked, this, [this]() {
-    if (!userImage.isNull() && !nameTextField->text().isEmpty() &&
-        !surnameTextField->text().isEmpty() &&
-        !usernameTextField->text().isEmpty() &&
-        !emailTextField->text().isEmpty() &&
-        !passwordTextField->text().isEmpty()) {
+      if (!userImage.isNull() && !nameTextField->text().isEmpty() &&
+          !surnameTextField->text().isEmpty() &&
+          !usernameTextField->text().isEmpty() &&
+          !emailTextField->text().isEmpty() &&
+          !passwordTextField->text().isEmpty()) {
 
-      if (passwordTextField->text() == passwordTextFieldConfirm->text()) {
-        emit signUpRequest(userImage, nameTextField->text(),
-                           surnameTextField->text(), usernameTextField->text(),
-                           emailTextField->text(), passwordTextField->text());
+        if (passwordTextField->text() == passwordTextFieldConfirm->text()) {
+          emit signUpRequest(userImage, nameTextField->text(),
+                             surnameTextField->text(),
+                             usernameTextField->text(),
+                             emailTextField->text(), passwordTextField->text());
+        } else {
+          errorMessageDifferentPasswords->exec();
+        }
       } else {
-        errorMessageDifferentPasswords->exec();
+        errorMessageEmptyFields->exec();
       }
-    } else {
-      errorMessageEmptyFields->exec();
-    }
   });
 }

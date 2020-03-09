@@ -131,3 +131,8 @@ void Controller::onFileRequest(const QString &filename, bool exists) {
   RequestMessage msg(model->getEditorId(), filename);
   sendMsg(exists ? Type::OPEN : Type::CREATE, msg);
 }
+
+void Controller::onShowEditProfile(){
+  User user = model->getUser();
+  emit userProfileInfo(user.getPicture(), user.getName(), user.getSurname(), user.getEmail(), user.getUsername());
+}

@@ -23,6 +23,8 @@ private:
     QLabel *title;
     QGroupBox *registerBox;
     QLabel *imageLabel;
+    QGroupBox *imageBorder;
+    QLabel *displayImage;
     QLabel *nameLabel;
     QLineEdit *nameTextField;
     QLabel *surnameLabel;

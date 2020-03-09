@@ -33,6 +33,12 @@ void View::init() {
   ///Bottone semplice (azione da menu dropdown) da Editor e EditUserProfile per modificare il mio profilo
   QObject::connect(editor, &Editor::openEditProfileFromEditor, editProfile, &QMainWindow::show);
 
+  ///Segnale intermedio per farsi passare dati utente
+  QObject::connect(editProfile, &EditUserProfile::requestUserProfile, controller, &Controller::onShowEditProfile);
+
+  ///Ottengo i dati utente
+  QObject::connect(controller, &Controller::userProfileInfo, editProfile, &EditUserProfile::onUserProfileInfo);
+
   ///Bottone semplice (azione da menu dropdown) da Editor a FileVisualizer per aprire un nuovo file
   QObject::connect(editor, &Editor::openVisualizerFromEditor, fileVisualizer, &QMainWindow::show);
 

@@ -31,6 +31,8 @@ public:
 
     Model();
 
+    User getUser();
+
     ///Crdt local method to insert a symbol
     Symbol &localInsert(int index, QChar value);
 

@@ -50,6 +50,8 @@ public slots:
 
     void onFileRequest(const QString &filename, bool exists);
 
+    void onShowEditProfile();
+
 signals:
 
     ///Signal to notify the view about the login
@@ -63,6 +65,9 @@ signals:
 
     ///Method to notify the view that text must be updated after a remote op.
     void remoteUpdate(QString text);
+
+    ///Method to send to the view the information about the user
+    void userProfileInfo(QImage image, QString name, QString surname, QString email, QString username);
 
 };
 
