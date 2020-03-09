@@ -2,7 +2,8 @@
 
 EditUserProfile::EditUserProfile(QWidget *parent) : QMainWindow(parent) {
 
-  //TODO: vanno recuperati tutti i dati dell'utente e messi come placeholder dei vari campi di test, sarebbe figo mostrare l'icona
+  //TODO: vanno recuperati tutti i dati dell'utente e messi come placeholder dei vari campi di test, sarebbe figo mostrare l'icona. I dati sono nel model del client, non serve chiederli al server
+  //TODO: crea pulsante che faccia eliminare l'utente
 
   this->setWindowTitle("Edit User Profile");
   this->setFixedSize(this->minimumSize());

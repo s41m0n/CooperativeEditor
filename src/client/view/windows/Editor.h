@@ -29,21 +29,22 @@ Q_OBJECT
 private:
     QWidget *mainWidget;
     QTextEdit *textEdit;
-    QMenuBar *topBar;
-    QToolBar *toolBar;
+    QMenuBar *topBar{};
+    QToolBar *toolBar{};
     QMessageBox *fileCorrectlySaved;
     QMessageBox *editorInfo;
     QMessageBox *infoAboutUs;
     QGroupBox *userOnline;
-    QAction *actionBold;
-    QAction *actionItalic;
-    QAction *actionUnderlined;
+    QAction *actionBold{};
+    QAction *actionItalic{};
+    QAction *actionUnderlined{};
 
     void createTopBar(QGridLayout *layout);
     void createToolBar(QGridLayout *layout);
     int getCursorPos();
     void paste();
     bool deleteSelection(); //true = deleted, false = nothing to delete
+    void simulateBackspacePression();
     void fileToPDF();
     void mergeFormat(const QTextCharFormat &format);
 

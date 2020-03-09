@@ -15,6 +15,8 @@ View::View(Controller *controller) : controller(controller) {
   });
 }
 
+//TODO: aggiungi metodo che raccolga errori lanciati dalla GUI e faccia vedere il msg d'errore come sopra
+
 void View::init() {
   login = new Login();
   editor = new Editor();
