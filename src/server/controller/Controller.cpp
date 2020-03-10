@@ -37,13 +37,15 @@ void Controller::onNewConnection() {
   spdlog::debug("Connected Editor {0:d}", clientId);
 
   BasicMessage msg(clientId);
-  clientSocket->sendMsg(Type::CONNECT, msg);
+  clientSocket->sendMsg(Type::U_CONNECT, msg);
 }
 
 void Controller::onSocketStateChanged(
     QAbstractSocket::SocketState socketState) {
   if (socketState == QAbstractSocket::ClosingState) {
     auto sender = dynamic_cast<TcpSocket *>(QObject::sender());
+    dispatch(sender, Type::U_DISCONNECTED, Header(), std::make_shared<BasicMessage>(sender->getIdentifier()));
+    model->removeUserActivity(sender);
     model->removeConnection(sender);
     sender->deleteLater();
   }
@@ -60,95 +62,86 @@ void Controller::onReadyRead() {
 
     switch (header.getType()) {
 
-    case Type::REGISTER:
-    case Type::LOGIN: {
+    case Type::U_REGISTER:
+    case Type::U_LOGIN: {
       auto derived = std::dynamic_pointer_cast<UserMessage>(base);
       auto user = derived->getUser();
-      bool result = header.getType() == Type::LOGIN ? Model::logInUser(user)
-                                                    : Model::registerUser(user);
+      bool result = header.getType() == Type::U_LOGIN ? Model::logInUser(user)
+                                                      : Model::registerUser(user);
       if (result) {
         UserMessage newMsg(clientId, user);
         FileListingMessage newMsg2(clientId, model->getAvailableFiles());
-        sender->sendMsg(header.getType() == Type::LOGIN ? Type::LOGIN_OK
-                                                        : Type::REGISTER_OK,
+        sender->sendMsg(header.getType() == Type::U_LOGIN ? Type::U_LOGIN_OK
+                                                          : Type::U_REGISTER_OK,
                         newMsg);
-        sender->sendMsg(Type::LISTING, newMsg2);
+        model->insertUserActivity(sender, user);
+        sender->sendMsg(Type::F_LISTING, newMsg2);
       } else {
         BasicMessage msg(clientId);
-        sender->sendMsg(header.getType() == Type::LOGIN ? Type::LOGIN_KO
-                                                        : Type::REGISTER_KO,
+        sender->sendMsg(header.getType() == Type::U_LOGIN ? Type::U_LOGIN_KO
+                                                          : Type::U_REGISTER_KO,
                         msg);
       }
       break;
     }
-    case Type::INSERT:
-    case Type::ERASE: {
+    case Type::S_INSERT:
+    case Type::S_ERASE: {
       auto derived = std::dynamic_pointer_cast<CrdtMessage>(base);
       try {
-        header.getType() == Type::INSERT
+        header.getType() == Type::S_INSERT
             ? model->userInsert(sender, derived->getSymbol())
             : model->userErase(sender, derived->getSymbol());
-        auto fileName = model->getFileBySocket(sender).getFileName();
-        auto fileConnections = model->getFileConnections(fileName);
-        if (!fileConnections.empty()) {
-          std::for_each(fileConnections.begin(), fileConnections.end(),
-                        [&](auto &socket) {
-                          if (socket != sender) {
-                            socket->sendMsg(header, *derived);
-                            spdlog::debug("Dispatched message from {} to {}",
-                                          sender->getIdentifier(),
-                                          socket->getIdentifier());
-                          }
-                        });
-        }
+        dispatch(sender, header.getType(), header, derived);
       } catch (std::exception &e) {
         spdlog::error("Error on remote operation:\nMsg -> {}", e.what());
       }
       break;
     }
-    case Type::UPDATE: {
+    case Type::U_UPDATE: {
       auto derived = std::dynamic_pointer_cast<UserMessage>(base);
       auto user = derived->getUser();
       if (Model::updateUser(user)) {
         UserMessage newMsg(clientId, user);
-        sender->sendMsg(Type::UPDATE_OK, newMsg);
+        sender->sendMsg(Type::U_UPDATE_OK, newMsg);
       } else {
         BasicMessage msg(clientId);
-        sender->sendMsg(Type::UPDATE_KO, msg);
+        sender->sendMsg(Type::U_UPDATE_KO, msg);
       }
       break;
     }
-    case Type::UNREGISTER: {
+    case Type::U_UNREGISTER: {
       auto derived = std::dynamic_pointer_cast<UserMessage>(base);
       auto user = derived->getUser();
       if (Model::deleteUser(user)) {
         UserMessage newMsg(clientId, user);
-        sender->sendMsg(Type::UNREGISTER_OK, newMsg);
+        sender->sendMsg(Type::U_UNREGISTER_OK, newMsg);
       } else {
         BasicMessage msg(clientId);
-        sender->sendMsg(Type::UNREGISTER_KO, msg);
+        sender->sendMsg(Type::U_UNREGISTER_KO, msg);
       }
       break;
     }
-    case Type::CREATE:
-    case Type::OPEN: {
+    case Type::F_CREATE:
+    case Type::F_OPEN: {
       auto filename =
           std::dynamic_pointer_cast<RequestMessage>(base)->getFilename();
       FileText symbolList;
 
-      if (header.getType() == Type::OPEN &&
+      if (header.getType() == Type::F_OPEN &&
           model->openFileByUser(sender, filename)) {
-        symbolList = model->getFileBySocket(sender).getFileText();
-      } else if (header.getType() == Type::CREATE &&
+        symbolList = model->getFileBySocket(sender)->getFileText();
+      } else if (header.getType() == Type::F_CREATE &&
                  !model->createFileByUser(sender, filename)) {
         BasicMessage newMsg(clientId);
-        sender->sendMsg(Type::FILE_KO, newMsg);
+        sender->sendMsg(Type::F_FILE_KO, newMsg);
         break;
       }
 
       File file(filename, symbolList);
       FileMessage newMsg2(clientId, file);
-      sender->sendMsg(Type::FILE_OK, newMsg2);
+      sender->sendMsg(Type::F_FILE_OK, newMsg2);
+      dispatch(sender, Type::U_CONNECTED,Header(),
+              std::make_shared<UserMessage>(clientId, model->getUserActivity(sender)));
       break;
     }
     default:
@@ -157,5 +150,26 @@ void Controller::onReadyRead() {
   }
   if (sender->isMessageAvailable()) {
     onReadyRead();
+  }
+}
+
+void Controller::dispatch(TcpSocket* sender, Type headerType, Header header, std::shared_ptr<BasicMessage> message) {
+  auto serverFile = model->getFileBySocket(sender);
+  if (serverFile == nullptr)
+    return;
+  auto fileConnections = model->getFileConnections(serverFile->getFileName());
+  if (!fileConnections.empty()) {
+    std::for_each(fileConnections.begin(), fileConnections.end(),
+                  [&](auto &socket) {
+                      if (socket != sender) {
+                        if (header.getType() == headerType)
+                          socket->sendMsg(header, *message);
+                        else
+                          socket->sendMsg(headerType, *message);
+                        spdlog::debug("Dispatched message from {} to {}",
+                                      sender->getIdentifier(),
+                                      socket->getIdentifier());
+                      }
+                  });
   }
 }
