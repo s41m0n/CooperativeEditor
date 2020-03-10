@@ -30,6 +30,8 @@ private:
   /// The mutex for the usersFile map
   std::mutex usersFileMutex;
 
+  std::map<TcpSocket *, User> socketToUser;
+
   /// Editor Id unique generator
   std::atomic<unsigned> idGenerator;
 
@@ -61,7 +63,13 @@ public:
   QVector<QString> &getAvailableFiles();
 
   /// Returns the list of symbols for the file the user connId has requested
-  ServerFile &getFileBySocket(TcpSocket *socket);
+  std::shared_ptr<ServerFile> getFileBySocket(TcpSocket *socket);
+
+  void insertUserActivity(TcpSocket *socket, const User& user);
+
+  void removeUserActivity(TcpSocket *socket);
+
+  const User &getUserActivity(TcpSocket *socket);
 
   /// Returns a bool to indicate if the logIn credential are correct and set the
   /// User object

@@ -112,10 +112,12 @@ bool Model::openFileByUser(TcpSocket *socket, QString filename) {
 
 QVector<QString> &Model::getAvailableFiles() { return availableFiles; }
 
-ServerFile &Model::getFileBySocket(TcpSocket *socket) {
-  return *std::find_if(usersFile.begin(), usersFile.end(),
-                       [socket](auto &pair) { return socket == pair.second; })
-              ->first;
+std::shared_ptr<ServerFile> Model::getFileBySocket(TcpSocket *socket) {
+  auto fileToSocket = std::find_if(usersFile.begin(), usersFile.end(),
+                                   [socket](auto &pair) { return socket == pair.second; });
+  if (fileToSocket != usersFile.end())
+    return fileToSocket->first;
+  return nullptr;
 }
 
 void Model::removeConnection(TcpSocket *socket) {
@@ -136,6 +138,19 @@ std::vector<TcpSocket *> Model::getFileConnections(const QString &fileName) {
     }
   });
   return fileConnections;
+}
+
+void Model::insertUserActivity(TcpSocket *socket, const User& user) {
+  socketToUser.emplace(socket, user);
+}
+
+void Model::removeUserActivity(TcpSocket *socket) {
+  if (socketToUser.find(socket) != socketToUser.end())
+    socketToUser.erase(socket);
+}
+
+const User &Model::getUserActivity(TcpSocket *socket) {
+  return socketToUser.find(socket)->second;
 }
 
 bool Model::logInUser(User &user) {

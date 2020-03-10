@@ -23,6 +23,7 @@ Q_OBJECT
 private:
     Model *model;
 
+    void dispatch(TcpSocket* sender, Type headerType, Header header, std::shared_ptr<BasicMessage> message);
 public:
     Controller(Model *model, unsigned short port, QWidget *parent = nullptr);
 

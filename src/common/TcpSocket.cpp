@@ -40,38 +40,37 @@ BasicMessage *TcpSocket::readMsg() {
   BasicMessage *msg = nullptr;
 
   switch (header.getType()) {
-    case Type::REGISTER_KO :
-    case Type::FILE_KO :
-    case Type::LOGIN_KO :
-    case Type::CONNECT : {
+    case Type::U_REGISTER_KO :
+    case Type::F_FILE_KO :
+    case Type::U_LOGIN_KO :
+    case Type::U_DISCONNECTED :
+    case Type::U_CONNECT : {
       msg = new BasicMessage();
       break;
     }
-    case Type::LOGIN :
-    case Type::LOGIN_OK :
-    case Type::REGISTER_OK :
-    case Type::REGISTER : {
+    case Type::U_LOGIN :
+    case Type::U_CONNECTED :
+    case Type::U_LOGIN_OK :
+    case Type::U_REGISTER_OK :
+    case Type::U_REGISTER : {
       msg = new UserMessage();
       break;
     }
-    case Type::LISTING: {
+    case Type::F_LISTING: {
       msg = new FileListingMessage();
       break;
     }
-    case Type::CREATE: {
+    case Type::F_CREATE:
+    case Type::F_OPEN: {
       msg = new RequestMessage();
       break;
     }
-    case Type::OPEN: {
-      msg = new RequestMessage();
-      break;
-    }
-    case Type::FILE_OK: {
+    case Type::F_FILE_OK: {
       msg = new FileMessage();
       break;
     }
-    case Type::INSERT :
-    case Type::ERASE: {
+    case Type::S_INSERT :
+    case Type::S_ERASE: {
       msg = new CrdtMessage();
       break;
     }
