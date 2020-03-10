@@ -67,7 +67,13 @@ signals:
     void remoteUpdate(QString text);
 
     ///Method to send to the view the information about the user
-    void userProfileInfo(QImage image, QString name, QString surname, QString email, QString username);
+    void userProfileInfo(QImage image, QString name, QString surname,
+            QString email, QString username);
+
+    void remoteUserConnected(qint32 clientId, QImage image, QString name,
+            QString surname, QString email, QString username);
+
+    void remoteUserDisconnected(quint32 clientId);
 
 };
 

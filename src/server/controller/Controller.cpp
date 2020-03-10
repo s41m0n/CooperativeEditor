@@ -153,7 +153,8 @@ void Controller::onReadyRead() {
   }
 }
 
-void Controller::dispatch(TcpSocket* sender, Type headerType, Header header, std::shared_ptr<BasicMessage> message) {
+void Controller::dispatch(TcpSocket* sender, Type headerType, Header header,
+        std::shared_ptr<BasicMessage> message) {
   auto serverFile = model->getFileBySocket(sender);
   if (serverFile == nullptr)
     return;
@@ -162,10 +163,16 @@ void Controller::dispatch(TcpSocket* sender, Type headerType, Header header, std
     std::for_each(fileConnections.begin(), fileConnections.end(),
                   [&](auto &socket) {
                       if (socket != sender) {
-                        if (header.getType() == headerType)
+                        if (header.getType() == headerType) {
                           socket->sendMsg(header, *message);
-                        else
+                        } else {
                           socket->sendMsg(headerType, *message);
+                          if (headerType == Type::U_CONNECTED) {
+                            UserMessage remoteUser(socket->getIdentifier(),
+                                    model->getUserActivity(socket));
+                            sender->sendMsg(headerType, remoteUser);
+                          }
+                        }
                         spdlog::debug("Dispatched message from {} to {}",
                                       sender->getIdentifier(),
                                       socket->getIdentifier());
