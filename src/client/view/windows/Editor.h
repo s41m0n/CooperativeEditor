@@ -9,6 +9,7 @@
 #include <QToolBar>
 #include <QPlainTextEdit>
 #include <QString>
+#include <QListWidget>
 #include <QVBoxLayout>
 #include <QAction>
 #include <QApplication>
@@ -29,15 +30,17 @@ Q_OBJECT
 private:
     QWidget *mainWidget;
     QTextEdit *textEdit;
-    QMenuBar *topBar{};
-    QToolBar *toolBar{};
+    QMenuBar *topBar;
+    QToolBar *toolBar;
     QMessageBox *fileCorrectlySaved;
     QMessageBox *editorInfo;
     QMessageBox *infoAboutUs;
-    QGroupBox *userOnline;
-    QAction *actionBold{};
-    QAction *actionItalic{};
-    QAction *actionUnderlined{};
+    QListWidget *usersOnline;
+    QAction *actionBold;
+    QAction *actionItalic;
+    QAction *actionUnderlined;
+    QLabel *usersOnlineDisplayer;
+    int usersOnlineNumber;
 
     void createTopBar(QGridLayout *layout);
     void createToolBar(QGridLayout *layout);

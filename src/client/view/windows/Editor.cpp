@@ -1,10 +1,13 @@
 #include <spdlog/spdlog.h>
+#include <QtWidgets/QListWidget>
+#include <QtWidgets/QInputDialog>
 #include "Editor.h"
 
-Editor::Editor(QWidget *parent) : QMainWindow(parent) {
+Editor::Editor(QWidget *parent) : QMainWindow(parent), usersOnlineNumber(1) {
 
   //TODO: fileVisualizer mi passa il nome del file
   //this->setWindowTitle("File Selection");
+  //TODO: implementa con segnale + slot l'aggiornamento degli user online (fai setText con nuovo numero utenti connessi) (serve backend)
 
   this->setMinimumWidth(500);
 
@@ -25,7 +28,8 @@ Editor::Editor(QWidget *parent) : QMainWindow(parent) {
   fileCorrectlySaved->setFixedSize(this->minimumSize());
 
   editorInfo = new QMessageBox();
-  editorInfo->setText("Editor totally developed in C++\n\n Copyright fastidioso");
+  editorInfo->setText(
+          "Editor totally developed in C++\n\n Copyright fastidioso");
   editorInfo->setStandardButtons(QMessageBox::Close);
   editorInfo->setFixedSize(this->minimumSize());
 
@@ -69,23 +73,25 @@ Editor::Editor(QWidget *parent) : QMainWindow(parent) {
                                textEdit->textCursor().charFormat().fontUnderline());
                    });
 
-  auto users = new QLabel("Users online:");
-  users->setFixedHeight(30);
-  layout->addWidget(users, 2, 2, 1, 1);
+  usersOnlineDisplayer = new QLabel(
+          "Users online: " + QString::number(usersOnlineNumber), mainWidget);
+  usersOnlineDisplayer->setFixedHeight(30);
+  layout->addWidget(usersOnlineDisplayer, 2, 2, 1, 1);
 
-  userOnline = new QGroupBox(mainWidget);
-  userOnline->setLayout(new QVBoxLayout);
+  usersOnline = new QListWidget(mainWidget);
+  usersOnline->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+  usersOnline->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+  usersOnline->setLayout(new QVBoxLayout);
 
   //TODO: devi farti inviare i client connessi al file
-  auto user1 = new QLabel("User 1");
-  userOnline->layout()->addWidget(user1);
-  auto user2 = new QLabel("User 2");
-  userOnline->layout()->addWidget(user2);
+  usersOnline->addItem("User 1");
+  usersOnline->addItem("User 2");
 
-  userOnline->setFixedHeight(70); //TODO: setta a seconda del numero di client
-  userOnline->setFixedWidth(250);
+  usersOnline->setFixedHeight(
+          60); //TODO: setta a seconda del numero di client 30 * #client
+  usersOnline->setFixedWidth(250);
 
-  layout->addWidget(userOnline, 3, 2, 1, 1);
+  layout->addWidget(usersOnline, 3, 2, 1, 1);
 
 }
 
@@ -112,8 +118,8 @@ Editor::eventFilter(QObject *object, QEvent *event) { //key pression manager
           deleteSelection();
           break;
         }
-        case Qt::Key_Z: {
-          //undo (ignored)
+        case Qt::Key_Z: { //undo
+          //(ignored)
           return true;
         }
         case Qt::Key_Backspace: { //delete last word
@@ -151,7 +157,7 @@ Editor::eventFilter(QObject *object, QEvent *event) { //key pression manager
           break;
         }
         case Qt::Key_Delete: {
-          if(!deleteSelection()) { //If I already deleted the selection I don't delete again
+          if (!deleteSelection()) { //If I already deleted the selection I don't delete again
             if (getCursorPos() != textEdit->toPlainText().size()) {
               emit symbolDeleted(getCursorPos());
             }
@@ -168,7 +174,7 @@ Editor::eventFilter(QObject *object, QEvent *event) { //key pression manager
           break;
         }
         default: {
-          if (!characterInserted.isEmpty()){
+          if (!characterInserted.isEmpty()) {
 
             simulateBackspacePression();
 
@@ -225,7 +231,7 @@ bool Editor::deleteSelection() {
   return false;
 }
 
-void Editor::simulateBackspacePression(){
+void Editor::simulateBackspacePression() {
   QTextCursor textCursor = textEdit->textCursor();
   auto selection = textCursor.selectedText();
 
@@ -315,6 +321,38 @@ void Editor::createTopBar(QGridLayout *layout) {
                        QCoreApplication::postEvent(textEdit, event);
                    });
   edit->addAction(actionCut);
+
+  edit->addSeparator();
+
+  auto actionGenerateLink = new QAction("Invite a contributor", edit);
+  QObject::connect(actionGenerateLink, &QAction::triggered, this,
+                   [this]() {
+                       //TODO: genera link
+                       auto dialog = new QInputDialog();
+                       dialog->setOption(QInputDialog::NoButtons);
+                       dialog->setOption(
+                               QInputDialog::UsePlainTextEditForTextInput);
+                       dialog->setLabelText(
+                               "Share this link with the people you want to collaborate with:");
+                       dialog->setTextValue("---- link ----");
+
+                       QList<QWidget *> widgets = dialog->findChildren<QWidget *>();
+                       for (QWidget *widget : widgets) {
+                         if (strncmp(widget->metaObject()->className(),
+                                     "QPlainTextEdit", 14) == 0) {
+                           auto t = dynamic_cast<QPlainTextEdit *>(widget);
+                           t->setReadOnly(true);
+                           t->setFixedHeight(34);
+                           t->setHorizontalScrollBarPolicy(
+                                   Qt::ScrollBarAlwaysOff);
+                           t->setVerticalScrollBarPolicy(
+                                   Qt::ScrollBarAlwaysOff);
+                         }
+                       }
+                       dialog->setFixedSize(dialog->minimumSize());
+                       dialog->show();
+                   });
+  edit->addAction(actionGenerateLink);
 
   edit->addSeparator();
 
