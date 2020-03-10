@@ -74,11 +74,15 @@ void Controller::onReadyRead() {
       break;
     }
     case Type::U_CONNECTED: {
-      //TODO: Another user connected to the file
+      auto userConnected =
+              std::dynamic_pointer_cast<UserMessage>(base)->getUser();
+      emit remoteUserConnected(base->getEditorId(), userConnected.getPicture(),
+              userConnected.getName(), userConnected.getSurname(),
+              userConnected.getEmail(), userConnected.getUsername());
       break;
     }
     case Type::U_DISCONNECTED: {
-      //TODO: Another user disconnected from the file
+      emit remoteUserDisconnected(base->getEditorId());
       break;
     }
     default:
@@ -142,5 +146,6 @@ void Controller::onFileRequest(const QString &filename, bool exists) {
 
 void Controller::onShowEditProfile(){
   User user = model->getUser();
-  emit userProfileInfo(user.getPicture(), user.getName(), user.getSurname(), user.getEmail(), user.getUsername());
+  emit userProfileInfo(user.getPicture(), user.getName(), user.getSurname(),
+          user.getEmail(), user.getUsername());
 }
