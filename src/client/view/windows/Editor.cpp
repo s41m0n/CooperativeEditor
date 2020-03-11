@@ -191,17 +191,6 @@ Editor::eventFilter(QObject *object, QEvent *event) { //key pression manager
 
             simulateBackspacePression();
 
-            QTextCharFormat fmt;
-            if (actionBold->isChecked() || actionItalic->isChecked() ||
-                actionUnderlined->isChecked()) {
-              fmt.setFontWeight(actionBold->isChecked() ? QFont::Bold
-                                                        : QFont::Normal); //write in bold
-              fmt.setFontItalic(actionItalic->isChecked()); //write in italic
-              fmt.setFontUnderline(
-                      actionUnderlined->isChecked()); //write underlined
-              mergeFormat(fmt);
-            }
-
             emit symbolInserted(getCursorPos(), characterInserted.at(
                     0)); //TODO: cambiare symbol inserted per passare i flag
           }
