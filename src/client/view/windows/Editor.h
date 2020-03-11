@@ -41,6 +41,8 @@ private:
     QAction *actionUnderlined;
     QLabel *usersOnlineDisplayer;
     int usersOnlineNumber;
+    QLabel *linkLabel;
+    QTextEdit *linkDisplayer;
 
     void createTopBar(QGridLayout *layout);
     void createToolBar(QGridLayout *layout);

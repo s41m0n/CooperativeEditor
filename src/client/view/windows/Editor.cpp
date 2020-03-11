@@ -45,7 +45,7 @@ Editor::Editor(QWidget *parent) : QMainWindow(parent), usersOnlineNumber(1) {
 
   textEdit = new QTextEdit(mainWidget);
   textEdit->installEventFilter(this);
-  layout->addWidget(textEdit, 2, 0, 4, 2);
+  layout->addWidget(textEdit, 2, 0, 5, 2);
 
   QObject::connect(textEdit, &QTextEdit::selectionChanged, this,
                    [this]() { //adapt the buttons to the style of the current selected text
@@ -92,6 +92,21 @@ Editor::Editor(QWidget *parent) : QMainWindow(parent), usersOnlineNumber(1) {
   usersOnline->setFixedWidth(250);
 
   layout->addWidget(usersOnline, 3, 2, 1, 1);
+
+  linkLabel = new QLabel(
+          "Share this link to add contributors:");
+  linkLabel->setFixedHeight(30);
+  linkLabel->hide();
+  layout->addWidget(linkLabel, 4, 2, 1, 1);
+
+  linkDisplayer = new QTextEdit(mainWidget);
+  linkDisplayer->setText("----- link -----");
+  linkDisplayer->setReadOnly(true);
+  linkDisplayer->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+  linkDisplayer->setFixedHeight(30);
+  linkDisplayer->setFixedWidth(250);
+  linkDisplayer->hide();
+  layout->addWidget(linkDisplayer, 5, 2, 1, 1);
 
 }
 
@@ -327,30 +342,9 @@ void Editor::createTopBar(QGridLayout *layout) {
   auto actionGenerateLink = new QAction("Invite a contributor", edit);
   QObject::connect(actionGenerateLink, &QAction::triggered, this,
                    [this]() {
-                       //TODO: genera link
-                       auto dialog = new QInputDialog();
-                       dialog->setOption(QInputDialog::NoButtons);
-                       dialog->setOption(
-                               QInputDialog::UsePlainTextEditForTextInput);
-                       dialog->setLabelText(
-                               "Share this link with the people you want to collaborate with:");
-                       dialog->setTextValue("---- link ----");
-
-                       QList<QWidget *> widgets = dialog->findChildren<QWidget *>();
-                       for (QWidget *widget : widgets) {
-                         if (strncmp(widget->metaObject()->className(),
-                                     "QPlainTextEdit", 14) == 0) {
-                           auto t = dynamic_cast<QPlainTextEdit *>(widget);
-                           t->setReadOnly(true);
-                           t->setFixedHeight(34);
-                           t->setHorizontalScrollBarPolicy(
-                                   Qt::ScrollBarAlwaysOff);
-                           t->setVerticalScrollBarPolicy(
-                                   Qt::ScrollBarAlwaysOff);
-                         }
-                       }
-                       dialog->setFixedSize(dialog->minimumSize());
-                       dialog->show();
+                       //TODO: genera link + setta text di linkDisplayer
+                       linkLabel->show();
+                       linkDisplayer->show();
                    });
   edit->addAction(actionGenerateLink);
 
