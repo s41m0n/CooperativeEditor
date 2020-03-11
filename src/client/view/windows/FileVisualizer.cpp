@@ -10,17 +10,16 @@ FileVisualizer::FileVisualizer(QWidget *parent) : QMainWindow(parent) {
     setCentralWidget(mainWidget);
     mainWidget->setLayout(layout);
 
-    titleOpen = new QLabel(mainWidget);
-    titleOpen->setText(
-            "Select the file you want to open from the ones showed below:");
-    layout->addWidget(titleOpen, 0, 0, 1, 2);
+    boxFileList = new QGroupBox("Select the file you want to open:", mainWidget);
+    boxFileList->setLayout(new QVBoxLayout());
+    layout->addWidget(boxFileList, 0, 0, 1, 2);
 
-    list = new QListWidget(mainWidget);
+    list = new QListWidget(boxFileList);
     list->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     list->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     list->setSortingEnabled(true);
 
-    layout->addWidget(list, 1, 0, 3, 2);
+    boxFileList->layout()->addWidget(list);
 
     areYouSureQuit = new QMessageBox(this);
     areYouSureQuit->setText("Are you sure you want to exit?");
@@ -29,15 +28,26 @@ FileVisualizer::FileVisualizer(QWidget *parent) : QMainWindow(parent) {
 
     boxCreate = new QGroupBox("Click here to create a new file:", mainWidget);
     boxCreate->setLayout(new QVBoxLayout());
-    layout->addWidget(boxCreate, 4, 0, 1, 2);
+    layout->addWidget(boxCreate, 1, 0, 1, 2);
 
     buttonCreate = new QPushButton("New file", boxCreate);
     buttonCreate->setAutoDefault(true);
     boxCreate->layout()->addWidget(buttonCreate);
 
+    boxLink = new QGroupBox("Insert here the shared link to collaborate to a file:", mainWidget);
+    boxLink->setLayout(new QVBoxLayout());
+    layout->addWidget(boxLink, 2, 0, 1, 2);
+
+    lineLink = new QLineEdit(mainWidget);
+    boxLink->layout()->addWidget(lineLink);
+
+    buttonOpenLink = new QPushButton("Open link", boxLink);
+    buttonOpenLink->setAutoDefault(true);
+    boxLink->layout()->addWidget(buttonOpenLink);
+
     buttonExit = new QPushButton("Exit", mainWidget);
     buttonExit->setAutoDefault(true);
-    layout->addWidget(buttonExit, 5, 0, 1, 2);
+    layout->addWidget(buttonExit, 3, 0, 1, 2);
 
     buttonExit->setFocus();
 

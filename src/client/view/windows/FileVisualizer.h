@@ -26,6 +26,10 @@ private:
     QPushButton *buttonCreate{};
     QMessageBox *areYouSureQuit{};
     QGroupBox *boxCreate{};
+    QGroupBox *boxFileList{};
+    QGroupBox *boxLink{};
+    QLineEdit *lineLink{};
+    QPushButton *buttonOpenLink{};
     QListWidget *list;
 
 public:
