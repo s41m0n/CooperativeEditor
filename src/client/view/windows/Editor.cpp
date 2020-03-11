@@ -99,11 +99,9 @@ Editor::Editor(QWidget *parent) : QMainWindow(parent), usersOnlineNumber(1) {
   linkLabel->hide();
   layout->addWidget(linkLabel, 4, 2, 1, 1);
 
-  linkDisplayer = new QTextEdit(mainWidget);
+  linkDisplayer = new QLineEdit(mainWidget);
   linkDisplayer->setText("----- link -----");
   linkDisplayer->setReadOnly(true);
-  linkDisplayer->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-  linkDisplayer->setFixedHeight(30);
   linkDisplayer->setFixedWidth(250);
   linkDisplayer->hide();
   layout->addWidget(linkDisplayer, 5, 2, 1, 1);
@@ -408,71 +406,32 @@ void Editor::createToolBar(
 
   const QIcon boldIcon = QIcon::fromTheme("format-text-bold",
                                           QIcon(":/images/mac/textbold.png"));
-  actionBold = new QAction(boldIcon, "Bold", toolBar);
+  actionBold = toolBar->addAction(boldIcon, tr("&Bold"), this, &Editor::textBold);
+  QFont bold;
+  bold.setBold(true);
+  actionBold->setFont(bold);
   actionBold->setCheckable(true);
-  QObject::connect(actionBold, &QAction::triggered, this,
-                   [this]() {
-                       QTextCharFormat format;
-                       if (!textEdit->textCursor().selectedText().isEmpty()) { //some text is selected
-                         if (textEdit->textCursor().charFormat().fontWeight() ==
-                             QFont::Bold) {
-                           format.setFontWeight(QFont::Normal);
-                           textEdit->textCursor().mergeCharFormat(format);
-                           actionBold->setChecked(false);
-                         } else {
-                           format.setFontWeight(QFont::Bold);
-                           textEdit->textCursor().mergeCharFormat(format);
-                           actionBold->setChecked(true);
-                         }
-                       }
-                   });
-  toolBar->addAction(actionBold);
 
   toolBar->addSeparator();
 
   const QIcon italicIcon = QIcon::fromTheme("format-text-italic",
                                             QIcon(":/images/mac/textitalic.png"));
-  actionItalic = new QAction(italicIcon, "Italic", toolBar);
+  actionItalic = toolBar->addAction(italicIcon, tr("&Italic"), this, &Editor::textItalic);
+  QFont italic;
+  italic.setItalic(true);
+  actionItalic->setFont(italic);
   actionItalic->setCheckable(true);
-  QObject::connect(actionItalic, &QAction::triggered, this,
-                   [this]() {
-                       QTextCharFormat format;
-                       if (!textEdit->textCursor().selectedText().isEmpty()) { //some text is selected
-                         if (textEdit->textCursor().charFormat().fontItalic()) {
-                           format.setFontItalic(false);
-                           textEdit->textCursor().mergeCharFormat(format);
-                           actionItalic->setChecked(false);
-                         } else {
-                           format.setFontItalic(true);
-                           textEdit->textCursor().mergeCharFormat(format);
-                           actionItalic->setChecked(true);
-                         }
-                       }
-                   });
-  toolBar->addAction(actionItalic);
 
   toolBar->addSeparator();
 
   const QIcon underlineIcon = QIcon::fromTheme("format-text-underline",
                                                QIcon(":images/mac/textunder.png"));
-  actionUnderlined = new QAction(underlineIcon, "Underlined", toolBar);
+  actionUnderlined = toolBar->addAction(underlineIcon, tr("&Underline"), this, &Editor::textUnderlined);
+  actionUnderlined->setShortcut(Qt::CTRL + Qt::Key_U);
+  QFont underline;
+  underline.setUnderline(true);
+  actionUnderlined->setFont(underline);
   actionUnderlined->setCheckable(true);
-  QObject::connect(actionUnderlined, &QAction::triggered, this,
-                   [this]() {
-                       QTextCharFormat format;
-                       if (!textEdit->textCursor().selectedText().isEmpty()) { //some text is selected
-                         if (textEdit->textCursor().charFormat().fontUnderline()) {
-                           format.setFontUnderline(false);
-                           textEdit->textCursor().mergeCharFormat(format);
-                           actionUnderlined->setChecked(false);
-                         } else {
-                           format.setFontUnderline(true);
-                           textEdit->textCursor().mergeCharFormat(format);
-                           actionUnderlined->setChecked(true);
-                         }
-                       }
-                   });
-  toolBar->addAction(actionUnderlined);
 
   toolBar->setFixedHeight(20);
 
@@ -500,4 +459,22 @@ void Editor::mergeFormat(const QTextCharFormat &format) {
   QTextCursor cursor = textEdit->textCursor();
   cursor.mergeCharFormat(format);
   textEdit->mergeCurrentCharFormat(format);
+}
+
+void Editor::textBold(){
+  QTextCharFormat fmt;
+  fmt.setFontWeight(actionBold->isChecked() ? QFont::Bold : QFont::Normal);
+  mergeFormat(fmt);
+}
+
+void Editor::textItalic() {
+  QTextCharFormat fmt;
+  fmt.setFontItalic(actionItalic->isChecked());
+  mergeFormat(fmt);
+}
+
+void Editor::textUnderlined() {
+  QTextCharFormat fmt;
+  fmt.setFontUnderline(actionUnderlined->isChecked());
+  mergeFormat(fmt);
 }

@@ -42,7 +42,7 @@ private:
     QLabel *usersOnlineDisplayer;
     int usersOnlineNumber;
     QLabel *linkLabel;
-    QTextEdit *linkDisplayer;
+    QLineEdit *linkDisplayer;
 
     void createTopBar(QGridLayout *layout);
     void createToolBar(QGridLayout *layout);
@@ -52,6 +52,9 @@ private:
     void simulateBackspacePression();
     void fileToPDF();
     void mergeFormat(const QTextCharFormat &format);
+    void textBold();
+    void textItalic();
+    void textUnderlined();
 
 public:
 
