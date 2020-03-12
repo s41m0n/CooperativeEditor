@@ -9,6 +9,7 @@
 #include <QToolBar>
 #include <QPlainTextEdit>
 #include <QString>
+#include <QListWidget>
 #include <QVBoxLayout>
 #include <QAction>
 #include <QApplication>
@@ -29,15 +30,19 @@ Q_OBJECT
 private:
     QWidget *mainWidget;
     QTextEdit *textEdit;
-    QMenuBar *topBar{};
-    QToolBar *toolBar{};
+    QMenuBar *topBar;
+    QToolBar *toolBar;
     QMessageBox *fileCorrectlySaved;
     QMessageBox *editorInfo;
     QMessageBox *infoAboutUs;
-    QGroupBox *userOnline;
-    QAction *actionBold{};
-    QAction *actionItalic{};
-    QAction *actionUnderlined{};
+    QListWidget *usersOnline;
+    QAction *actionBold;
+    QAction *actionItalic;
+    QAction *actionUnderlined;
+    QLabel *usersOnlineDisplayer;
+    int usersOnlineNumber;
+    QLabel *linkLabel;
+    QLineEdit *linkDisplayer;
 
     void createTopBar(QGridLayout *layout);
     void createToolBar(QGridLayout *layout);
@@ -47,6 +52,9 @@ private:
     void simulateBackspacePression();
     void fileToPDF();
     void mergeFormat(const QTextCharFormat &format);
+    void textBold();
+    void textItalic();
+    void textUnderlined();
 
 public:
 
