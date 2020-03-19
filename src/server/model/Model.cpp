@@ -5,7 +5,7 @@
 #include "Model.h"
 #include "src/include/lib/crdt/CrdtAlgorithm.h"
 
-Model::Model() : idGenerator(1) {
+Model::Model() : idGenerator(1), killStoringThread(false) {
 
   // Loading all files name in the directory
   for (auto &p :
@@ -19,17 +19,52 @@ Model::Model() : idGenerator(1) {
       availableFiles.push_back(QString::fromStdString(filename));
     }
   }
+  storeToFileThread = std::make_unique<std::thread>(
+          &Model::fileStoringDispatcher, this);
+}
+
+Model::~Model () {
+  killStoringThread = true;
+  waitForUpdate.notify_one();
+  storeToFileThread->join();
 }
 
 void Model::storeFileSymbols(const std::shared_ptr<ServerFile> &serverFile) {
-  QFile file((serverFile->getFileName()));
-
-  if (!file.open(QIODevice::WriteOnly)) {
-    throw std::runtime_error("Unable to open file");
+  std::lock_guard<std::mutex> storingGuard(storingListMutex);
+  if (std::find(storingList.begin(), storingList.end(),
+                serverFile) != storingList.end()) {
+    storingList.remove(serverFile);
   }
+  storingList.push_back(serverFile);
+  waitForUpdate.notify_one();
+}
 
-  QDataStream ds(&file);
-  ds << serverFile->getFileText();
+void Model::fileStoringDispatcher() {
+  while (true) {
+
+    std::unique_lock<std::mutex> storingLock(storingListMutex);
+
+    if (storingList.empty() && !killStoringThread) {
+      waitForUpdate.wait(storingLock);
+    }
+    if (storingList.empty() && killStoringThread) {
+      break;
+    }
+
+    auto serverFile = storingList.front();
+    storingList.pop_front();
+
+    storingLock.unlock();
+
+    QFile file((serverFile->getFileName()));
+
+    if (!file.open(QIODevice::WriteOnly)) {
+      throw std::runtime_error("Unable to open file");
+    }
+
+    QDataStream ds(&file);
+    ds << serverFile->getFileText();
+  }
 }
 
 void Model::loadFileSymbols(const std::shared_ptr<ServerFile> &serverFile) {

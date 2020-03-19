@@ -5,6 +5,7 @@
 #include <QVector>
 #include <atomic>
 #include <map>
+#include <queue>
 #include <memory>
 #include <mutex>
 
@@ -35,15 +36,31 @@ private:
   /// Editor Id unique generator
   std::atomic<unsigned> idGenerator;
 
+  std::unique_ptr<std::thread> storeToFileThread;
+
+  std::list<std::shared_ptr<ServerFile>> storingList;
+
+  std::mutex storingListMutex;
+
+  std::condition_variable waitForUpdate;
+
+  bool killStoringThread;
+
   /// Method to write on file the respective sequence of symbols
-  static void storeFileSymbols(const std::shared_ptr<ServerFile> &serverFile);
+  void storeFileSymbols(const std::shared_ptr<ServerFile> &serverFile);
 
   /// Method to restore from file the respective sequence of symbols
-  static void loadFileSymbols(const std::shared_ptr<ServerFile> &serverFile);
+  void loadFileSymbols(const std::shared_ptr<ServerFile> &serverFile);
+
+  /// File storing dispatcher
+  void fileStoringDispatcher();
 
 public:
   /// Classic constructor
   Model();
+
+  /// Classic destructor
+  ~Model();
 
   /// Method to handle user remote insertion
   void userInsert(TcpSocket *socket, Symbol symbol);
