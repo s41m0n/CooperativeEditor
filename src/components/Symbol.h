@@ -6,6 +6,13 @@
 
 #include "Identifier.h"
 
+enum Attribute {
+    BOLD,
+    ITALIC,
+    UNDERLINED,
+    ATTRIBUTE_SIZE
+};
+
 /**
  * Symbol class, to identify each inserted character
  *
@@ -19,6 +26,8 @@ private:
     unsigned siteId;
 
     QVector<Identifier> position;
+
+    bool attributes[Attribute::ATTRIBUTE_SIZE];
 
 public:
 
@@ -39,6 +48,9 @@ public:
 
     QDataStream &deserialize(QDataStream &stream) override;
 
+    void setAttributes(const bool attributes[Attribute::ATTRIBUTE_SIZE]);
+
+    bool isAttributeSet(Attribute attribute);
 };
 
 typedef QVector<Symbol> FileText;
