@@ -43,6 +43,7 @@ namespace CrdtAlgorithm {
     ///Method to update the list of symbol after a remote deletion
     void remoteErase(Symbol &s, FileText &symbols);
 
+    void replaceSymbol(Symbol &s, FileText &symbols);
 }
 
 #endif //COOPERATIVEEDITOR_CRDTALGORITHM_H

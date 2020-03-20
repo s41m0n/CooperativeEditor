@@ -145,7 +145,7 @@ void CrdtAlgorithm::remoteInsert(Symbol &s, FileText &symbols) {
     throw std::runtime_error("Remote insert bad index" + std::to_string(index));
   }
 
-  symbols.insert(symbols.begin() + index, std::move(s));
+  symbols.insert(symbols.begin() + index, s);
 }
 
 bool CrdtAlgorithm::retrieveStrategy(int level) {
@@ -171,4 +171,15 @@ bool CrdtAlgorithm::retrieveStrategy(int level) {
   }
 
   return strategySelected;
+}
+
+void CrdtAlgorithm::replaceSymbol(Symbol &s, FileText &symbols) {
+  int index = CrdtAlgorithm::findPositionErase(s, symbols);
+
+  if (index < 0) {
+    throw std::runtime_error("Remote update bad index" + std::to_string(index));
+  }
+
+  symbols.erase(symbols.begin() + index);
+  symbols.insert(symbols.begin() + index, s);
 }
