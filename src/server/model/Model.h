@@ -51,6 +51,8 @@ public:
   /// Method to handle user remote deletion
   void userErase(TcpSocket *socket, Symbol symbol);
 
+  void userReplace(TcpSocket *socket, Symbol symbol);
+
   void removeConnection(TcpSocket *socket);
 
   /// Method called when a user requests to create a file
