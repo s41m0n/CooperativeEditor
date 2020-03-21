@@ -144,6 +144,11 @@ void Controller::onReadyRead() {
               std::make_shared<UserMessage>(clientId, model->getUserActivity(sender)));
       break;
     }
+    case Type::S_UPDATE_ATTRIBUTE: {
+      auto derived = std::dynamic_pointer_cast<CrdtMessage>(base);
+      model->userReplace(sender, derived->getSymbol());
+      dispatch(sender, header.getType(), header, derived);
+    }
     default:
       throw std::runtime_error("Must never read different types of Message!!!");
     }

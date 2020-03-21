@@ -27,6 +27,7 @@ enum class Type : qint32 {
   U_UPDATE_KO = 19,
   U_CONNECTED = 20,
   U_DISCONNECTED = 21,
+  S_UPDATE_ATTRIBUTE = 22,
   UNKNOWN = -1
 };
 

@@ -39,11 +39,15 @@ public:
     ///Crdt local method to erase a symbol
     Symbol localErase(int index);
 
+    Symbol &localUpdate(int index, bool attributes[Attribute::ATTRIBUTE_SIZE]);
+
     ///Method to update the list of symbol after a remote insertion
     void remoteInsert(Symbol &symbol);
 
     ///Method to update the list of symbol after a remote deletion
     void remoteErase(Symbol &symbol);
+
+    void remoteUpdate(Symbol &symbol);
 
     void setEditorId(unsigned newEditorId);
 

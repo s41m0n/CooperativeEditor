@@ -71,6 +71,19 @@ void Model::userErase(TcpSocket *socket, Symbol symbol) {
   storeFileSymbols(serverFile);
 }
 
+void Model::userReplace(TcpSocket *socket, Symbol symbol) {
+  auto serverFile =
+          std::find_if(usersFile.begin(), usersFile.end(), [socket](auto &pair) {
+              return socket == pair.second;
+          })->first;
+
+  std::lock_guard<std::mutex> guard(serverFile->mutex);
+
+  CrdtAlgorithm::replaceSymbol(symbol, serverFile->getFileText());
+
+  storeFileSymbols(serverFile);
+}
+
 bool Model::createFileByUser(TcpSocket *socket, const QString &filename) {
 
   auto newFile = std::make_shared<ServerFile>(filename + ".crdt");

@@ -64,3 +64,12 @@ QDataStream &Symbol::deserialize(QDataStream &stream) {
   return stream;
 }
 
+void Symbol::setAttributes(const bool attr[Attribute::ATTRIBUTE_SIZE]) {
+  for (int i = 0; i < Attribute::ATTRIBUTE_SIZE; i++) {
+    attributes[i] = attr[i];
+  }
+}
+
+bool Symbol::isAttributeSet(Attribute attribute) {
+  return attributes[attribute];
+}

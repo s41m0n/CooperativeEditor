@@ -48,6 +48,8 @@ public slots:
     ///Slot to wake up when user erase a char locally
     void onCharErased(int index);
 
+    void onCharUpdated(int index, bool attributes[Attribute::ATTRIBUTE_SIZE]);
+
     void onFileRequest(const QString &filename, bool exists);
 
     void onShowEditProfile();
