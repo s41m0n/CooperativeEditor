@@ -47,12 +47,27 @@ Symbol Model::localErase(int index) {
   return std::move(s);
 }
 
+Symbol &Model::localUpdate(int index, bool attributes[Attribute::ATTRIBUTE_SIZE]) {
+  if(index >= file.getFileText().size() || index < 0) {
+    throw std::runtime_error("No symbol to update: TextSize:" + std::to_string(file.getFileText().size()));
+  }
+
+  Symbol &s = file.getFileText()[index];
+  s.setAttributes(attributes);
+
+  return s;
+}
+
 void Model::remoteInsert(Symbol &symbol) {
   CrdtAlgorithm::remoteInsert(symbol, file.getFileText());
 }
 
 void Model::remoteErase(Symbol &symbol) {
   CrdtAlgorithm::remoteErase(symbol, file.getFileText());
+}
+
+void Model::remoteUpdate(Symbol &symbol) {
+  CrdtAlgorithm::replaceSymbol(symbol, file.getFileText());
 }
 
 Symbol Model::generateSymbol(int index, QChar value) {

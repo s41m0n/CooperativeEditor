@@ -85,6 +85,11 @@ void Controller::onReadyRead() {
       emit remoteUserDisconnected(base->getEditorId());
       break;
     }
+    case Type::S_UPDATE_ATTRIBUTE: {
+      auto symbolToUpdate = std::dynamic_pointer_cast<CrdtMessage>(base)->getSymbol();
+      model->remoteUpdate(symbolToUpdate);
+      emit remoteUpdate(model->textify());
+    }
     default:
       throw std::runtime_error("Unknown message received");
     }
@@ -109,6 +114,16 @@ void Controller::onCharErased(int index) {
     sendMsg(Type::S_ERASE, msg);
   } catch (std::exception &e) {
     spdlog::error("Error on local erase: Index-> {} @ Msg -> {}", index,
+                  e.what());
+  }
+}
+
+void Controller::onCharUpdated(int index, bool attributes[Attribute::ATTRIBUTE_SIZE]) {
+  try {
+    CrdtMessage msg(model->localUpdate(index, attributes), model->getEditorId());
+    sendMsg(Type::S_UPDATE_ATTRIBUTE, msg);
+  } catch (std::exception &e) {
+    spdlog::error("Error on local update: Index-> {} @ Msg -> {}", index,
                   e.what());
   }
 }
