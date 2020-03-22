@@ -66,7 +66,13 @@ signals:
     void fileResult(bool result);
 
     ///Method to notify the view that text must be updated after a remote op.
-    void remoteUpdate(QString text);
+    void loadFileText(FileText text);
+
+    void remoteUserInsert(int index, Symbol symbol);
+
+    void remoteUserDelete(int index);
+
+    void remoteUserUpdate(int index, Symbol symbol);
 
     ///Method to send to the view the information about the user
     void userProfileInfo(QImage image, QString name, QString surname,

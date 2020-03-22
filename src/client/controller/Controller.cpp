@@ -56,18 +56,18 @@ void Controller::onReadyRead() {
       emit fileResult(true);
       model->setCurrentFile(
           std::dynamic_pointer_cast<FileMessage>(base)->getFile());
-      emit remoteUpdate(model->textify());
+      emit loadFileText(model->getFileText());
       break;
     }
     case Type::S_INSERT:
     case Type::S_ERASE: {
       try {
-        header.getType() == Type::S_INSERT
-            ? model->remoteInsert(
-                  std::dynamic_pointer_cast<CrdtMessage>(base)->getSymbol())
-            : model->remoteErase(
-                  std::dynamic_pointer_cast<CrdtMessage>(base)->getSymbol());
-        emit remoteUpdate(model->textify());
+        auto symbol = std::dynamic_pointer_cast<CrdtMessage>(base)->getSymbol();
+        if (header.getType() == Type::S_INSERT) {
+          emit remoteUserInsert(model->remoteInsert(symbol), symbol);
+        } else {
+          emit remoteUserDelete(model->remoteErase(symbol));
+        }
       } catch (std::exception &e) {
         spdlog::error("Error on remote operation:\nMsg -> {}", e.what());
       }
@@ -86,9 +86,8 @@ void Controller::onReadyRead() {
       break;
     }
     case Type::S_UPDATE_ATTRIBUTE: {
-      auto symbolToUpdate = std::dynamic_pointer_cast<CrdtMessage>(base)->getSymbol();
-      model->remoteUpdate(symbolToUpdate);
-      emit remoteUpdate(model->textify());
+      auto symbol = std::dynamic_pointer_cast<CrdtMessage>(base)->getSymbol();
+      emit remoteUserUpdate(model->remoteUpdate(symbol), symbol);
     }
     default:
       throw std::runtime_error("Unknown message received");
