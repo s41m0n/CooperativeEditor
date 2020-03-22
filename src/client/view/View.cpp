@@ -102,8 +102,8 @@ void View::init() {
                    });
 
   ///Nuovo testo da settare alla view in seguito ad un remote update
-  QObject::connect(controller, &Controller::remoteUpdate, editor,
-                   &Editor::onRemoteUpdate);
+  QObject::connect(controller, &Controller::loadFileText, editor,
+                   &Editor::onFileTextLoad);
 
   ///Segnale dall'editor al controller in seguito ad un inserimento
   QObject::connect(editor, &Editor::symbolInserted, controller,

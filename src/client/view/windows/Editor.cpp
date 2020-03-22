@@ -108,7 +108,8 @@ Editor::Editor(QWidget *parent) : QMainWindow(parent), usersOnlineNumber(1) {
 
 }
 
-void Editor::onRemoteUpdate(const QString &text) {
+void Editor::onFileTextLoad(const FileText &text) {
+  //TODO: here we need to load the text at the first time by associating their style
   textEdit->setText(text);
 }
 

@@ -65,7 +65,7 @@ public:
 public slots:
 
     ///Slot to notify the editor that a remote op. has been performed
-    void onRemoteUpdate(const QString& text);
+    void onFileTextLoad(const FileText &text);
 
 signals:
 
