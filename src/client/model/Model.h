@@ -42,12 +42,12 @@ public:
     Symbol &localUpdate(int index, bool attributes[Attribute::ATTRIBUTE_SIZE]);
 
     ///Method to update the list of symbol after a remote insertion
-    void remoteInsert(Symbol &symbol);
+    int remoteInsert(Symbol &symbol);
 
     ///Method to update the list of symbol after a remote deletion
-    void remoteErase(Symbol &symbol);
+    int remoteErase(Symbol &symbol);
 
-    void remoteUpdate(Symbol &symbol);
+    int remoteUpdate(Symbol &symbol);
 
     void setEditorId(unsigned newEditorId);
 
@@ -58,6 +58,8 @@ public:
 
     ///Method to set the current user data
     void setCurrentUser(User &userToSet);
+
+    FileText getFileText();
 
     ///Return the file content
     QString textify();

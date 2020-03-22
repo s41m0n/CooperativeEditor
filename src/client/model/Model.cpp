@@ -11,6 +11,10 @@ User Model::getUser() {
   return this->user;
 }
 
+FileText Model::getFileText() {
+  return this->file.getFileText();
+}
+
 QString Model::textify() {
   QString str;
   for (auto &val : file.getFileText()) {
@@ -59,16 +63,16 @@ Symbol &Model::localUpdate(int index, bool attributes[Attribute::ATTRIBUTE_SIZE]
   return s;
 }
 
-void Model::remoteInsert(Symbol &symbol) {
-  CrdtAlgorithm::remoteInsert(symbol, file.getFileText());
+int Model::remoteInsert(Symbol &symbol) {
+  return CrdtAlgorithm::remoteInsert(symbol, file.getFileText());
 }
 
-void Model::remoteErase(Symbol &symbol) {
-  CrdtAlgorithm::remoteErase(symbol, file.getFileText());
+int Model::remoteErase(Symbol &symbol) {
+  return CrdtAlgorithm::remoteErase(symbol, file.getFileText());
 }
 
-void Model::remoteUpdate(Symbol &symbol) {
-  CrdtAlgorithm::replaceSymbol(symbol, file.getFileText());
+int Model::remoteUpdate(Symbol &symbol) {
+  return CrdtAlgorithm::replaceSymbol(symbol, file.getFileText());
 }
 
 Symbol Model::generateSymbol(int index, QChar value) {

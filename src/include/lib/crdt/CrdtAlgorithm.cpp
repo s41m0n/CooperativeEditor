@@ -128,7 +128,7 @@ QVector<Identifier> CrdtAlgorithm::generatePosBetween(
   throw std::runtime_error("Fix Position Sorting");
 }
 
-void CrdtAlgorithm::remoteErase(Symbol &s, FileText &symbols) {
+int CrdtAlgorithm::remoteErase(Symbol &s, FileText &symbols) {
   int index = CrdtAlgorithm::findPositionErase(s, symbols);
 
   if (index < 0) {
@@ -136,9 +136,10 @@ void CrdtAlgorithm::remoteErase(Symbol &s, FileText &symbols) {
   }
 
   symbols.erase(symbols.begin() + index);
+  return index;
 }
 
-void CrdtAlgorithm::remoteInsert(Symbol &s, FileText &symbols) {
+int CrdtAlgorithm::remoteInsert(Symbol &s, FileText &symbols) {
   int index = CrdtAlgorithm::findPositionInsert(s, symbols);
 
   if (index < 0) {
@@ -146,6 +147,7 @@ void CrdtAlgorithm::remoteInsert(Symbol &s, FileText &symbols) {
   }
 
   symbols.insert(symbols.begin() + index, s);
+  return index;
 }
 
 bool CrdtAlgorithm::retrieveStrategy(int level) {
@@ -173,7 +175,7 @@ bool CrdtAlgorithm::retrieveStrategy(int level) {
   return strategySelected;
 }
 
-void CrdtAlgorithm::replaceSymbol(Symbol &s, FileText &symbols) {
+int CrdtAlgorithm::replaceSymbol(Symbol &s, FileText &symbols) {
   int index = CrdtAlgorithm::findPositionErase(s, symbols);
 
   if (index < 0) {
@@ -182,4 +184,5 @@ void CrdtAlgorithm::replaceSymbol(Symbol &s, FileText &symbols) {
 
   symbols.erase(symbols.begin() + index);
   symbols.insert(symbols.begin() + index, s);
+  return index;
 }
