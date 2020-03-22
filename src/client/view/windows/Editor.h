@@ -56,6 +56,7 @@ private:
     void textBold();
     void textItalic();
     void textUnderlined();
+    void resetChecked();
 
 public:
 
@@ -64,8 +65,17 @@ public:
 
 public slots:
 
-    ///Slot to notify the editor that a remote op. has been performed
+    ///Slot to open the selected file in the editor the first time
     void onFileTextLoad(const FileText &text);
+
+    ///Slot to notify the editor that a remote user has inserted a character
+    void onRemoteInsert(int index, const Symbol& symbol);
+
+    ///Slot to notify the editor that a remote user has deleted a character
+    void onRemoteDelete(int index);
+
+    ///Slot to notify the editor that a remote user has updated a character
+    void onRemoteUpdate(int index, const Symbol& symbol);
 
 signals:
 

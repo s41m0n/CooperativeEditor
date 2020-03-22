@@ -65,13 +65,16 @@ signals:
     ///Signal to notify the view about the possibility to open/create a file
     void fileResult(bool result);
 
-    ///Method to notify the view that text must be updated after a remote op.
+    ///Method to notify the view that a file has to be opened for the first time
     void loadFileText(FileText text);
 
+    ///Method to notify the view a character has been inserted by a remote user
     void remoteUserInsert(int index, Symbol symbol);
 
+    ///Method to notify the view a character has been deleted by a remote user
     void remoteUserDelete(int index);
 
+    ///Method to notify the view a character has been updated by a remote user
     void remoteUserUpdate(int index, Symbol symbol);
 
     ///Method to send to the view the information about the user

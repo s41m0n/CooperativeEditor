@@ -109,8 +109,29 @@ Editor::Editor(QWidget *parent) : QMainWindow(parent), usersOnlineNumber(1) {
 }
 
 void Editor::onFileTextLoad(const FileText &text) {
-  //TODO: here we need to load the text at the first time by associating their style
-  textEdit->setText(text);
+  for(Symbol s : text) {
+    textEdit->insertPlainText(s.getChar());
+    /*
+    QTextCharFormat fmt;
+    fmt.setFontWeight(s.isAttributeSet(BOLD) ? QFont::Bold : QFont::Normal);
+    fmt.setFontItalic(s.isAttributeSet(ITALIC));
+    fmt.setFontUnderline(s.isAttributeSet(UNDERLINED));
+    mergeFormat(fmt);
+    resetChecked();
+    */
+  }
+}
+
+void Editor::onRemoteInsert(int index, const Symbol& symbol) {
+
+}
+
+void Editor::onRemoteDelete(int index) {
+
+}
+
+void Editor::onRemoteUpdate(int index, const Symbol& symbol) {
+
 }
 
 bool
@@ -479,4 +500,10 @@ void Editor::textUnderlined() {
   QTextCharFormat fmt;
   fmt.setFontUnderline(actionUnderlined->isChecked());
   mergeFormat(fmt);
+}
+
+void Editor::resetChecked() {
+  actionBold->setChecked(false);
+  actionUnderlined->setChecked(false);
+  actionItalic->setChecked(false);
 }

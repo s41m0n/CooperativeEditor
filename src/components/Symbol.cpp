@@ -50,6 +50,16 @@ std::string Symbol::toStdString(int level) {
   for (auto val: position)
     tmp += std::to_string(val.getDigit()) + ", ";
   tmp.erase(tmp.end() - 2, tmp.end());
+  tmp += "]\n";
+  tmp += std::string(level + 1, '\t') + "attributes: [";
+  for(auto attr : attributes){
+    if(attr){
+      tmp += "TRUE, ";
+    }else{
+      tmp += "FALSE, ";
+    }
+  }
+  tmp.erase(tmp.end() - 2, tmp.end());
   tmp += "]\n" + std::string(level, '\t') + "}";
   return tmp;
 }

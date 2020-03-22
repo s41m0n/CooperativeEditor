@@ -101,9 +101,21 @@ void View::init() {
                        }
                    });
 
-  ///Nuovo testo da settare alla view in seguito ad un remote update
+  ///Prima apertura del file nell'editor, setto il testo con i vari stili dei caratteri
   QObject::connect(controller, &Controller::loadFileText, editor,
                    &Editor::onFileTextLoad);
+
+  ///Un utente remoto ha inserito un carattere nel file
+  QObject::connect(controller, &Controller::remoteUserInsert, editor,
+                   &Editor::onRemoteInsert);
+
+  ///Un utente remoto ha cancellato un carattere dal file
+  QObject::connect(controller, &Controller::remoteUserDelete, editor,
+                   &Editor::onRemoteDelete);
+
+  ///Un utente remoto ha modificato lo stile di un carattere nel file
+  QObject::connect(controller, &Controller::remoteUserUpdate, editor,
+                   &Editor::onRemoteUpdate);
 
   ///Segnale dall'editor al controller in seguito ad un inserimento
   QObject::connect(editor, &Editor::symbolInserted, controller,
