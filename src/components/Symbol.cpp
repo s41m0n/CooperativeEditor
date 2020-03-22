@@ -66,11 +66,18 @@ std::string Symbol::toStdString(int level) {
 
 QDataStream &Symbol::serialize(QDataStream &stream) const {
   stream << character << siteId << position;
+  for (int i = 0; i < Attribute::ATTRIBUTE_SIZE; i++) { // NOLINT(modernize-loop-convert)
+    stream << attributes[i];
+  }
   return stream;
 }
 
 QDataStream &Symbol::deserialize(QDataStream &stream) {
   stream >> character >> siteId >> position;
+
+  for (int i = 0; i < Attribute::ATTRIBUTE_SIZE; i++) { // NOLINT(modernize-loop-convert)
+    stream >> attributes[i];
+  }
   return stream;
 }
 
