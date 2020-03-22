@@ -52,11 +52,9 @@ private:
     bool deleteSelection(); //true = deleted, false = nothing to delete
     void simulateBackspacePression();
     void fileToPDF();
-    void mergeFormat(const QTextCharFormat &format);
     void textBold();
     void textItalic();
     void textUnderlined();
-    void resetChecked();
 
 public:
 

@@ -110,15 +110,12 @@ Editor::Editor(QWidget *parent) : QMainWindow(parent), usersOnlineNumber(1) {
 
 void Editor::onFileTextLoad(const FileText &text) {
   for(Symbol s : text) {
-    textEdit->insertPlainText(s.getChar());
-    /*
     QTextCharFormat fmt;
     fmt.setFontWeight(s.isAttributeSet(BOLD) ? QFont::Bold : QFont::Normal);
     fmt.setFontItalic(s.isAttributeSet(ITALIC));
     fmt.setFontUnderline(s.isAttributeSet(UNDERLINED));
-    mergeFormat(fmt);
-    resetChecked();
-    */
+    textEdit->mergeCurrentCharFormat(fmt);
+    textEdit->insertPlainText(s.getChar());
   }
 }
 
@@ -420,7 +417,7 @@ void Editor::createTopBar(QGridLayout *layout) {
 }
 
 void Editor::createToolBar(
-        QGridLayout *layout) { //TODO: aggiungi emissione segnali per dire al server che un carattere è stato modificato
+        QGridLayout *layout) {
 
   toolBar = new QToolBar(mainWidget);
 
@@ -478,32 +475,20 @@ void Editor::fileToPDF() {
 
 }
 
-void Editor::mergeFormat(const QTextCharFormat &format) {
-  QTextCursor cursor = textEdit->textCursor();
-  cursor.mergeCharFormat(format);
-  textEdit->mergeCurrentCharFormat(format);
-}
-
 void Editor::textBold() {
   QTextCharFormat fmt;
   fmt.setFontWeight(actionBold->isChecked() ? QFont::Bold : QFont::Normal);
-  mergeFormat(fmt);
+  textEdit->mergeCurrentCharFormat(fmt);
 }
 
 void Editor::textItalic() {
   QTextCharFormat fmt;
   fmt.setFontItalic(actionItalic->isChecked());
-  mergeFormat(fmt);
+  textEdit->mergeCurrentCharFormat(fmt);
 }
 
 void Editor::textUnderlined() {
   QTextCharFormat fmt;
   fmt.setFontUnderline(actionUnderlined->isChecked());
-  mergeFormat(fmt);
-}
-
-void Editor::resetChecked() {
-  actionBold->setChecked(false);
-  actionUnderlined->setChecked(false);
-  actionItalic->setChecked(false);
+  textEdit->mergeCurrentCharFormat(fmt);
 }
