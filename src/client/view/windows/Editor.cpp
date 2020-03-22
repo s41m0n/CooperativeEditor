@@ -143,6 +143,7 @@ Editor::eventFilter(QObject *object, QEvent *event) { //key pression manager
 
       switch (keyEvent->key()) {
         case Qt::Key_V: { //paste
+          deleteSelection();
           paste();
           break;
         }
@@ -240,8 +241,7 @@ void Editor::paste() {
                                        actionUnderlined->isChecked()};
 
   for (int i = 0; i < selectedText.size(); i++) {
-    emit symbolInserted(getCursorPos() + i, selectedText.at(i), arrayOfStyle); //TODO: come gestiamo l'incolla?
-                                            // Facciamo che incollo i simboli in plain text oppure con lo stile attuale?
+    emit symbolInserted(getCursorPos() + i, selectedText.at(i), arrayOfStyle);
   }
 }
 
@@ -479,16 +479,59 @@ void Editor::textBold() {
   QTextCharFormat fmt;
   fmt.setFontWeight(actionBold->isChecked() ? QFont::Bold : QFont::Normal);
   textEdit->mergeCurrentCharFormat(fmt);
+
+  QTextCursor textCursor = textEdit->textCursor();
+  auto selection = textCursor.selectedText();
+
+  if (!selection.isEmpty()) {
+
+    bool arrayOfStyle[ATTRIBUTE_SIZE] = {actionBold->isChecked(),
+                                         actionItalic->isChecked(),
+                                         actionUnderlined->isChecked()};
+
+    for (int i = 0; i < selection.size(); i++) {
+      emit symbolUpdated(textCursor.selectionStart() + i, arrayOfStyle);
+    }
+  }
+
 }
 
 void Editor::textItalic() {
   QTextCharFormat fmt;
   fmt.setFontItalic(actionItalic->isChecked());
   textEdit->mergeCurrentCharFormat(fmt);
+
+  QTextCursor textCursor = textEdit->textCursor();
+  auto selection = textCursor.selectedText();
+
+  if (!selection.isEmpty()) {
+
+    bool arrayOfStyle[ATTRIBUTE_SIZE] = {actionBold->isChecked(),
+                                         actionItalic->isChecked(),
+                                         actionUnderlined->isChecked()};
+
+    for (int i = 0; i < selection.size(); i++) {
+      emit symbolUpdated(textCursor.selectionStart() + i, arrayOfStyle);
+    }
+  }
 }
 
 void Editor::textUnderlined() {
   QTextCharFormat fmt;
   fmt.setFontUnderline(actionUnderlined->isChecked());
   textEdit->mergeCurrentCharFormat(fmt);
+
+  QTextCursor textCursor = textEdit->textCursor();
+  auto selection = textCursor.selectedText();
+
+  if (!selection.isEmpty()) {
+
+    bool arrayOfStyle[ATTRIBUTE_SIZE] = {actionBold->isChecked(),
+                                         actionItalic->isChecked(),
+                                         actionUnderlined->isChecked()};
+
+    for (int i = 0; i < selection.size(); i++) {
+      emit symbolUpdated(textCursor.selectionStart() + i, arrayOfStyle);
+    }
+  }
 }
