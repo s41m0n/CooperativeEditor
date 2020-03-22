@@ -113,5 +113,9 @@ void View::init() {
   QObject::connect(editor, &Editor::symbolDeleted, controller,
                    &Controller::onCharErased);
 
+  ///Segnale dall'editor al controller in seguito all'update di stile di un carattere
+  QObject::connect(editor, &Editor::symbolUpdated, controller,
+                   &Controller::onCharUpdated);
+
   login->show();
 }

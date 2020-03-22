@@ -34,7 +34,7 @@ public:
     User getUser();
 
     ///Crdt local method to insert a symbol
-    Symbol &localInsert(int index, QChar value);
+    Symbol &localInsert(int index, QChar value, bool attributes[Attribute::ATTRIBUTE_SIZE]);
 
     ///Crdt local method to erase a symbol
     Symbol localErase(int index);

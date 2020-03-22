@@ -96,10 +96,10 @@ void Controller::onReadyRead() {
   }
 }
 
-void Controller::onCharInserted(int index, QChar value) {
+void Controller::onCharInserted(int index, QChar value, bool attributes[Attribute::ATTRIBUTE_SIZE]) {
 
   try {
-    CrdtMessage msg(model->localInsert(index, value), model->getEditorId());
+    CrdtMessage msg(model->localInsert(index, value, attributes), model->getEditorId());
     sendMsg(Type::S_INSERT, msg);
   } catch (std::exception &e) {
     spdlog::error("Error on local insert:\nIndex-> {}\nMsg -> {}", index,

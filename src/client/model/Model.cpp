@@ -23,14 +23,15 @@ std::string Model::textifyToStdString() {
   return textify().toStdString();
 }
 
-Symbol &Model::localInsert(int index, QChar value) {
+Symbol &Model::localInsert(int index, QChar value, bool attributes[Attribute::ATTRIBUTE_SIZE]) {
 
   if(index > file.getFileText().size() || index < 0) {
     throw std::runtime_error("No valid position: TextSize:" + std::to_string(file.getFileText().size()));
   }
 
-  file.getFileText().insert(file.getFileText().begin() + index,
-                            generateSymbol(index, value));
+  Symbol s = generateSymbol(index, value);
+  s.setAttributes(attributes);
+  file.getFileText().insert(file.getFileText().begin() + index, s);
 
   return file.getFileText()[index];
 }

@@ -43,7 +43,7 @@ public slots:
                          QString email, const QString &password);
 
     ///Slot to wake up when user insert a char locally
-    void onCharInserted(int index, QChar value);
+    void onCharInserted(int index, QChar value, bool attributes[Attribute::ATTRIBUTE_SIZE]);
 
     ///Slot to wake up when user erase a char locally
     void onCharErased(int index);

@@ -191,8 +191,12 @@ Editor::eventFilter(QObject *object, QEvent *event) { //key pression manager
 
             simulateBackspacePression();
 
+            bool arrayOfStyle[ATTRIBUTE_SIZE] = {actionBold->isChecked(),
+                                                 actionItalic->isChecked(),
+                                                 actionUnderlined->isChecked()};
+
             emit symbolInserted(getCursorPos(), characterInserted.at(
-                    0)); //TODO: cambiare symbol inserted per passare i flag
+                    0), arrayOfStyle);
           }
           break;
         }
@@ -212,8 +216,13 @@ void Editor::paste() {
   auto clipboard = QApplication::clipboard();
   QString selectedText = clipboard->text();
 
+  bool arrayOfStyle[ATTRIBUTE_SIZE] = {actionBold->isChecked(),
+                                       actionItalic->isChecked(),
+                                       actionUnderlined->isChecked()};
+
   for (int i = 0; i < selectedText.size(); i++) {
-    emit symbolInserted(getCursorPos() + i, selectedText.at(i));
+    emit symbolInserted(getCursorPos() + i, selectedText.at(i), arrayOfStyle); //TODO: come gestiamo l'incolla?
+                                            // Facciamo che incollo i simboli in plain text oppure con lo stile attuale?
   }
 }
 
@@ -395,7 +404,8 @@ void Editor::createToolBar(
 
   const QIcon boldIcon = QIcon::fromTheme("format-text-bold",
                                           QIcon(":/images/mac/textbold.png"));
-  actionBold = toolBar->addAction(boldIcon, tr("&Bold"), this, &Editor::textBold);
+  actionBold = toolBar->addAction(boldIcon, tr("&Bold"), this,
+                                  &Editor::textBold);
   QFont bold;
   bold.setBold(true);
   actionBold->setFont(bold);
@@ -405,7 +415,8 @@ void Editor::createToolBar(
 
   const QIcon italicIcon = QIcon::fromTheme("format-text-italic",
                                             QIcon(":/images/mac/textitalic.png"));
-  actionItalic = toolBar->addAction(italicIcon, tr("&Italic"), this, &Editor::textItalic);
+  actionItalic = toolBar->addAction(italicIcon, tr("&Italic"), this,
+                                    &Editor::textItalic);
   QFont italic;
   italic.setItalic(true);
   actionItalic->setFont(italic);
@@ -415,7 +426,8 @@ void Editor::createToolBar(
 
   const QIcon underlineIcon = QIcon::fromTheme("format-text-underline",
                                                QIcon(":images/mac/textunder.png"));
-  actionUnderlined = toolBar->addAction(underlineIcon, tr("&Underline"), this, &Editor::textUnderlined);
+  actionUnderlined = toolBar->addAction(underlineIcon, tr("&Underline"), this,
+                                        &Editor::textUnderlined);
   actionUnderlined->setShortcut(Qt::CTRL + Qt::Key_U);
   QFont underline;
   underline.setUnderline(true);
@@ -450,7 +462,7 @@ void Editor::mergeFormat(const QTextCharFormat &format) {
   textEdit->mergeCurrentCharFormat(format);
 }
 
-void Editor::textBold(){
+void Editor::textBold() {
   QTextCharFormat fmt;
   fmt.setFontWeight(actionBold->isChecked() ? QFont::Bold : QFont::Normal);
   mergeFormat(fmt);

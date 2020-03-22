@@ -19,6 +19,7 @@
 #include <QtPrintSupport/QPrinter>
 #include <QTextStream>
 #include <QGroupBox>
+#include <src/components/Symbol.h>
 
 /**
  * Editor application window
@@ -75,10 +76,13 @@ signals:
     void openVisualizerFromEditor();
 
     ///Signal emitted when the user inserts a symbol in the editor
-    void symbolInserted(int position, QChar character);
+    void symbolInserted(int position, QChar character, bool attributes[Attribute::ATTRIBUTE_SIZE]);
 
     ///Signal emitted when the user deletes a symbol in the editor
     void symbolDeleted(int position);
+
+    ///Signal emitted when the user updates a symbol in the editor
+    void symbolUpdated(int position, bool attributes[Attribute::ATTRIBUTE_SIZE]);
 
 };
 
