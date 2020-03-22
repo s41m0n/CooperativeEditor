@@ -148,6 +148,7 @@ void Controller::onReadyRead() {
       auto derived = std::dynamic_pointer_cast<CrdtMessage>(base);
       model->userReplace(sender, derived->getSymbol());
       dispatch(sender, header.getType(), header, derived);
+      break;
     }
     default:
       throw std::runtime_error("Must never read different types of Message!!!");
