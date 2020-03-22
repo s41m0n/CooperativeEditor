@@ -49,15 +49,17 @@ Editor::Editor(QWidget *parent) : QMainWindow(parent), usersOnlineNumber(1) {
 
   QObject::connect(textEdit, &QTextEdit::selectionChanged, this,
                    [this]() { //adapt the buttons to the style of the current selected text
+                       auto cursor = textEdit->textCursor();
+                       cursor.setPosition(textEdit->textCursor().selectionEnd()); //I consider the char at the end of selection
                        actionBold->setChecked(
-                               textEdit->textCursor().charFormat().fontWeight() ==
+                               cursor.charFormat().fontWeight() ==
                                QFont::Bold);
 
                        actionItalic->setChecked(
-                               textEdit->textCursor().charFormat().fontItalic());
+                               cursor.charFormat().fontItalic());
 
                        actionUnderlined->setChecked(
-                               textEdit->textCursor().charFormat().fontUnderline());
+                               cursor.charFormat().fontUnderline());
                    });
 
   QObject::connect(textEdit, &QTextEdit::cursorPositionChanged, this,
@@ -109,7 +111,7 @@ Editor::Editor(QWidget *parent) : QMainWindow(parent), usersOnlineNumber(1) {
 }
 
 void Editor::onFileTextLoad(const FileText &text) {
-  for(Symbol s : text) {
+  for (Symbol s : text) {
     QTextCharFormat fmt;
     fmt.setFontWeight(s.isAttributeSet(BOLD) ? QFont::Bold : QFont::Normal);
     fmt.setFontItalic(s.isAttributeSet(ITALIC));
@@ -119,7 +121,7 @@ void Editor::onFileTextLoad(const FileText &text) {
   }
 }
 
-void Editor::onRemoteInsert(int index, const Symbol& symbol) {
+void Editor::onRemoteInsert(int index, const Symbol &symbol) {
 
 }
 
@@ -127,7 +129,7 @@ void Editor::onRemoteDelete(int index) {
 
 }
 
-void Editor::onRemoteUpdate(int index, const Symbol& symbol) {
+void Editor::onRemoteUpdate(int index, const Symbol &symbol) {
 
 }
 
@@ -198,7 +200,6 @@ Editor::eventFilter(QObject *object, QEvent *event) { //key pression manager
           break;
         }
         case Qt::Key_Backspace: {
-
           if (!deleteSelection()) { //If I already deleted the selection I don't delete again
             if (getCursorPos() != 0) {
               emit symbolDeleted(getCursorPos() - 1);

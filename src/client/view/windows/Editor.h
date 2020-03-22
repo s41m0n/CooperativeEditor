@@ -46,20 +46,29 @@ private:
     QLineEdit *linkDisplayer;
 
     void createTopBar(QGridLayout *layout);
+
     void createToolBar(QGridLayout *layout);
+
     int getCursorPos();
+
     void paste();
+
     bool deleteSelection(); //true = deleted, false = nothing to delete
     void simulateBackspacePression();
+
     void fileToPDF();
+
     void textBold();
+
     void textItalic();
+
     void textUnderlined();
 
 public:
 
     explicit Editor(QWidget *parent = nullptr);
-    bool eventFilter(QObject *editor, QEvent *event) override ;
+
+    bool eventFilter(QObject *editor, QEvent *event) override;
 
 public slots:
 
@@ -67,13 +76,13 @@ public slots:
     void onFileTextLoad(const FileText &text);
 
     ///Slot to notify the editor that a remote user has inserted a character
-    void onRemoteInsert(int index, const Symbol& symbol);
+    void onRemoteInsert(int index, const Symbol &symbol);
 
     ///Slot to notify the editor that a remote user has deleted a character
     void onRemoteDelete(int index);
 
     ///Slot to notify the editor that a remote user has updated a character
-    void onRemoteUpdate(int index, const Symbol& symbol);
+    void onRemoteUpdate(int index, const Symbol &symbol);
 
 signals:
 
@@ -84,13 +93,15 @@ signals:
     void openVisualizerFromEditor();
 
     ///Signal emitted when the user inserts a symbol in the editor
-    void symbolInserted(int position, QChar character, bool attributes[Attribute::ATTRIBUTE_SIZE]);
+    void symbolInserted(int position, QChar character,
+                        bool attributes[Attribute::ATTRIBUTE_SIZE]);
 
     ///Signal emitted when the user deletes a symbol in the editor
     void symbolDeleted(int position);
 
     ///Signal emitted when the user updates a symbol in the editor
-    void symbolUpdated(int position, bool attributes[Attribute::ATTRIBUTE_SIZE]);
+    void
+    symbolUpdated(int position, bool attributes[Attribute::ATTRIBUTE_SIZE]);
 
 };
 
