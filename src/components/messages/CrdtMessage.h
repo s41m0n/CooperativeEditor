@@ -12,15 +12,15 @@ class CrdtMessage : public BasicMessage {
 
 private:
 
-    Symbol symbol;
+    QVector<Symbol> symbols;
 
 public:
 
-    CrdtMessage(Symbol symbol, unsigned editorId);
+    CrdtMessage(QVector<Symbol> symbols, unsigned editorId);
 
     CrdtMessage() = default;
 
-    Symbol &getSymbol();
+    QVector<Symbol> &getSymbols();
 
     std::string toStdString(int level = 0) override;
 

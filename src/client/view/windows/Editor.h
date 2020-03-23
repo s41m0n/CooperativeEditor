@@ -76,13 +76,13 @@ public slots:
     void onFileTextLoad(const FileText &text);
 
     ///Slot to notify the editor that a remote user has inserted a character
-    void onRemoteInsert(int index, const Symbol &symbol);
+    void onRemoteInsert(int index, const QVector<Symbol> &symbol);
 
     ///Slot to notify the editor that a remote user has deleted a character
-    void onRemoteDelete(int index);
+    void onRemoteDelete(int index, int size);
 
     ///Slot to notify the editor that a remote user has updated a character
-    void onRemoteUpdate(int index, const Symbol &symbol);
+    void onRemoteUpdate(int index, const QVector<Symbol> &symbol);
 
 signals:
 
@@ -93,15 +93,15 @@ signals:
     void openVisualizerFromEditor();
 
     ///Signal emitted when the user inserts a symbol in the editor
-    void symbolInserted(int position, QChar character,
-                        bool attributes[Attribute::ATTRIBUTE_SIZE]);
+    void symbolInserted(int position, QString character,
+                        QVector<bool> attributes);
 
     ///Signal emitted when the user deletes a symbol in the editor
-    void symbolDeleted(int position);
+    void symbolDeleted(int position, int size);
 
     ///Signal emitted when the user updates a symbol in the editor
     void
-    symbolUpdated(int position, bool attributes[Attribute::ATTRIBUTE_SIZE]);
+    symbolUpdated(int position, int size, QVector<bool> attributes);
 
 };
 

@@ -34,20 +34,21 @@ public:
     User getUser();
 
     ///Crdt local method to insert a symbol
-    Symbol &localInsert(int index, QChar value, bool attributes[Attribute::ATTRIBUTE_SIZE]);
+    QVector<Symbol>
+    localInsert(int index, QString value, const QVector<bool>& attributes);
 
     ///Crdt local method to erase a symbol
-    Symbol localErase(int index);
+    QVector<Symbol> localErase(int index, int size);
 
-    Symbol &localUpdate(int index, bool attributes[Attribute::ATTRIBUTE_SIZE]);
+    QVector<Symbol> localUpdate(int index, int size, const QVector<bool>& attributes);
 
     ///Method to update the list of symbol after a remote insertion
-    int remoteInsert(Symbol &symbol);
+    int remoteInsert(QVector<Symbol> symbol);
 
     ///Method to update the list of symbol after a remote deletion
-    int remoteErase(Symbol &symbol);
+    int remoteErase(QVector<Symbol> symbol);
 
-    int remoteUpdate(Symbol &symbol);
+    int remoteUpdate(QVector<Symbol> symbol);
 
     void setEditorId(unsigned newEditorId);
 

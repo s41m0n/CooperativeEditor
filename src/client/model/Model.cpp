@@ -27,52 +27,78 @@ std::string Model::textifyToStdString() {
   return textify().toStdString();
 }
 
-Symbol &Model::localInsert(int index, QChar value, bool attributes[Attribute::ATTRIBUTE_SIZE]) {
+QVector<Symbol>
+Model::localInsert(int index, QString value, const QVector<bool>& attributes) {
 
   if(index > file.getFileText().size() || index < 0) {
     throw std::runtime_error("No valid position: TextSize:" + std::to_string(file.getFileText().size()));
   }
 
-  Symbol s = generateSymbol(index, value);
-  s.setAttributes(attributes);
-  file.getFileText().insert(file.getFileText().begin() + index, s);
+  QVector<Symbol> toReturn;
+  for (int i = 0; i < value.size(); i++) {
+    Symbol s = generateSymbol(index + i, value[i]);
+    s.setAttributes(attributes);
+    file.getFileText().insert(file.getFileText().begin() + index + i, s);
+    toReturn.push_back(s);
+  }
 
-  return file.getFileText()[index];
+  return toReturn;
 }
 
-Symbol Model::localErase(int index) {
+QVector<Symbol> Model::localErase(int index, int size) {
 
   if(index >= file.getFileText().size() || index < 0) {
     throw std::runtime_error("No symbol to erase: TextSize:" + std::to_string(file.getFileText().size()));
   }
 
-  Symbol s = std::move(file.getFileText()[index]);
-  file.getFileText().erase(file.getFileText().begin() + index);
+  QVector<Symbol> toReturn;
+  for (int i = 0; i < size; ++i) {
+    Symbol s = std::move(file.getFileText()[index]);
+    file.getFileText().erase(file.getFileText().begin() + index);
+    toReturn.push_back(s);
+  }
 
-  return std::move(s);
+  return toReturn;
 }
 
-Symbol &Model::localUpdate(int index, bool attributes[Attribute::ATTRIBUTE_SIZE]) {
+QVector<Symbol>
+Model::localUpdate(int index, int size, const QVector<bool>& attributes) {
   if(index >= file.getFileText().size() || index < 0) {
     throw std::runtime_error("No symbol to update: TextSize:" + std::to_string(file.getFileText().size()));
   }
 
-  Symbol &s = file.getFileText()[index];
-  s.setAttributes(attributes);
+  QVector<Symbol> toReturn;
+  for (int i = 0; i < size; ++i) {
+    Symbol &s = file.getFileText()[index + i];
+    s.setAttributes(attributes);
+    toReturn.push_back(s);
+  }
 
-  return s;
+  return toReturn;
 }
 
-int Model::remoteInsert(Symbol &symbol) {
-  return CrdtAlgorithm::remoteInsert(symbol, file.getFileText());
+int Model::remoteInsert(QVector<Symbol> symbol) {
+  int index = CrdtAlgorithm::remoteInsert(symbol[0], file.getFileText());
+  for (int i = 1; i < symbol.size(); i++) {
+    CrdtAlgorithm::remoteInsert(symbol[i], file.getFileText());
+  }
+  return index;
 }
 
-int Model::remoteErase(Symbol &symbol) {
-  return CrdtAlgorithm::remoteErase(symbol, file.getFileText());
+int Model::remoteErase(QVector<Symbol> symbol) {
+  int index = CrdtAlgorithm::remoteErase(symbol[0], file.getFileText());
+  for (int i = 1; i < symbol.size(); i++) {
+    CrdtAlgorithm::remoteErase(symbol[i], file.getFileText());
+  }
+  return index;
 }
 
-int Model::remoteUpdate(Symbol &symbol) {
-  return CrdtAlgorithm::replaceSymbol(symbol, file.getFileText());
+int Model::remoteUpdate(QVector<Symbol> symbol) {
+  int index = CrdtAlgorithm::replaceSymbol(symbol[0], file.getFileText());
+  for (int i = 1; i < symbol.size(); i++) {
+    CrdtAlgorithm::replaceSymbol(symbol[i], file.getFileText());
+  }
+  return index;
 }
 
 Symbol Model::generateSymbol(int index, QChar value) {

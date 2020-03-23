@@ -4,9 +4,15 @@ Symbol::Symbol(QChar character, unsigned siteId,
                QVector<Identifier> &position) : position(std::move(position)),
                                                 siteId(siteId),
                                                 character(character) {
+  for (int i = 0; i < Attribute::ATTRIBUTE_SIZE; i++) {
+    attributes.push_back(false);
+  }
 }
 
 Symbol::Symbol() : character('\0'), position(), siteId(-1) {
+  for (int i = 0; i < Attribute::ATTRIBUTE_SIZE; i++) {
+    attributes.push_back(false);
+  }
 }
 
 QChar &Symbol::getChar() {
@@ -65,26 +71,25 @@ std::string Symbol::toStdString(int level) {
 }
 
 QDataStream &Symbol::serialize(QDataStream &stream) const {
-  stream << character << siteId << position;
-  for (int i = 0; i < Attribute::ATTRIBUTE_SIZE; i++) { // NOLINT(modernize-loop-convert)
-    stream << attributes[i];
-  }
+  stream << character << siteId << position << attributes;
+
   return stream;
 }
 
 QDataStream &Symbol::deserialize(QDataStream &stream) {
-  stream >> character >> siteId >> position;
+  stream >> character >> siteId >> position >> attributes;
 
-  for (int i = 0; i < Attribute::ATTRIBUTE_SIZE; i++) { // NOLINT(modernize-loop-convert)
-    stream >> attributes[i];
-  }
   return stream;
 }
 
-void Symbol::setAttributes(const bool attr[Attribute::ATTRIBUTE_SIZE]) {
+void Symbol::setAttributes(QVector<bool> attr) {
   for (int i = 0; i < Attribute::ATTRIBUTE_SIZE; i++) {
     attributes[i] = attr[i];
   }
+}
+
+void Symbol::setAttribute(Attribute attribute, bool set) {
+  attributes[attribute] = set;
 }
 
 bool Symbol::isAttributeSet(Attribute attribute) {

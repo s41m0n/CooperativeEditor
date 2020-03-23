@@ -121,15 +121,15 @@ void Editor::onFileTextLoad(const FileText &text) {
   }
 }
 
-void Editor::onRemoteInsert(int index, const Symbol &symbol) {
+void Editor::onRemoteInsert(int index, const QVector<Symbol> &symbol) {
 
 }
 
-void Editor::onRemoteDelete(int index) {
+void Editor::onRemoteDelete(int index, int size) {
 
 }
 
-void Editor::onRemoteUpdate(int index, const Symbol &symbol) {
+void Editor::onRemoteUpdate(int index, const QVector<Symbol> &symbol) {
 
 }
 
@@ -165,14 +165,12 @@ Editor::eventFilter(QObject *object, QEvent *event) { //key pression manager
           if (selection ==
               "") { //If the cursor is after one or more space I delete 1 space
             if (getCursorPos() != 0) {
-              emit symbolDeleted(getCursorPos() - 1);
+              emit symbolDeleted(getCursorPos() - 1, 1);
               cursor.deletePreviousChar();
               return true;
             }
           } else {
-            for (int i = 0; i < selection.size(); i++) {
-              emit symbolDeleted(cursor.selectionStart());
-            }
+            emit symbolDeleted(cursor.selectionStart(), selection.size());
           }
 
           break;
@@ -194,7 +192,7 @@ Editor::eventFilter(QObject *object, QEvent *event) { //key pression manager
         case Qt::Key_Delete: {
           if (!deleteSelection()) { //If I already deleted the selection I don't delete again
             if (getCursorPos() != textEdit->toPlainText().size()) {
-              emit symbolDeleted(getCursorPos());
+              emit symbolDeleted(getCursorPos(), 1);
             }
           }
           break;
@@ -202,7 +200,7 @@ Editor::eventFilter(QObject *object, QEvent *event) { //key pression manager
         case Qt::Key_Backspace: {
           if (!deleteSelection()) { //If I already deleted the selection I don't delete again
             if (getCursorPos() != 0) {
-              emit symbolDeleted(getCursorPos() - 1);
+              emit symbolDeleted(getCursorPos() - 1, 1);
             }
           }
           break;
@@ -212,12 +210,12 @@ Editor::eventFilter(QObject *object, QEvent *event) { //key pression manager
 
             simulateBackspacePression();
 
-            bool arrayOfStyle[ATTRIBUTE_SIZE] = {actionBold->isChecked(),
+            QVector<bool> arrayOfStyle = {actionBold->isChecked(),
                                                  actionItalic->isChecked(),
                                                  actionUnderlined->isChecked()};
 
-            emit symbolInserted(getCursorPos(), characterInserted.at(
-                    0), arrayOfStyle);
+            emit symbolInserted(getCursorPos(), {characterInserted.at(
+                    0)}, arrayOfStyle);
           }
           break;
         }
@@ -237,13 +235,11 @@ void Editor::paste() {
   auto clipboard = QApplication::clipboard();
   QString selectedText = clipboard->text();
 
-  bool arrayOfStyle[ATTRIBUTE_SIZE] = {actionBold->isChecked(),
+  QVector<bool> arrayOfStyle = {actionBold->isChecked(),
                                        actionItalic->isChecked(),
                                        actionUnderlined->isChecked()};
 
-  for (int i = 0; i < selectedText.size(); i++) {
-    emit symbolInserted(getCursorPos() + i, selectedText.at(i), arrayOfStyle);
-  }
+  emit symbolInserted(getCursorPos(), selectedText, arrayOfStyle);
 }
 
 bool Editor::deleteSelection() {
@@ -252,9 +248,7 @@ bool Editor::deleteSelection() {
   auto selection = textCursor.selectedText();
 
   if (!selection.isEmpty()) {
-    for (int i = 0; i < selection.size(); i++) {
-      emit symbolDeleted(textCursor.selectionStart());
-    }
+    emit symbolDeleted(textCursor.selectionStart(), selection.size());
     selection.clear();
     return true;
   }
@@ -486,13 +480,12 @@ void Editor::textBold() {
 
   if (!selection.isEmpty()) {
 
-    bool arrayOfStyle[ATTRIBUTE_SIZE] = {actionBold->isChecked(),
+    QVector<bool> arrayOfStyle = {actionBold->isChecked(),
                                          actionItalic->isChecked(),
                                          actionUnderlined->isChecked()};
 
-    for (int i = 0; i < selection.size(); i++) {
-      emit symbolUpdated(textCursor.selectionStart() + i, arrayOfStyle);
-    }
+
+    emit symbolUpdated(textCursor.selectionStart(), selection.size(), arrayOfStyle);
   }
 
 }
@@ -507,13 +500,11 @@ void Editor::textItalic() {
 
   if (!selection.isEmpty()) {
 
-    bool arrayOfStyle[ATTRIBUTE_SIZE] = {actionBold->isChecked(),
+    QVector<bool> arrayOfStyle = {actionBold->isChecked(),
                                          actionItalic->isChecked(),
                                          actionUnderlined->isChecked()};
 
-    for (int i = 0; i < selection.size(); i++) {
-      emit symbolUpdated(textCursor.selectionStart() + i, arrayOfStyle);
-    }
+    emit symbolUpdated(textCursor.selectionStart(), selection.size(), arrayOfStyle);
   }
 }
 
@@ -527,12 +518,10 @@ void Editor::textUnderlined() {
 
   if (!selection.isEmpty()) {
 
-    bool arrayOfStyle[ATTRIBUTE_SIZE] = {actionBold->isChecked(),
+    QVector<bool> arrayOfStyle = {actionBold->isChecked(),
                                          actionItalic->isChecked(),
                                          actionUnderlined->isChecked()};
 
-    for (int i = 0; i < selection.size(); i++) {
-      emit symbolUpdated(textCursor.selectionStart() + i, arrayOfStyle);
-    }
+    emit symbolUpdated(textCursor.selectionStart(), selection.size(), arrayOfStyle);
   }
 }

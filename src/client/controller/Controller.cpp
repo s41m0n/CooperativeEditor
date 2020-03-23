@@ -62,11 +62,11 @@ void Controller::onReadyRead() {
     case Type::S_INSERT:
     case Type::S_ERASE: {
       try {
-        auto symbol = std::dynamic_pointer_cast<CrdtMessage>(base)->getSymbol();
+        auto symbols = std::dynamic_pointer_cast<CrdtMessage>(base)->getSymbols();
         if (header.getType() == Type::S_INSERT) {
-          emit remoteUserInsert(model->remoteInsert(symbol), symbol);
+          emit remoteUserInsert(model->remoteInsert(symbols), symbols);
         } else {
-          emit remoteUserDelete(model->remoteErase(symbol));
+          emit remoteUserDelete(model->remoteErase(symbols), symbols.size());
         }
       } catch (std::exception &e) {
         spdlog::error("Error on remote operation:\nMsg -> {}", e.what());
@@ -86,8 +86,8 @@ void Controller::onReadyRead() {
       break;
     }
     case Type::S_UPDATE_ATTRIBUTE: {
-      auto symbol = std::dynamic_pointer_cast<CrdtMessage>(base)->getSymbol();
-      emit remoteUserUpdate(model->remoteUpdate(symbol), symbol);
+      auto symbols = std::dynamic_pointer_cast<CrdtMessage>(base)->getSymbols();
+      emit remoteUserUpdate(model->remoteUpdate(symbols), symbols);
     }
     default:
       throw std::runtime_error("Unknown message received");
@@ -95,7 +95,7 @@ void Controller::onReadyRead() {
   }
 }
 
-void Controller::onCharInserted(int index, QChar value, bool attributes[Attribute::ATTRIBUTE_SIZE]) {
+void Controller::onCharInserted(int index, const QString& value, const QVector<bool>& attributes) {
 
   try {
     CrdtMessage msg(model->localInsert(index, value, attributes), model->getEditorId());
@@ -106,10 +106,10 @@ void Controller::onCharInserted(int index, QChar value, bool attributes[Attribut
   }
 }
 
-void Controller::onCharErased(int index) {
+void Controller::onCharErased(int index, int size) {
 
   try {
-    CrdtMessage msg(model->localErase(index), model->getEditorId());
+    CrdtMessage msg(model->localErase(index, size), model->getEditorId());
     sendMsg(Type::S_ERASE, msg);
   } catch (std::exception &e) {
     spdlog::error("Error on local erase: Index-> {} @ Msg -> {}", index,
@@ -117,9 +117,9 @@ void Controller::onCharErased(int index) {
   }
 }
 
-void Controller::onCharUpdated(int index, bool attributes[Attribute::ATTRIBUTE_SIZE]) {
+void Controller::onCharUpdated(int index, int size, const QVector<bool>& attributes) {
   try {
-    CrdtMessage msg(model->localUpdate(index, attributes), model->getEditorId());
+    CrdtMessage msg(model->localUpdate(index, size, attributes), model->getEditorId());
     sendMsg(Type::S_UPDATE_ATTRIBUTE, msg);
   } catch (std::exception &e) {
     spdlog::error("Error on local update: Index-> {} @ Msg -> {}", index,
