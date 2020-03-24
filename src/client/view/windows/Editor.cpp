@@ -3,7 +3,9 @@
 #include <QtWidgets/QInputDialog>
 #include "Editor.h"
 
-Editor::Editor(QWidget *parent) : QMainWindow(parent), usersOnlineNumber(1) {
+Editor::Editor(QWidget *parent) : QMainWindow(parent), usersOnlineList() {
+
+  //TODO:fai finestra readonly per vedere info utente con vettore
 
   this->setMinimumWidth(500);
 
@@ -73,8 +75,8 @@ Editor::Editor(QWidget *parent) : QMainWindow(parent), usersOnlineNumber(1) {
                    });
 
   usersOnlineDisplayer = new QLabel(
-          "Users online: " + QString::number(usersOnlineNumber), mainWidget);
-  usersOnlineDisplayer->setFixedHeight(30);
+          "Users online: ");
+  usersOnlineDisplayer->setFixedHeight(30); //1 user is present
   layout->addWidget(usersOnlineDisplayer, 2, 2, 1, 1);
 
   usersOnline = new QListWidget(mainWidget);
@@ -102,10 +104,14 @@ Editor::Editor(QWidget *parent) : QMainWindow(parent), usersOnlineNumber(1) {
 }
 
 void Editor::onFileTextLoad(const FileText &text, const QString &fName,
-                            const QString &username) {
+                            User user, unsigned int editorId) {
   fileName = fName;
   this->setWindowTitle(fileName);
-  usersOnline->addItem(username);
+  usersOnline->addItem(user.getUsername());
+  usersOnlineList.insert(editorId, user);
+  usersOnlineDisplayer->setText(
+          "Users online: " + QString::number(usersOnlineList.size()));
+
   for (Symbol s : text) {
     QTextCharFormat fmt;
     fmt.setFontWeight(s.isAttributeSet(BOLD) ? QFont::Bold : QFont::Normal);
@@ -311,14 +317,10 @@ void Editor::createTopBar(QGridLayout *layout) {
                        fileToPDF();
                        int result = fileCorrectlySaved->exec();
 
-                       switch (result) {
-                         case QMessageBox::Close:
-                           editorInfo->close();
-                           break;
-                         default:
-                           //error, should never be reached
-                           break;
+                       if (result == QMessageBox::Close) {
+                         editorInfo->close();
                        }
+
                    });
   file->addAction(actionSave);
 
@@ -403,13 +405,8 @@ void Editor::createTopBar(QGridLayout *layout) {
                    [this]() {
                        int resultExit = editorInfo->exec();
 
-                       switch (resultExit) {
-                         case QMessageBox::Close:
-                           editorInfo->close();
-                           break;
-                         default:
-                           //error, should never be reached
-                           break;
+                       if (resultExit == QMessageBox::Close) {
+                         editorInfo->close();
                        }
                    });
   help->addAction(actionAboutEditor);
@@ -421,14 +418,10 @@ void Editor::createTopBar(QGridLayout *layout) {
                    [this]() {
                        int result = infoAboutUs->exec();
 
-                       switch (result) {
-                         case QMessageBox::Close:
-                           infoAboutUs->close();
-                           break;
-                         default:
-                           //error, should never be reached
-                           break;
+                       if (result == QMessageBox::Close) {
+                         infoAboutUs->close();
                        }
+
                    });
   help->addAction(actionAboutAuthors);
 
@@ -497,35 +490,39 @@ void Editor::onRemoteUserConnected(qint32 clientId, const QImage &image,
                                    const QString &name,
                                    const QString &surname, const QString &email,
                                    const QString &username) {
-  usersOnlineNumber += 1;
 
-  if (usersOnlineNumber <= 5) {
-    usersOnline->setFixedHeight(usersOnlineNumber * 30);
+  User u(username, name, surname, email, "", image);
+  usersOnlineList.insert(clientId, u);
+
+  if (usersOnlineList.size() <= 5) {
+    usersOnline->setFixedHeight(usersOnlineList.size() * 30);
   } else {
     usersOnline->setFixedHeight(150);
   }
 
   usersOnlineDisplayer->setText(
-          "Users online: " + QString::number(usersOnlineNumber));
+          "Users online: " + QString::number(usersOnlineList.size()));
   usersOnline->addItem(username);
 }
 
 void Editor::onRemoteUserDisconnected(qint32 clientId) {
-  usersOnlineNumber -= 1;
-  if (usersOnlineNumber <= 5) {
-    usersOnline->setFixedHeight(usersOnlineNumber * 30);
+  usersOnlineList.remove(clientId);
+  usersOnlineDisplayer->setText(
+          "Users online: " + QString::number(usersOnlineList.size()));
+  refreshUserView(); //it is not so easy to remove an element from the list, it's better to refresh
+}
+
+void Editor::refreshUserView() {
+  if (usersOnlineList.size() <= 5) {
+    usersOnline->setFixedHeight(usersOnlineList.size() * 30);
   } else {
     usersOnline->setFixedHeight(150);
   }
 
-  usersOnlineDisplayer->setText(
-          "Users online: " + QString::number(usersOnlineNumber));
-
-  /* //TODO: come distinguo solo attraverso il client il nome da rimuovere?
-  for(int i = 0; i < usersOnline->count(); i++){
-    if(usersOnline->item(i)->text() == "")
+  usersOnline->clear();
+  for (User u : usersOnlineList.values()) {
+    usersOnline->addItem(u.getUsername());
   }
-  */
 }
 
 void Editor::textBold() {

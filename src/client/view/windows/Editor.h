@@ -21,6 +21,7 @@
 #include <QGroupBox>
 #include <src/components/Symbol.h>
 #include <src/common/File.h>
+#include <src/common/User.h>
 
 /**
  * Editor application window
@@ -42,10 +43,10 @@ private:
     QAction *actionItalic;
     QAction *actionUnderlined;
     QLabel *usersOnlineDisplayer;
-    int usersOnlineNumber;
     QLabel *linkLabel;
     QLineEdit *linkDisplayer;
     QString fileName;
+    QMap<qint32, User> usersOnlineList;
 
     void createTopBar(QGridLayout *layout);
 
@@ -66,6 +67,8 @@ private:
 
     void textUnderlined();
 
+    void refreshUserView();
+
 public:
 
     explicit Editor(QWidget *parent = nullptr);
@@ -76,7 +79,7 @@ public slots:
 
     ///Slot to open the selected file in the editor the first time
     void onFileTextLoad(const FileText &text, const QString &fileName,
-                        const QString &userName);
+                        User user, unsigned int editorId);
 
     ///Slot to notify the editor that a remote user has inserted a character
     void onRemoteInsert(int index, const QVector<Symbol> &symbol);

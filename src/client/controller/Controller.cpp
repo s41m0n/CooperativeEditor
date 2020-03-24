@@ -58,7 +58,7 @@ void Controller::onReadyRead() {
         model->setCurrentFile(
                 std::dynamic_pointer_cast<FileMessage>(base)->getFile());
         emit loadFileText(model->getFileText(), model->getFile().getFileName(),
-                          model->getUser().getUsername());
+                          model->getUser(), model->getEditorId());
         break;
       }
       case Type::S_INSERT:
