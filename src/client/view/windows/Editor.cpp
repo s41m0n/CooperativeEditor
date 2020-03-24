@@ -50,7 +50,8 @@ Editor::Editor(QWidget *parent) : QMainWindow(parent), usersOnlineNumber(1) {
   QObject::connect(textEdit, &QTextEdit::selectionChanged, this,
                    [this]() { //adapt the buttons to the style of the current selected text
                        auto cursor = textEdit->textCursor();
-                       cursor.setPosition(textEdit->textCursor().selectionEnd()); //I consider the char at the end of selection
+                       cursor.setPosition(
+                               textEdit->textCursor().selectionEnd()); //I consider the char at the end of selection
                        actionBold->setChecked(
                                cursor.charFormat().fontWeight() ==
                                QFont::Bold);
@@ -122,15 +123,39 @@ void Editor::onFileTextLoad(const FileText &text) {
 }
 
 void Editor::onRemoteInsert(int index, const QVector<Symbol> &symbol) {
-
+  auto cursor = textEdit->textCursor(); //I retrieve the cursor
+  cursor.movePosition(QTextCursor::Start); //I place it at the beginning of the document
+  cursor.movePosition(QTextCursor::Right, QTextCursor::MoveAnchor, index); //cursor is now where I want to insert the text
+  for(Symbol s : symbol){
+    QTextCharFormat fmt;
+    fmt.setFontWeight(s.isAttributeSet(BOLD) ? QFont::Bold : QFont::Normal);
+    fmt.setFontItalic(s.isAttributeSet(ITALIC));
+    fmt.setFontUnderline(s.isAttributeSet(UNDERLINED));
+    cursor.insertText(s.getChar(), fmt);
+  }
 }
 
 void Editor::onRemoteDelete(int index, int size) {
-
+  auto cursor = textEdit->textCursor(); //I retrieve the cursor
+  cursor.movePosition(QTextCursor::Start); //I place it at the beginning of the document
+  cursor.movePosition(QTextCursor::Right, QTextCursor::MoveAnchor, index); //cursor is now where I want to remove the text
+  for(int i = 0; i < size; i++){
+    cursor.deleteChar();
+  }
 }
 
 void Editor::onRemoteUpdate(int index, const QVector<Symbol> &symbol) {
-
+  auto cursor = textEdit->textCursor(); //I retrieve the cursor
+  cursor.movePosition(QTextCursor::Start); //I place it at the beginning of the document
+  cursor.movePosition(QTextCursor::Right, QTextCursor::MoveAnchor, index); //cursor is now where I want to update the text
+  for(Symbol s : symbol){
+    cursor.movePosition(QTextCursor::Right, QTextCursor::KeepAnchor, 1);
+    QTextCharFormat fmt;
+    fmt.setFontWeight(s.isAttributeSet(BOLD) ? QFont::Bold : QFont::Normal);
+    fmt.setFontItalic(s.isAttributeSet(ITALIC));
+    fmt.setFontUnderline(s.isAttributeSet(UNDERLINED));
+    cursor.mergeCharFormat(fmt);
+  }
 }
 
 bool
@@ -141,7 +166,7 @@ Editor::eventFilter(QObject *object, QEvent *event) { //key pression manager
     auto keyEvent = dynamic_cast<QKeyEvent *>(event);
     Qt::KeyboardModifiers modifiers = keyEvent->modifiers();
 
-    if (modifiers & Qt::ControlModifier) {
+    if (modifiers & Qt::ControlModifier) { //ctrl is clicked
 
       switch (keyEvent->key()) {
         case Qt::Key_V: { //paste
@@ -172,7 +197,6 @@ Editor::eventFilter(QObject *object, QEvent *event) { //key pression manager
           } else {
             emit symbolDeleted(cursor.selectionStart(), selection.size());
           }
-
           break;
         }
           //add desired shortcut here
@@ -181,7 +205,7 @@ Editor::eventFilter(QObject *object, QEvent *event) { //key pression manager
           return false;
         }
       }
-    } else {
+    } else { //ctrl is not clicked
 
       auto characterInserted = keyEvent->text();
 
@@ -190,7 +214,7 @@ Editor::eventFilter(QObject *object, QEvent *event) { //key pression manager
           break;
         }
         case Qt::Key_Delete: {
-          if (!deleteSelection()) { //If I already deleted the selection I don't delete again
+          if (!deleteSelection()) { //If I have already deleted the selection I don't delete it again
             if (getCursorPos() != textEdit->toPlainText().size()) {
               emit symbolDeleted(getCursorPos(), 1);
             }
@@ -198,7 +222,7 @@ Editor::eventFilter(QObject *object, QEvent *event) { //key pression manager
           break;
         }
         case Qt::Key_Backspace: {
-          if (!deleteSelection()) { //If I already deleted the selection I don't delete again
+          if (!deleteSelection()) { //If I have already deleted the selection I don't delete it again
             if (getCursorPos() != 0) {
               emit symbolDeleted(getCursorPos() - 1, 1);
             }
@@ -211,8 +235,8 @@ Editor::eventFilter(QObject *object, QEvent *event) { //key pression manager
             simulateBackspacePression();
 
             QVector<bool> arrayOfStyle = {actionBold->isChecked(),
-                                                 actionItalic->isChecked(),
-                                                 actionUnderlined->isChecked()};
+                                          actionItalic->isChecked(),
+                                          actionUnderlined->isChecked()};
 
             emit symbolInserted(getCursorPos(), {characterInserted.at(
                     0)}, arrayOfStyle);
@@ -236,8 +260,8 @@ void Editor::paste() {
   QString selectedText = clipboard->text();
 
   QVector<bool> arrayOfStyle = {actionBold->isChecked(),
-                                       actionItalic->isChecked(),
-                                       actionUnderlined->isChecked()};
+                                actionItalic->isChecked(),
+                                actionUnderlined->isChecked()};
 
   emit symbolInserted(getCursorPos(), selectedText, arrayOfStyle);
 }
@@ -411,8 +435,7 @@ void Editor::createTopBar(QGridLayout *layout) {
   layout->addWidget(topBar, 0, 0, 1, 2);
 }
 
-void Editor::createToolBar(
-        QGridLayout *layout) {
+void Editor::createToolBar(QGridLayout *layout) {
 
   toolBar = new QToolBar(mainWidget);
 
@@ -467,7 +490,6 @@ void Editor::fileToPDF() {
   doc.setPlainText(textEdit->toPlainText());
   doc.setPageSize(printer.pageRect().size());
   doc.print(&printer);
-
 }
 
 void Editor::textBold() {
@@ -481,13 +503,13 @@ void Editor::textBold() {
   if (!selection.isEmpty()) {
 
     QVector<bool> arrayOfStyle = {actionBold->isChecked(),
-                                         actionItalic->isChecked(),
-                                         actionUnderlined->isChecked()};
+                                  actionItalic->isChecked(),
+                                  actionUnderlined->isChecked()};
 
 
-    emit symbolUpdated(textCursor.selectionStart(), selection.size(), arrayOfStyle);
+    emit symbolUpdated(textCursor.selectionStart(), selection.size(),
+                       arrayOfStyle);
   }
-
 }
 
 void Editor::textItalic() {
@@ -501,10 +523,11 @@ void Editor::textItalic() {
   if (!selection.isEmpty()) {
 
     QVector<bool> arrayOfStyle = {actionBold->isChecked(),
-                                         actionItalic->isChecked(),
-                                         actionUnderlined->isChecked()};
+                                  actionItalic->isChecked(),
+                                  actionUnderlined->isChecked()};
 
-    emit symbolUpdated(textCursor.selectionStart(), selection.size(), arrayOfStyle);
+    emit symbolUpdated(textCursor.selectionStart(), selection.size(),
+                       arrayOfStyle);
   }
 }
 
@@ -519,9 +542,10 @@ void Editor::textUnderlined() {
   if (!selection.isEmpty()) {
 
     QVector<bool> arrayOfStyle = {actionBold->isChecked(),
-                                         actionItalic->isChecked(),
-                                         actionUnderlined->isChecked()};
+                                  actionItalic->isChecked(),
+                                  actionUnderlined->isChecked()};
 
-    emit symbolUpdated(textCursor.selectionStart(), selection.size(), arrayOfStyle);
+    emit symbolUpdated(textCursor.selectionStart(), selection.size(),
+                       arrayOfStyle);
   }
 }

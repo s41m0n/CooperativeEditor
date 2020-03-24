@@ -88,6 +88,7 @@ void Controller::onReadyRead() {
     case Type::S_UPDATE_ATTRIBUTE: {
       auto symbols = std::dynamic_pointer_cast<CrdtMessage>(base)->getSymbols();
       emit remoteUserUpdate(model->remoteUpdate(symbols), symbols);
+      break;
     }
     default:
       throw std::runtime_error("Unknown message received");
