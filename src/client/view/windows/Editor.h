@@ -20,6 +20,7 @@
 #include <QTextStream>
 #include <QGroupBox>
 #include <src/components/Symbol.h>
+#include <src/common/File.h>
 
 /**
  * Editor application window
@@ -44,6 +45,7 @@ private:
     int usersOnlineNumber;
     QLabel *linkLabel;
     QLineEdit *linkDisplayer;
+    QString fileName;
 
     void createTopBar(QGridLayout *layout);
 
@@ -73,7 +75,8 @@ public:
 public slots:
 
     ///Slot to open the selected file in the editor the first time
-    void onFileTextLoad(const FileText &text);
+    void onFileTextLoad(const FileText &text, const QString &fileName,
+                        const QString &userName);
 
     ///Slot to notify the editor that a remote user has inserted a character
     void onRemoteInsert(int index, const QVector<Symbol> &symbol);
@@ -83,6 +86,13 @@ public slots:
 
     ///Slot to notify the editor that a remote user has updated a character
     void onRemoteUpdate(int index, const QVector<Symbol> &symbol);
+
+    void onRemoteUserConnected(qint32 clientId, const QImage &image,
+                               const QString &name,
+                               const QString &surname, const QString &email,
+                               const QString &username);
+
+    void onRemoteUserDisconnected(qint32 clientId);
 
 signals:
 

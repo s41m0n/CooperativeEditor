@@ -28,10 +28,11 @@ std::string Model::textifyToStdString() {
 }
 
 QVector<Symbol>
-Model::localInsert(int index, QString value, const QVector<bool>& attributes) {
+Model::localInsert(int index, QString value, const QVector<bool> &attributes) {
 
-  if(index > file.getFileText().size() || index < 0) {
-    throw std::runtime_error("No valid position: TextSize:" + std::to_string(file.getFileText().size()));
+  if (index > file.getFileText().size() || index < 0) {
+    throw std::runtime_error("No valid position: TextSize:" +
+                             std::to_string(file.getFileText().size()));
   }
 
   QVector<Symbol> toReturn;
@@ -47,8 +48,9 @@ Model::localInsert(int index, QString value, const QVector<bool>& attributes) {
 
 QVector<Symbol> Model::localErase(int index, int size) {
 
-  if(index >= file.getFileText().size() || index < 0) {
-    throw std::runtime_error("No symbol to erase: TextSize:" + std::to_string(file.getFileText().size()));
+  if (index >= file.getFileText().size() || index < 0) {
+    throw std::runtime_error("No symbol to erase: TextSize:" +
+                             std::to_string(file.getFileText().size()));
   }
 
   QVector<Symbol> toReturn;
@@ -62,9 +64,10 @@ QVector<Symbol> Model::localErase(int index, int size) {
 }
 
 QVector<Symbol>
-Model::localUpdate(int index, int size, const QVector<bool>& attributes) {
-  if(index >= file.getFileText().size() || index < 0) {
-    throw std::runtime_error("No symbol to update: TextSize:" + std::to_string(file.getFileText().size()));
+Model::localUpdate(int index, int size, const QVector<bool> &attributes) {
+  if (index >= file.getFileText().size() || index < 0) {
+    throw std::runtime_error("No symbol to update: TextSize:" +
+                             std::to_string(file.getFileText().size()));
   }
 
   QVector<Symbol> toReturn;
@@ -130,4 +133,8 @@ void Model::setCurrentFile(File &fileToSet) {
 
 void Model::setCurrentUser(User &userToSet) {
   user = std::move(userToSet);
+}
+
+File Model::getFile() {
+  return this->file;
 }

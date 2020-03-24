@@ -35,12 +35,13 @@ public:
 
     ///Crdt local method to insert a symbol
     QVector<Symbol>
-    localInsert(int index, QString value, const QVector<bool>& attributes);
+    localInsert(int index, QString value, const QVector<bool> &attributes);
 
     ///Crdt local method to erase a symbol
     QVector<Symbol> localErase(int index, int size);
 
-    QVector<Symbol> localUpdate(int index, int size, const QVector<bool>& attributes);
+    QVector<Symbol>
+    localUpdate(int index, int size, const QVector<bool> &attributes);
 
     ///Method to update the list of symbol after a remote insertion
     int remoteInsert(QVector<Symbol> symbol);
@@ -59,6 +60,8 @@ public:
 
     ///Method to set the current user data
     void setCurrentUser(User &userToSet);
+
+    File getFile();
 
     FileText getFileText();
 

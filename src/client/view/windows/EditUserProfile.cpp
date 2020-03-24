@@ -139,7 +139,8 @@ EditUserProfile::EditUserProfile(QWidget *parent) : QMainWindow(parent) {
                        if (!path.isEmpty()) {
                          userImage = QImage(path);
 
-                         if (userImage.sizeInBytes() > 1048576) { //maxSize = 1MB
+                         if (userImage.sizeInBytes() >
+                             1048576) { //maxSize = 1MB
                            auto errorSizeLimit = new QMessageBox(this);
                            errorSizeLimit->setText(
                                    "The image you have selected is too big. Try again.");
@@ -147,7 +148,7 @@ EditUserProfile::EditUserProfile(QWidget *parent) : QMainWindow(parent) {
                            errorSizeLimit->setWindowTitle("Error");
                            errorSizeLimit->show();
                            userImage = QImage();
-                         }else{
+                         } else {
                            displayImage->setPixmap(
                                    QPixmap::fromImage(userImage).scaled(75, 75,
                                                                         Qt::KeepAspectRatio));

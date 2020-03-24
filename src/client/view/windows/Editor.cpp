@@ -5,10 +5,6 @@
 
 Editor::Editor(QWidget *parent) : QMainWindow(parent), usersOnlineNumber(1) {
 
-  //TODO: fileVisualizer mi passa il nome del file
-  //this->setWindowTitle("File Selection");
-  //TODO: implementa con segnale + slot l'aggiornamento degli user online (fai setText con nuovo numero utenti connessi) (serve backend)
-
   this->setMinimumWidth(500);
 
   mainWidget = new QWidget(this);
@@ -85,13 +81,7 @@ Editor::Editor(QWidget *parent) : QMainWindow(parent), usersOnlineNumber(1) {
   usersOnline->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
   usersOnline->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
   usersOnline->setLayout(new QVBoxLayout);
-
-  //TODO: devi farti inviare i client connessi al file
-  usersOnline->addItem("User 1");
-  usersOnline->addItem("User 2");
-
-  usersOnline->setFixedHeight(
-          60); //TODO: setta a seconda del numero di client 30 * #client
+  usersOnline->setFixedHeight(30);
   usersOnline->setFixedWidth(250);
 
   layout->addWidget(usersOnline, 3, 2, 1, 1);
@@ -111,7 +101,11 @@ Editor::Editor(QWidget *parent) : QMainWindow(parent), usersOnlineNumber(1) {
 
 }
 
-void Editor::onFileTextLoad(const FileText &text) {
+void Editor::onFileTextLoad(const FileText &text, const QString &fName,
+                            const QString &username) {
+  fileName = fName;
+  this->setWindowTitle(fileName);
+  usersOnline->addItem(username);
   for (Symbol s : text) {
     QTextCharFormat fmt;
     fmt.setFontWeight(s.isAttributeSet(BOLD) ? QFont::Bold : QFont::Normal);
@@ -124,9 +118,11 @@ void Editor::onFileTextLoad(const FileText &text) {
 
 void Editor::onRemoteInsert(int index, const QVector<Symbol> &symbol) {
   auto cursor = textEdit->textCursor(); //I retrieve the cursor
-  cursor.movePosition(QTextCursor::Start); //I place it at the beginning of the document
-  cursor.movePosition(QTextCursor::Right, QTextCursor::MoveAnchor, index); //cursor is now where I want to insert the text
-  for(Symbol s : symbol){
+  cursor.movePosition(
+          QTextCursor::Start); //I place it at the beginning of the document
+  cursor.movePosition(QTextCursor::Right, QTextCursor::MoveAnchor,
+                      index); //cursor is now where I want to insert the text
+  for (Symbol s : symbol) {
     QTextCharFormat fmt;
     fmt.setFontWeight(s.isAttributeSet(BOLD) ? QFont::Bold : QFont::Normal);
     fmt.setFontItalic(s.isAttributeSet(ITALIC));
@@ -137,18 +133,22 @@ void Editor::onRemoteInsert(int index, const QVector<Symbol> &symbol) {
 
 void Editor::onRemoteDelete(int index, int size) {
   auto cursor = textEdit->textCursor(); //I retrieve the cursor
-  cursor.movePosition(QTextCursor::Start); //I place it at the beginning of the document
-  cursor.movePosition(QTextCursor::Right, QTextCursor::MoveAnchor, index); //cursor is now where I want to remove the text
-  for(int i = 0; i < size; i++){
+  cursor.movePosition(
+          QTextCursor::Start); //I place it at the beginning of the document
+  cursor.movePosition(QTextCursor::Right, QTextCursor::MoveAnchor,
+                      index); //cursor is now where I want to remove the text
+  for (int i = 0; i < size; i++) {
     cursor.deleteChar();
   }
 }
 
 void Editor::onRemoteUpdate(int index, const QVector<Symbol> &symbol) {
   auto cursor = textEdit->textCursor(); //I retrieve the cursor
-  cursor.movePosition(QTextCursor::Start); //I place it at the beginning of the document
-  cursor.movePosition(QTextCursor::Right, QTextCursor::MoveAnchor, index); //cursor is now where I want to update the text
-  for(Symbol s : symbol){
+  cursor.movePosition(
+          QTextCursor::Start); //I place it at the beginning of the document
+  cursor.movePosition(QTextCursor::Right, QTextCursor::MoveAnchor,
+                      index); //cursor is now where I want to update the text
+  for (Symbol s : symbol) {
     cursor.movePosition(QTextCursor::Right, QTextCursor::KeepAnchor, 1);
     QTextCharFormat fmt;
     fmt.setFontWeight(s.isAttributeSet(BOLD) ? QFont::Bold : QFont::Normal);
@@ -478,18 +478,52 @@ void Editor::createToolBar(QGridLayout *layout) {
 
 void Editor::fileToPDF() {
 
-  QString fileName = "Prova"; //TODO: metti nome file vero
-  fileName.append(".pdf");
+  QString name = this->fileName.append(".pdf");
 
   QPrinter printer(QPrinter::PrinterResolution);
   printer.setOutputFormat(QPrinter::PdfFormat);
   printer.setPaperSize(QPrinter::A4);
-  printer.setOutputFileName(fileName);
+  printer.setOutputFileName(name);
 
   QTextDocument doc;
   doc.setPlainText(textEdit->toPlainText());
   doc.setPageSize(printer.pageRect().size());
   doc.print(&printer);
+}
+
+void Editor::onRemoteUserConnected(qint32 clientId, const QImage &image,
+                                   const QString &name,
+                                   const QString &surname, const QString &email,
+                                   const QString &username) {
+  usersOnlineNumber += 1;
+
+  if (usersOnlineNumber <= 5) {
+    usersOnline->setFixedHeight(usersOnlineNumber * 30);
+  } else {
+    usersOnline->setFixedHeight(150);
+  }
+
+  usersOnlineDisplayer->setText(
+          "Users online: " + QString::number(usersOnlineNumber));
+  usersOnline->addItem(username);
+}
+
+void Editor::onRemoteUserDisconnected(qint32 clientId) {
+  usersOnlineNumber -= 1;
+  if (usersOnlineNumber <= 5) {
+    usersOnline->setFixedHeight(usersOnlineNumber * 30);
+  } else {
+    usersOnline->setFixedHeight(150);
+  }
+
+  usersOnlineDisplayer->setText(
+          "Users online: " + QString::number(usersOnlineNumber));
+
+  /* //TODO: come distinguo solo attraverso il client il nome da rimuovere?
+  for(int i = 0; i < usersOnline->count(); i++){
+    if(usersOnline->item(i)->text() == "")
+  }
+  */
 }
 
 void Editor::textBold() {
@@ -505,7 +539,6 @@ void Editor::textBold() {
     QVector<bool> arrayOfStyle = {actionBold->isChecked(),
                                   actionItalic->isChecked(),
                                   actionUnderlined->isChecked()};
-
 
     emit symbolUpdated(textCursor.selectionStart(), selection.size(),
                        arrayOfStyle);

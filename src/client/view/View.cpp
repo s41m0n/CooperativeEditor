@@ -31,16 +31,20 @@ void View::init() {
   QObject::connect(signUp, &SignUp::backToLogin, login, &QMainWindow::show);
 
   ///Bottone semplice (azione da menu dropdown) da Editor e EditUserProfile per modificare il mio profilo
-  QObject::connect(editor, &Editor::openEditProfileFromEditor, editProfile, &QMainWindow::show);
+  QObject::connect(editor, &Editor::openEditProfileFromEditor, editProfile,
+                   &QMainWindow::show);
 
   ///Segnale intermedio per farsi passare dati utente
-  QObject::connect(editProfile, &EditUserProfile::requestUserProfile, controller, &Controller::onShowEditProfile);
+  QObject::connect(editProfile, &EditUserProfile::requestUserProfile,
+                   controller, &Controller::onShowEditProfile);
 
   ///Ottengo i dati utente
-  QObject::connect(controller, &Controller::userProfileInfo, editProfile, &EditUserProfile::onUserProfileInfo);
+  QObject::connect(controller, &Controller::userProfileInfo, editProfile,
+                   &EditUserProfile::onUserProfileInfo);
 
   ///Bottone semplice (azione da menu dropdown) da Editor a FileVisualizer per aprire un nuovo file
-  QObject::connect(editor, &Editor::openVisualizerFromEditor, fileVisualizer, &QMainWindow::show);
+  QObject::connect(editor, &Editor::openVisualizerFromEditor, fileVisualizer,
+                   &QMainWindow::show);
 
   ///Segnale dal fileVisualizer per chiedere al server di aprire un file
   QObject::connect(fileVisualizer, &FileVisualizer::fileRequest, controller,
@@ -58,9 +62,9 @@ void View::init() {
   QObject::connect(controller, &Controller::loginResponse,
                    [this](bool isLogged) {
                        if (isLogged) {
-                           fileVisualizer->show();
-                           login->hide();
-                           signUp->hide();
+                         fileVisualizer->show();
+                         login->hide();
+                         signUp->hide();
                        } else {
                          msg->setText(
                                  "Username and Password are not correct.");
@@ -128,6 +132,14 @@ void View::init() {
   ///Segnale dall'editor al controller in seguito all'update di stile di un carattere
   QObject::connect(editor, &Editor::symbolUpdated, controller,
                    &Controller::onCharUpdated);
+
+  ///Segnale dal controller all'editor per informarlo della presenza di un nuovo client collegato al file
+  QObject::connect(controller, &Controller::remoteUserConnected, editor,
+                   &Editor::onRemoteUserConnected);
+
+  ///Segnale dal controller all'editor per informarlo che un client si è scollegato
+  QObject::connect(controller, &Controller::remoteUserDisconnected, editor,
+                   &Editor::onRemoteUserDisconnected);
 
   login->show();
 }

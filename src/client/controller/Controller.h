@@ -66,7 +66,7 @@ signals:
     void fileResult(bool result);
 
     ///Method to notify the view that a file has to be opened for the first time
-    void loadFileText(FileText text);
+    void loadFileText(FileText text, QString fileName, QString username);
 
     ///Method to notify the view a character has been inserted by a remote user
     void remoteUserInsert(int index, QVector<Symbol> symbols);
