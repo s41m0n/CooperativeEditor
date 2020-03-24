@@ -161,6 +161,7 @@ void Editor::onRemoteUpdate(int index, const QVector<Symbol> &symbol) {
     fmt.setFontItalic(s.isAttributeSet(ITALIC));
     fmt.setFontUnderline(s.isAttributeSet(UNDERLINED));
     cursor.mergeCharFormat(fmt);
+    cursor.clearSelection();
   }
 }
 
