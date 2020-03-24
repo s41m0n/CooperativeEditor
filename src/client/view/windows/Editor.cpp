@@ -259,11 +259,13 @@ void Editor::paste() {
   auto clipboard = QApplication::clipboard();
   QString selectedText = clipboard->text();
 
-  QVector<bool> arrayOfStyle = {actionBold->isChecked(),
-                                actionItalic->isChecked(),
-                                actionUnderlined->isChecked()};
+  if (!selectedText.isEmpty()) {
+    QVector<bool> arrayOfStyle = {actionBold->isChecked(),
+                                  actionItalic->isChecked(),
+                                  actionUnderlined->isChecked()};
 
-  emit symbolInserted(getCursorPos(), selectedText, arrayOfStyle);
+    emit symbolInserted(getCursorPos(), selectedText, arrayOfStyle);
+  }
 }
 
 bool Editor::deleteSelection() {
