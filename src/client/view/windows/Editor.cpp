@@ -165,6 +165,32 @@ void Editor::onRemoteUpdate(int index, const QVector<Symbol> &symbol) {
   }
 }
 
+void Editor::onRemoteUserConnected(qint32 clientId, const QImage &image,
+                                   const QString &name,
+                                   const QString &surname, const QString &email,
+                                   const QString &username) {
+
+  User u(username, name, surname, email, "", image);
+  usersOnlineList.insert(clientId, u);
+
+  if (usersOnlineList.size() <= 5) {
+    usersOnline->setFixedHeight(usersOnlineList.size() * 30);
+  } else {
+    usersOnline->setFixedHeight(150);
+  }
+
+  usersOnlineDisplayer->setText(
+          "Users online: " + QString::number(usersOnlineList.size()));
+  usersOnline->addItem(username);
+}
+
+void Editor::onRemoteUserDisconnected(qint32 clientId) {
+  usersOnlineList.remove(clientId);
+  usersOnlineDisplayer->setText(
+          "Users online: " + QString::number(usersOnlineList.size()));
+  refreshUserView(); //it is not so easy to remove an element from the list, it's better to refresh
+}
+
 bool
 Editor::eventFilter(QObject *object, QEvent *event) { //key pression manager
 
@@ -333,6 +359,7 @@ void Editor::createTopBar(QGridLayout *layout) {
                    [this]() {
                        emit openVisualizerFromEditor();
                        this->hide();
+                       //TODO: implementa bene con segnali di disconnessione ecc
                    });
   file->addAction(actionClose);
 
@@ -485,32 +512,6 @@ void Editor::fileToPDF() {
   doc.setPlainText(textEdit->toPlainText());
   doc.setPageSize(printer.pageRect().size());
   doc.print(&printer);
-}
-
-void Editor::onRemoteUserConnected(qint32 clientId, const QImage &image,
-                                   const QString &name,
-                                   const QString &surname, const QString &email,
-                                   const QString &username) {
-
-  User u(username, name, surname, email, "", image);
-  usersOnlineList.insert(clientId, u);
-
-  if (usersOnlineList.size() <= 5) {
-    usersOnline->setFixedHeight(usersOnlineList.size() * 30);
-  } else {
-    usersOnline->setFixedHeight(150);
-  }
-
-  usersOnlineDisplayer->setText(
-          "Users online: " + QString::number(usersOnlineList.size()));
-  usersOnline->addItem(username);
-}
-
-void Editor::onRemoteUserDisconnected(qint32 clientId) {
-  usersOnlineList.remove(clientId);
-  usersOnlineDisplayer->setText(
-          "Users online: " + QString::number(usersOnlineList.size()));
-  refreshUserView(); //it is not so easy to remove an element from the list, it's better to refresh
 }
 
 void Editor::refreshUserView() {
