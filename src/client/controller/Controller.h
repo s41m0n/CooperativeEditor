@@ -48,7 +48,7 @@ public slots:
     ///Slot to wake up when user erase a char locally
     void onCharErased(int index, int size);
 
-    void onCharUpdated(int index, int size, const QVector<bool>& attributes);
+    void onCharUpdated(int index, int size, Attribute attribute, bool set);
 
     void onFileRequest(const QString &filename, bool exists);
 

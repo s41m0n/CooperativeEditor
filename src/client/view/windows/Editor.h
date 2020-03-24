@@ -111,7 +111,7 @@ signals:
 
     ///Signal emitted when the user updates a symbol in the editor
     void
-    symbolUpdated(int position, int size, QVector<bool> attributes);
+    symbolUpdated(int position, int size, Attribute attribute, bool set);
 
 };
 

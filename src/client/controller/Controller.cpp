@@ -127,10 +127,10 @@ void Controller::onCharErased(int index, int size) {
   }
 }
 
-void Controller::onCharUpdated(int index, int size,
-                               const QVector<bool> &attributes) {
+void
+Controller::onCharUpdated(int index, int size, Attribute attribute, bool set) {
   try {
-    CrdtMessage msg(model->localUpdate(index, size, attributes),
+    CrdtMessage msg(model->localUpdate(index, size, attribute, set),
                     model->getEditorId());
     sendMsg(Type::S_UPDATE_ATTRIBUTE, msg);
   } catch (std::exception &e) {

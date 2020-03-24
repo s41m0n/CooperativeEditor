@@ -535,13 +535,8 @@ void Editor::textBold() {
   auto selection = textCursor.selectedText();
 
   if (!selection.isEmpty()) {
-
-    QVector<bool> arrayOfStyle = {actionBold->isChecked(),
-                                  actionItalic->isChecked(),
-                                  actionUnderlined->isChecked()};
-
     emit symbolUpdated(textCursor.selectionStart(), selection.size(),
-                       arrayOfStyle);
+                       Attribute::BOLD, actionBold->isChecked());
   }
 }
 
@@ -554,13 +549,8 @@ void Editor::textItalic() {
   auto selection = textCursor.selectedText();
 
   if (!selection.isEmpty()) {
-
-    QVector<bool> arrayOfStyle = {actionBold->isChecked(),
-                                  actionItalic->isChecked(),
-                                  actionUnderlined->isChecked()};
-
     emit symbolUpdated(textCursor.selectionStart(), selection.size(),
-                       arrayOfStyle);
+                       Attribute::ITALIC, actionItalic->isChecked());
   }
 }
 
@@ -573,12 +563,7 @@ void Editor::textUnderlined() {
   auto selection = textCursor.selectedText();
 
   if (!selection.isEmpty()) {
-
-    QVector<bool> arrayOfStyle = {actionBold->isChecked(),
-                                  actionItalic->isChecked(),
-                                  actionUnderlined->isChecked()};
-
     emit symbolUpdated(textCursor.selectionStart(), selection.size(),
-                       arrayOfStyle);
+                       Attribute::UNDERLINED, actionUnderlined->isChecked());
   }
 }

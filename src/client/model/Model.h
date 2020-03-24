@@ -41,7 +41,7 @@ public:
     QVector<Symbol> localErase(int index, int size);
 
     QVector<Symbol>
-    localUpdate(int index, int size, const QVector<bool> &attributes);
+    localUpdate(int index, int size, Attribute attribute, bool set);
 
     ///Method to update the list of symbol after a remote insertion
     int remoteInsert(QVector<Symbol> symbol);

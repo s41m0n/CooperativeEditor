@@ -64,7 +64,7 @@ QVector<Symbol> Model::localErase(int index, int size) {
 }
 
 QVector<Symbol>
-Model::localUpdate(int index, int size, const QVector<bool> &attributes) {
+Model::localUpdate(int index, int size, Attribute attribute, bool set) {
   if (index >= file.getFileText().size() || index < 0) {
     throw std::runtime_error("No symbol to update: TextSize:" +
                              std::to_string(file.getFileText().size()));
@@ -73,7 +73,7 @@ Model::localUpdate(int index, int size, const QVector<bool> &attributes) {
   QVector<Symbol> toReturn;
   for (int i = 0; i < size; ++i) {
     Symbol &s = file.getFileText()[index + i];
-    s.setAttributes(attributes);
+    s.setAttribute(attribute, set);
     toReturn.push_back(s);
   }
 
