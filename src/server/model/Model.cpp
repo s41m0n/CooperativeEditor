@@ -43,7 +43,7 @@ void Model::loadFileSymbols(const std::shared_ptr<ServerFile> &serverFile) {
   ds >> serverFile->getFileText();
 }
 
-void Model::userInsert(TcpSocket *socket, Symbol symbol) {
+void Model::userInsert(TcpSocket *socket, const QVector<Symbol>& symbols) {
 
   auto serverFile =
       std::find_if(usersFile.begin(), usersFile.end(), [socket](auto &pair) {
@@ -52,12 +52,14 @@ void Model::userInsert(TcpSocket *socket, Symbol symbol) {
 
   std::lock_guard<std::mutex> guard(serverFile->mutex);
 
-  CrdtAlgorithm::remoteInsert(symbol, serverFile->getFileText());
+  for (Symbol s : symbols) {
+    CrdtAlgorithm::remoteInsert(s, serverFile->getFileText());
+  }
 
   storeFileSymbols(serverFile);
 }
 
-void Model::userErase(TcpSocket *socket, Symbol symbol) {
+void Model::userErase(TcpSocket *socket, const QVector<Symbol>& symbols) {
 
   auto serverFile =
       std::find_if(usersFile.begin(), usersFile.end(), [socket](auto &pair) {
@@ -66,20 +68,25 @@ void Model::userErase(TcpSocket *socket, Symbol symbol) {
 
   std::lock_guard<std::mutex> guard(serverFile->mutex);
 
-  CrdtAlgorithm::remoteErase(symbol, serverFile->getFileText());
+  for (Symbol s : symbols) {
+    CrdtAlgorithm::remoteErase(s, serverFile->getFileText());
+  }
 
   storeFileSymbols(serverFile);
 }
 
-void Model::userReplace(TcpSocket *socket, Symbol symbol) {
+void Model::userReplace(TcpSocket *socket, const QVector<Symbol>& symbols) {
   auto serverFile =
-          std::find_if(usersFile.begin(), usersFile.end(), [socket](auto &pair) {
-              return socket == pair.second;
-          })->first;
+          std::find_if(usersFile.begin(), usersFile.end(),
+                       [socket](auto &pair) {
+                           return socket == pair.second;
+                       })->first;
 
   std::lock_guard<std::mutex> guard(serverFile->mutex);
 
-  CrdtAlgorithm::replaceSymbol(symbol, serverFile->getFileText());
+  for (Symbol s : symbols) {
+    CrdtAlgorithm::replaceSymbol(s, serverFile->getFileText());
+  }
 
   storeFileSymbols(serverFile);
 }

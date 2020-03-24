@@ -3,11 +3,9 @@
 #include <QtWidgets/QInputDialog>
 #include "Editor.h"
 
-Editor::Editor(QWidget *parent) : QMainWindow(parent), usersOnlineNumber(1) {
+Editor::Editor(QWidget *parent) : QMainWindow(parent), usersOnlineList() {
 
-  //TODO: fileVisualizer mi passa il nome del file
-  //this->setWindowTitle("File Selection");
-  //TODO: implementa con segnale + slot l'aggiornamento degli user online (fai setText con nuovo numero utenti connessi) (serve backend)
+  //TODO:fai finestra readonly per vedere info utente con vettore
 
   this->setMinimumWidth(500);
 
@@ -49,15 +47,18 @@ Editor::Editor(QWidget *parent) : QMainWindow(parent), usersOnlineNumber(1) {
 
   QObject::connect(textEdit, &QTextEdit::selectionChanged, this,
                    [this]() { //adapt the buttons to the style of the current selected text
+                       auto cursor = textEdit->textCursor();
+                       cursor.setPosition(
+                               textEdit->textCursor().selectionEnd()); //I consider the char at the end of selection
                        actionBold->setChecked(
-                               textEdit->textCursor().charFormat().fontWeight() ==
+                               cursor.charFormat().fontWeight() ==
                                QFont::Bold);
 
                        actionItalic->setChecked(
-                               textEdit->textCursor().charFormat().fontItalic());
+                               cursor.charFormat().fontItalic());
 
                        actionUnderlined->setChecked(
-                               textEdit->textCursor().charFormat().fontUnderline());
+                               cursor.charFormat().fontUnderline());
                    });
 
   QObject::connect(textEdit, &QTextEdit::cursorPositionChanged, this,
@@ -74,21 +75,15 @@ Editor::Editor(QWidget *parent) : QMainWindow(parent), usersOnlineNumber(1) {
                    });
 
   usersOnlineDisplayer = new QLabel(
-          "Users online: " + QString::number(usersOnlineNumber), mainWidget);
-  usersOnlineDisplayer->setFixedHeight(30);
+          "Users online: ");
+  usersOnlineDisplayer->setFixedHeight(30); //1 user is present
   layout->addWidget(usersOnlineDisplayer, 2, 2, 1, 1);
 
   usersOnline = new QListWidget(mainWidget);
   usersOnline->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
   usersOnline->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
   usersOnline->setLayout(new QVBoxLayout);
-
-  //TODO: devi farti inviare i client connessi al file
-  usersOnline->addItem("User 1");
-  usersOnline->addItem("User 2");
-
-  usersOnline->setFixedHeight(
-          60); //TODO: setta a seconda del numero di client 30 * #client
+  usersOnline->setFixedHeight(30);
   usersOnline->setFixedWidth(250);
 
   layout->addWidget(usersOnline, 3, 2, 1, 1);
@@ -108,8 +103,92 @@ Editor::Editor(QWidget *parent) : QMainWindow(parent), usersOnlineNumber(1) {
 
 }
 
-void Editor::onRemoteUpdate(const QString &text) {
-  textEdit->setText(text);
+void Editor::onFileTextLoad(const FileText &text, const QString &fName,
+                            User user, unsigned int editorId) {
+  fileName = fName;
+  this->setWindowTitle(fileName);
+  usersOnline->addItem(user.getUsername());
+  usersOnlineList.insert(editorId, user);
+  usersOnlineDisplayer->setText(
+          "Users online: " + QString::number(usersOnlineList.size()));
+
+  for (Symbol s : text) {
+    QTextCharFormat fmt;
+    fmt.setFontWeight(s.isAttributeSet(BOLD) ? QFont::Bold : QFont::Normal);
+    fmt.setFontItalic(s.isAttributeSet(ITALIC));
+    fmt.setFontUnderline(s.isAttributeSet(UNDERLINED));
+    textEdit->mergeCurrentCharFormat(fmt);
+    textEdit->insertPlainText(s.getChar());
+  }
+}
+
+void Editor::onRemoteInsert(int index, const QVector<Symbol> &symbol) {
+  auto cursor = textEdit->textCursor(); //I retrieve the cursor
+  cursor.movePosition(
+          QTextCursor::Start); //I place it at the beginning of the document
+  cursor.movePosition(QTextCursor::Right, QTextCursor::MoveAnchor,
+                      index); //cursor is now where I want to insert the text
+  for (Symbol s : symbol) {
+    QTextCharFormat fmt;
+    fmt.setFontWeight(s.isAttributeSet(BOLD) ? QFont::Bold : QFont::Normal);
+    fmt.setFontItalic(s.isAttributeSet(ITALIC));
+    fmt.setFontUnderline(s.isAttributeSet(UNDERLINED));
+    cursor.insertText(s.getChar(), fmt);
+  }
+}
+
+void Editor::onRemoteDelete(int index, int size) {
+  auto cursor = textEdit->textCursor(); //I retrieve the cursor
+  cursor.movePosition(
+          QTextCursor::Start); //I place it at the beginning of the document
+  cursor.movePosition(QTextCursor::Right, QTextCursor::MoveAnchor,
+                      index); //cursor is now where I want to remove the text
+  for (int i = 0; i < size; i++) {
+    cursor.deleteChar();
+  }
+}
+
+void Editor::onRemoteUpdate(int index, const QVector<Symbol> &symbol) {
+  auto cursor = textEdit->textCursor(); //I retrieve the cursor
+  cursor.movePosition(
+          QTextCursor::Start); //I place it at the beginning of the document
+  cursor.movePosition(QTextCursor::Right, QTextCursor::MoveAnchor,
+                      index); //cursor is now where I want to update the text
+  for (Symbol s : symbol) {
+    cursor.movePosition(QTextCursor::Right, QTextCursor::KeepAnchor, 1);
+    QTextCharFormat fmt;
+    fmt.setFontWeight(s.isAttributeSet(BOLD) ? QFont::Bold : QFont::Normal);
+    fmt.setFontItalic(s.isAttributeSet(ITALIC));
+    fmt.setFontUnderline(s.isAttributeSet(UNDERLINED));
+    cursor.mergeCharFormat(fmt);
+    cursor.clearSelection();
+  }
+}
+
+void Editor::onRemoteUserConnected(qint32 clientId, const QImage &image,
+                                   const QString &name,
+                                   const QString &surname, const QString &email,
+                                   const QString &username) {
+
+  User u(username, name, surname, email, "", image);
+  usersOnlineList.insert(clientId, u);
+
+  if (usersOnlineList.size() <= 5) {
+    usersOnline->setFixedHeight(usersOnlineList.size() * 30);
+  } else {
+    usersOnline->setFixedHeight(150);
+  }
+
+  usersOnlineDisplayer->setText(
+          "Users online: " + QString::number(usersOnlineList.size()));
+  usersOnline->addItem(username);
+}
+
+void Editor::onRemoteUserDisconnected(qint32 clientId) {
+  usersOnlineList.remove(clientId);
+  usersOnlineDisplayer->setText(
+          "Users online: " + QString::number(usersOnlineList.size()));
+  refreshUserView(); //it is not so easy to remove an element from the list, it's better to refresh
 }
 
 bool
@@ -120,10 +199,11 @@ Editor::eventFilter(QObject *object, QEvent *event) { //key pression manager
     auto keyEvent = dynamic_cast<QKeyEvent *>(event);
     Qt::KeyboardModifiers modifiers = keyEvent->modifiers();
 
-    if (modifiers & Qt::ControlModifier) {
+    if (modifiers & Qt::ControlModifier) { //ctrl is clicked
 
       switch (keyEvent->key()) {
         case Qt::Key_V: { //paste
+          deleteSelection();
           paste();
           break;
         }
@@ -143,16 +223,13 @@ Editor::eventFilter(QObject *object, QEvent *event) { //key pression manager
           if (selection ==
               "") { //If the cursor is after one or more space I delete 1 space
             if (getCursorPos() != 0) {
-              emit symbolDeleted(getCursorPos() - 1);
+              emit symbolDeleted(getCursorPos() - 1, 1);
               cursor.deletePreviousChar();
               return true;
             }
           } else {
-            for (int i = 0; i < selection.size(); i++) {
-              emit symbolDeleted(cursor.selectionStart());
-            }
+            emit symbolDeleted(cursor.selectionStart(), selection.size());
           }
-
           break;
         }
           //add desired shortcut here
@@ -161,7 +238,7 @@ Editor::eventFilter(QObject *object, QEvent *event) { //key pression manager
           return false;
         }
       }
-    } else {
+    } else { //ctrl is not clicked
 
       auto characterInserted = keyEvent->text();
 
@@ -170,18 +247,17 @@ Editor::eventFilter(QObject *object, QEvent *event) { //key pression manager
           break;
         }
         case Qt::Key_Delete: {
-          if (!deleteSelection()) { //If I already deleted the selection I don't delete again
+          if (!deleteSelection()) { //If I have already deleted the selection I don't delete it again
             if (getCursorPos() != textEdit->toPlainText().size()) {
-              emit symbolDeleted(getCursorPos());
+              emit symbolDeleted(getCursorPos(), 1);
             }
           }
           break;
         }
         case Qt::Key_Backspace: {
-
-          if (!deleteSelection()) { //If I already deleted the selection I don't delete again
+          if (!deleteSelection()) { //If I have already deleted the selection I don't delete it again
             if (getCursorPos() != 0) {
-              emit symbolDeleted(getCursorPos() - 1);
+              emit symbolDeleted(getCursorPos() - 1, 1);
             }
           }
           break;
@@ -191,12 +267,12 @@ Editor::eventFilter(QObject *object, QEvent *event) { //key pression manager
 
             simulateBackspacePression();
 
-            bool arrayOfStyle[ATTRIBUTE_SIZE] = {actionBold->isChecked(),
-                                                 actionItalic->isChecked(),
-                                                 actionUnderlined->isChecked()};
+            QVector<bool> arrayOfStyle = {actionBold->isChecked(),
+                                          actionItalic->isChecked(),
+                                          actionUnderlined->isChecked()};
 
-            emit symbolInserted(getCursorPos(), characterInserted.at(
-                    0), arrayOfStyle);
+            emit symbolInserted(getCursorPos(), {characterInserted.at(
+                    0)}, arrayOfStyle);
           }
           break;
         }
@@ -216,13 +292,12 @@ void Editor::paste() {
   auto clipboard = QApplication::clipboard();
   QString selectedText = clipboard->text();
 
-  bool arrayOfStyle[ATTRIBUTE_SIZE] = {actionBold->isChecked(),
-                                       actionItalic->isChecked(),
-                                       actionUnderlined->isChecked()};
+  if (!selectedText.isEmpty()) {
+    QVector<bool> arrayOfStyle = {actionBold->isChecked(),
+                                  actionItalic->isChecked(),
+                                  actionUnderlined->isChecked()};
 
-  for (int i = 0; i < selectedText.size(); i++) {
-    emit symbolInserted(getCursorPos() + i, selectedText.at(i), arrayOfStyle); //TODO: come gestiamo l'incolla?
-                                            // Facciamo che incollo i simboli in plain text oppure con lo stile attuale?
+    emit symbolInserted(getCursorPos(), selectedText, arrayOfStyle);
   }
 }
 
@@ -232,9 +307,7 @@ bool Editor::deleteSelection() {
   auto selection = textCursor.selectedText();
 
   if (!selection.isEmpty()) {
-    for (int i = 0; i < selection.size(); i++) {
-      emit symbolDeleted(textCursor.selectionStart());
-    }
+    emit symbolDeleted(textCursor.selectionStart(), selection.size());
     selection.clear();
     return true;
   }
@@ -271,14 +344,10 @@ void Editor::createTopBar(QGridLayout *layout) {
                        fileToPDF();
                        int result = fileCorrectlySaved->exec();
 
-                       switch (result) {
-                         case QMessageBox::Close:
-                           editorInfo->close();
-                           break;
-                         default:
-                           //error, should never be reached
-                           break;
+                       if (result == QMessageBox::Close) {
+                         editorInfo->close();
                        }
+
                    });
   file->addAction(actionSave);
 
@@ -290,6 +359,7 @@ void Editor::createTopBar(QGridLayout *layout) {
                    [this]() {
                        emit openVisualizerFromEditor();
                        this->hide();
+                       //TODO: implementa bene con segnali di disconnessione ecc
                    });
   file->addAction(actionClose);
 
@@ -363,13 +433,8 @@ void Editor::createTopBar(QGridLayout *layout) {
                    [this]() {
                        int resultExit = editorInfo->exec();
 
-                       switch (resultExit) {
-                         case QMessageBox::Close:
-                           editorInfo->close();
-                           break;
-                         default:
-                           //error, should never be reached
-                           break;
+                       if (resultExit == QMessageBox::Close) {
+                         editorInfo->close();
                        }
                    });
   help->addAction(actionAboutEditor);
@@ -381,14 +446,10 @@ void Editor::createTopBar(QGridLayout *layout) {
                    [this]() {
                        int result = infoAboutUs->exec();
 
-                       switch (result) {
-                         case QMessageBox::Close:
-                           infoAboutUs->close();
-                           break;
-                         default:
-                           //error, should never be reached
-                           break;
+                       if (result == QMessageBox::Close) {
+                         infoAboutUs->close();
                        }
+
                    });
   help->addAction(actionAboutAuthors);
 
@@ -397,8 +458,7 @@ void Editor::createTopBar(QGridLayout *layout) {
   layout->addWidget(topBar, 0, 0, 1, 2);
 }
 
-void Editor::createToolBar(
-        QGridLayout *layout) { //TODO: aggiungi emissione segnali per dire al server che un carattere è stato modificato
+void Editor::createToolBar(QGridLayout *layout) {
 
   toolBar = new QToolBar(mainWidget);
 
@@ -441,41 +501,70 @@ void Editor::createToolBar(
 
 void Editor::fileToPDF() {
 
-  QString fileName = "Prova"; //TODO: metti nome file vero
-  fileName.append(".pdf");
+  QString name = this->fileName.append(".pdf");
 
   QPrinter printer(QPrinter::PrinterResolution);
   printer.setOutputFormat(QPrinter::PdfFormat);
   printer.setPaperSize(QPrinter::A4);
-  printer.setOutputFileName(fileName);
+  printer.setOutputFileName(name);
 
   QTextDocument doc;
   doc.setPlainText(textEdit->toPlainText());
   doc.setPageSize(printer.pageRect().size());
   doc.print(&printer);
-
 }
 
-void Editor::mergeFormat(const QTextCharFormat &format) {
-  QTextCursor cursor = textEdit->textCursor();
-  cursor.mergeCharFormat(format);
-  textEdit->mergeCurrentCharFormat(format);
+void Editor::refreshUserView() {
+  if (usersOnlineList.size() <= 5) {
+    usersOnline->setFixedHeight(usersOnlineList.size() * 30);
+  } else {
+    usersOnline->setFixedHeight(150);
+  }
+
+  usersOnline->clear();
+  for (User u : usersOnlineList.values()) {
+    usersOnline->addItem(u.getUsername());
+  }
 }
 
 void Editor::textBold() {
   QTextCharFormat fmt;
   fmt.setFontWeight(actionBold->isChecked() ? QFont::Bold : QFont::Normal);
-  mergeFormat(fmt);
+  textEdit->mergeCurrentCharFormat(fmt);
+
+  QTextCursor textCursor = textEdit->textCursor();
+  auto selection = textCursor.selectedText();
+
+  if (!selection.isEmpty()) {
+    emit symbolUpdated(textCursor.selectionStart(), selection.size(),
+                       Attribute::BOLD, actionBold->isChecked());
+  }
 }
 
 void Editor::textItalic() {
   QTextCharFormat fmt;
   fmt.setFontItalic(actionItalic->isChecked());
-  mergeFormat(fmt);
+  textEdit->mergeCurrentCharFormat(fmt);
+
+  QTextCursor textCursor = textEdit->textCursor();
+  auto selection = textCursor.selectedText();
+
+  if (!selection.isEmpty()) {
+    emit symbolUpdated(textCursor.selectionStart(), selection.size(),
+                       Attribute::ITALIC, actionItalic->isChecked());
+  }
 }
 
 void Editor::textUnderlined() {
   QTextCharFormat fmt;
   fmt.setFontUnderline(actionUnderlined->isChecked());
-  mergeFormat(fmt);
+  textEdit->mergeCurrentCharFormat(fmt);
+
+  QTextCursor textCursor = textEdit->textCursor();
+  auto selection = textCursor.selectedText();
+
+  if (!selection.isEmpty()) {
+    emit symbolUpdated(textCursor.selectionStart(), selection.size(),
+                       Attribute::UNDERLINED, actionUnderlined->isChecked());
+  }
 }

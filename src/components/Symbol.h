@@ -27,7 +27,7 @@ private:
 
     QVector<Identifier> position;
 
-    bool attributes[Attribute::ATTRIBUTE_SIZE];
+    QVector<bool> attributes;
 
 public:
 
@@ -48,7 +48,9 @@ public:
 
     QDataStream &deserialize(QDataStream &stream) override;
 
-    void setAttributes(const bool attributes[Attribute::ATTRIBUTE_SIZE]);
+    void setAttributes(QVector<bool> attributes);
+
+    void setAttribute(Attribute attribute, bool set);
 
     bool isAttributeSet(Attribute attribute);
 };

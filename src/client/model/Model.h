@@ -34,20 +34,22 @@ public:
     User getUser();
 
     ///Crdt local method to insert a symbol
-    Symbol &localInsert(int index, QChar value, bool attributes[Attribute::ATTRIBUTE_SIZE]);
+    QVector<Symbol>
+    localInsert(int index, QString value, const QVector<bool> &attributes);
 
     ///Crdt local method to erase a symbol
-    Symbol localErase(int index);
+    QVector<Symbol> localErase(int index, int size);
 
-    Symbol &localUpdate(int index, bool attributes[Attribute::ATTRIBUTE_SIZE]);
+    QVector<Symbol>
+    localUpdate(int index, int size, Attribute attribute, bool set);
 
     ///Method to update the list of symbol after a remote insertion
-    void remoteInsert(Symbol &symbol);
+    int remoteInsert(QVector<Symbol> symbol);
 
     ///Method to update the list of symbol after a remote deletion
-    void remoteErase(Symbol &symbol);
+    int remoteErase(QVector<Symbol> symbol);
 
-    void remoteUpdate(Symbol &symbol);
+    int remoteUpdate(QVector<Symbol> symbol);
 
     void setEditorId(unsigned newEditorId);
 
@@ -58,6 +60,10 @@ public:
 
     ///Method to set the current user data
     void setCurrentUser(User &userToSet);
+
+    File getFile();
+
+    FileText getFileText();
 
     ///Return the file content
     QString textify();

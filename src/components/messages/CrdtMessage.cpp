@@ -1,30 +1,30 @@
 #include "CrdtMessage.h"
 
-CrdtMessage::CrdtMessage(Symbol symbol, unsigned editorId)
+CrdtMessage::CrdtMessage(QVector<Symbol> symbols, unsigned editorId)
         : BasicMessage(editorId),
-          symbol(std::move(symbol)) {
+          symbols(std::move(symbols)) {
 }
 
-Symbol &CrdtMessage::getSymbol() {
-  return symbol;
+QVector<Symbol> &CrdtMessage::getSymbols() {
+  return symbols;
 }
 
 std::string CrdtMessage::toStdString(int level) {
   return std::string(level, '\t') + "CrdtMessage{\n" +
          std::string(level + 1, '\t') + "editorId: " +
          std::to_string(editorId) + "\n" +
-         symbol.toStdString(level + 1) + "\n" +
+         symbols[0].toStdString(level + 1) + "\n" +
          std::string(level, '\t') + "}";
 }
 
 QDataStream &CrdtMessage::serialize(QDataStream &stream) const {
   BasicMessage::serialize(stream);
-  stream << symbol;
+  stream << symbols;
   return stream;
 }
 
 QDataStream &CrdtMessage::deserialize(QDataStream &stream) {
   BasicMessage::deserialize(stream);
-  stream >> symbol;
+  stream >> symbols;
   return stream;
 }

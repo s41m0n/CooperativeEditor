@@ -89,8 +89,8 @@ void Controller::onReadyRead() {
       auto derived = std::dynamic_pointer_cast<CrdtMessage>(base);
       try {
         header.getType() == Type::S_INSERT
-            ? model->userInsert(sender, derived->getSymbol())
-            : model->userErase(sender, derived->getSymbol());
+            ? model->userInsert(sender, derived->getSymbols())
+            : model->userErase(sender, derived->getSymbols());
         dispatch(sender, header.getType(), header, derived);
       } catch (std::exception &e) {
         spdlog::error("Error on remote operation:\nMsg -> {}", e.what());
@@ -146,8 +146,9 @@ void Controller::onReadyRead() {
     }
     case Type::S_UPDATE_ATTRIBUTE: {
       auto derived = std::dynamic_pointer_cast<CrdtMessage>(base);
-      model->userReplace(sender, derived->getSymbol());
+      model->userReplace(sender, derived->getSymbols());
       dispatch(sender, header.getType(), header, derived);
+      break;
     }
     default:
       throw std::runtime_error("Must never read different types of Message!!!");

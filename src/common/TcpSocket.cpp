@@ -70,15 +70,15 @@ BasicMessage *TcpSocket::readMsg() {
       break;
     }
     case Type::S_INSERT :
-    case Type::S_ERASE: {
+    case Type::S_ERASE:
+    case Type::S_UPDATE_ATTRIBUTE: {
       msg = new CrdtMessage();
       break;
     }
-    case Type::UNKNOWN: {
-      return msg;
-    }
+    case Type::UNKNOWN:
     default: {
-      return msg;
+      throw std::runtime_error(
+              "Unknown type: forgot to add it to TcpSocket readMsg switch?");
     }
   }
   ds >> *msg;
