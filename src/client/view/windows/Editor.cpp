@@ -211,8 +211,9 @@ Editor::eventFilter(QObject *object, QEvent *event) { //key pression manager
           deleteSelection();
           break;
         }
+        case Qt::Key_Delete: //delete next word
         case Qt::Key_Z: { //undo
-          //(ignored)
+          //ignored
           return true;
         }
         case Qt::Key_Backspace: { //delete last word
