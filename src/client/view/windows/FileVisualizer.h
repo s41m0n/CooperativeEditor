@@ -14,13 +14,12 @@
 /**
  * File Visualizer application window
  */
-class FileVisualizer : public QMainWindow {
+class FileVisualizer : public QWidget {
 
 Q_OBJECT
 
 private:
 
-    QWidget *mainWidget{};
     QLabel *titleOpen{};
     QPushButton *buttonExit{};
     QPushButton *buttonCreate{};

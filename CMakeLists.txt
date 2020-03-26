@@ -40,7 +40,7 @@ add_executable(CooperativeClient src/mainclient.cpp src/client/controller/Contro
         src/include/lib/crdt/CrdtAlgorithm.cpp src/client/view/View.cpp src/client/view/windows/Login.cpp
         src/client/view/windows/FileVisualizer.cpp src/client/view/windows/Editor.cpp
         src/common/TcpSocket.cpp src/client/view/windows/EditUserProfile.cpp src/client/view/windows/SignUp.cpp
-        src/common/User.cpp src/common/File.cpp src/include/lib/serialization/Serializable.cpp src/components/messages/Header.cpp)
+        src/common/User.cpp src/common/File.cpp src/include/lib/serialization/Serializable.cpp src/components/messages/Header.cpp src/client/view/struct/ResizableStackedWidget.cpp src/client/view/struct/ResizableStackedWidget.h)
 
 #Set the server executable
 add_executable(CooperativeServer src/mainserver.cpp src/server/controller/Controller.cpp src/server/model/Model.cpp

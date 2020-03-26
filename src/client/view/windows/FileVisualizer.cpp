@@ -1,16 +1,13 @@
 #include "FileVisualizer.h"
 
-FileVisualizer::FileVisualizer(QWidget *parent) : QMainWindow(parent) {
+FileVisualizer::FileVisualizer(QWidget *parent) : QWidget(parent) {
     this->setWindowTitle("File Selection");
-    this->setFixedSize(this->minimumSize());
 
-    mainWidget = new QWidget(this);
-    auto layout = new QGridLayout(mainWidget);
+    auto layout = new QGridLayout(this);
 
-    setCentralWidget(mainWidget);
-    mainWidget->setLayout(layout);
+    this->setLayout(layout);
 
-    boxFileList = new QGroupBox("Select the file you want to open:", mainWidget);
+    boxFileList = new QGroupBox("Select the file you want to open:", this);
     boxFileList->setLayout(new QVBoxLayout());
     layout->addWidget(boxFileList, 0, 0, 1, 2);
 
@@ -26,7 +23,7 @@ FileVisualizer::FileVisualizer(QWidget *parent) : QMainWindow(parent) {
     areYouSureQuit->setStandardButtons(QMessageBox::Yes | QMessageBox::No);
     areYouSureQuit->setFixedSize(this->minimumSize());
 
-    boxCreate = new QGroupBox("Click here to create a new file:", mainWidget);
+    boxCreate = new QGroupBox("Click here to create a new file:", this);
     boxCreate->setLayout(new QVBoxLayout());
     layout->addWidget(boxCreate, 1, 0, 1, 2);
 
@@ -34,18 +31,18 @@ FileVisualizer::FileVisualizer(QWidget *parent) : QMainWindow(parent) {
     buttonCreate->setAutoDefault(true);
     boxCreate->layout()->addWidget(buttonCreate);
 
-    boxLink = new QGroupBox("Insert here the shared link to collaborate to a file:", mainWidget);
+    boxLink = new QGroupBox("Insert here the shared link to collaborate to a file:", this);
     boxLink->setLayout(new QVBoxLayout());
     layout->addWidget(boxLink, 2, 0, 1, 2);
 
-    lineLink = new QLineEdit(mainWidget);
+    lineLink = new QLineEdit(this);
     boxLink->layout()->addWidget(lineLink);
 
     buttonOpenLink = new QPushButton("Open link", boxLink);
     buttonOpenLink->setAutoDefault(true);
     boxLink->layout()->addWidget(buttonOpenLink);
 
-    buttonExit = new QPushButton("Exit", mainWidget);
+    buttonExit = new QPushButton("Exit", this);
     buttonExit->setAutoDefault(true);
     layout->addWidget(buttonExit, 3, 0, 1, 2);
 

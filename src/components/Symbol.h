@@ -57,4 +57,7 @@ public:
 
 typedef QVector<Symbol> FileText;
 
+Q_DECLARE_METATYPE(FileText);
+Q_DECLARE_METATYPE(Attribute);
+
 #endif //COOPERATIVEEDITOR_SYMBOL_H

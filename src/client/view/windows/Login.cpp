@@ -1,17 +1,14 @@
 #include "Login.h"
+#include <src/include/lib/spdlog/spdlog.h>
 
-Login::Login(QWidget *parent) : QMainWindow(parent) {
+Login::Login(QWidget *parent) : QWidget(parent) {
 
   this->setWindowTitle("Login Form");
-  this->setFixedSize(this->minimumSize());
 
-  mainWidget = new QWidget(this);
-  auto layout = new QGridLayout(mainWidget);
+  auto layout = new QGridLayout(this);
+  this->setLayout(layout);
 
-  setCentralWidget(mainWidget);
-  mainWidget->setLayout(layout);
-
-  loginBox = new QGroupBox("Insert your Personal Data:", mainWidget);
+  loginBox = new QGroupBox("Insert your Personal Data:", this);
   loginBox->setLayout(new QVBoxLayout());
   layout->addWidget(loginBox, 1, 0, 1, 2);
 
@@ -34,7 +31,7 @@ Login::Login(QWidget *parent) : QMainWindow(parent) {
   loginBox->layout()->addWidget(buttonEnter);
 
   registerBox = new QGroupBox("Sign up if you do not have credentials:",
-                              mainWidget);
+                              this);
   registerBox->setLayout(new QVBoxLayout());
   layout->addWidget(registerBox, 4, 0, 1, 2);
 
@@ -42,7 +39,7 @@ Login::Login(QWidget *parent) : QMainWindow(parent) {
   buttonRegister->setAutoDefault(true);
   registerBox->layout()->addWidget(buttonRegister);
 
-  buttonExit = new QPushButton("Exit", mainWidget);
+  buttonExit = new QPushButton("Exit", this);
   buttonExit->setAutoDefault(true);
   layout->addWidget(buttonExit, 5, 0, 1, 2);
 
@@ -85,9 +82,5 @@ Login::Login(QWidget *parent) : QMainWindow(parent) {
                        }
                    });
 
-  QObject::connect(buttonRegister, &QAbstractButton::clicked, this,
-                   [this]() {
-                       emit signUp();
-                       this->hide();
-                   });
+  QObject::connect(buttonRegister, &QAbstractButton::clicked, this, &Login::signUp);
 }

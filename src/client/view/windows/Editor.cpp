@@ -1,15 +1,19 @@
+<<<<<<< HEAD
 #include <spdlog/spdlog.h>
+=======
+#include <QtWidgets/QListWidget>
+#include <QtWidgets/QInputDialog>
+>>>>>>> ae43904... Socket refactoring and client multithreading
 #include "Editor.h"
 
-Editor::Editor(QWidget *parent) : QMainWindow(parent), usersOnlineList() {
+Editor::Editor(QWidget *parent) : QWidget(parent), usersOnlineList() {
 
   this->resize(1000, 500);
+  //TODO:fai finestra readonly per vedere info utente con vettore
 
-  mainWidget = new QWidget(this);
-  auto layout = new QGridLayout(mainWidget);
+  auto layout = new QGridLayout(this);
 
-  setCentralWidget(mainWidget);
-  mainWidget->setLayout(layout);
+  this->setLayout(layout);
 
   createTopBar(layout);
   createToolBar(layout);
@@ -36,7 +40,7 @@ Editor::Editor(QWidget *parent) : QMainWindow(parent), usersOnlineList() {
   infoAboutUs->setStandardButtons(QMessageBox::Close);
   infoAboutUs->setFixedSize(this->minimumSize());
 
-  textEdit = new QTextEdit(mainWidget);
+  textEdit = new QTextEdit(this);
   textEdit->installEventFilter(this);
   layout->addWidget(textEdit, 2, 0, 5, 2);
 
@@ -74,7 +78,7 @@ Editor::Editor(QWidget *parent) : QMainWindow(parent), usersOnlineList() {
   usersOnlineDisplayer->setFixedHeight(30); //1 user is present
   layout->addWidget(usersOnlineDisplayer, 2, 2, 1, 1);
 
-  usersOnline = new QListWidget(mainWidget);
+  usersOnline = new QListWidget(this);
   usersOnline->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
   usersOnline->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
   usersOnline->setLayout(new QVBoxLayout);
@@ -89,7 +93,7 @@ Editor::Editor(QWidget *parent) : QMainWindow(parent), usersOnlineList() {
   linkLabel->hide();
   layout->addWidget(linkLabel, 4, 2, 1, 1);
 
-  linkDisplayer = new QLineEdit(mainWidget);
+  linkDisplayer = new QLineEdit(this);
   linkDisplayer->setText("----- link -----");
   linkDisplayer->setReadOnly(true);
   linkDisplayer->setFixedWidth(250);
@@ -120,7 +124,7 @@ void Editor::onFileTextLoad(const FileText &text, const QString &fName,
   textEdit->setFocus();
 }
 
-void Editor::onRemoteInsert(int index, const QVector<Symbol> &symbol) {
+void Editor::onRemoteInsert(int index, const FileText  &symbol) {
   auto cursor = textEdit->textCursor(); //I retrieve the cursor
   cursor.movePosition(
           QTextCursor::Start); //I place it at the beginning of the document
@@ -146,7 +150,7 @@ void Editor::onRemoteDelete(int index, int size) {
   }
 }
 
-void Editor::onRemoteUpdate(int index, const QVector<Symbol> &symbol) {
+void Editor::onRemoteUpdate(int index, const FileText  &symbol) {
   auto cursor = textEdit->textCursor(); //I retrieve the cursor
   cursor.movePosition(
           QTextCursor::Start); //I place it at the beginning of the document
@@ -326,7 +330,7 @@ void Editor::simulateBackspacePression() {
 
 void Editor::createTopBar(QGridLayout *layout) {
 
-  topBar = new QMenuBar(mainWidget);
+  topBar = new QMenuBar(this);
 
   auto file = new QMenu("File", topBar);
   topBar->addMenu(file);
@@ -456,7 +460,7 @@ void Editor::createTopBar(QGridLayout *layout) {
 
 void Editor::createToolBar(QGridLayout *layout) {
 
-  toolBar = new QToolBar(mainWidget);
+  toolBar = new QToolBar(this);
 
   const QIcon boldIcon = QIcon::fromTheme("format-text-bold",
                                           QIcon(":/images/mac/textbold.png"));

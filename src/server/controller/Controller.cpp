@@ -30,165 +30,176 @@ void Controller::onNewConnection() {
   auto clientId = clientSocket->socketDescriptor();
   clientSocket->setIdentifier(clientId);
 
-  connect(clientSocket, SIGNAL(readyRead()), this, SLOT(onReadyRead()));
+  connect(clientSocket, &TcpSocket::messageReceived, this,
+          &Controller::onMessageReceived);
   connect(clientSocket, SIGNAL(stateChanged(QAbstractSocket::SocketState)),
           this, SLOT(onSocketStateChanged(QAbstractSocket::SocketState)));
 
   spdlog::debug("Connected Editor {0:d}", clientId);
 
   BasicMessage msg(clientId);
-  clientSocket->sendMsg(Type::U_CONNECT, msg);
+  prepareToSend(clientSocket, Type::U_CONNECT, msg);
+}
+
+void Controller::prepareToSend(TcpSocket *sender, Type type,
+                               BasicMessage &msg) {
+  QByteArray buf;
+  QDataStream ds(&buf, QIODevice::WriteOnly);
+  ds << msg;
+  Header header(buf.size(), type);
+  sender->sendMsg(header, buf);
+  spdlog::info("Sending message:\n{}\n{}", header.toStdString(), msg.toStdString());
 }
 
 void Controller::onSocketStateChanged(
     QAbstractSocket::SocketState socketState) {
   if (socketState == QAbstractSocket::ClosingState) {
     auto sender = dynamic_cast<TcpSocket *>(QObject::sender());
-    dispatch(sender, Type::U_DISCONNECTED, Header(), std::make_shared<BasicMessage>(sender->getIdentifier()));
+    BasicMessage msg(sender->getIdentifier());
+    dispatch(sender, Type::U_DISCONNECTED, Header(), msg);
     model->removeUserActivity(sender);
     model->removeConnection(sender);
     sender->deleteLater();
   }
 }
 
-void Controller::onReadyRead() {
+void Controller::onMessageReceived(Header &header, QByteArray &buf) {
   auto sender = dynamic_cast<TcpSocket *>(QObject::sender());
   auto clientId = sender->getIdentifier();
+  QDataStream ds(&buf, QIODevice::ReadOnly);
 
-  if (sender->isMessageAvailable()) {
-
-    auto header = sender->getHeader();
-    std::shared_ptr<BasicMessage> base(sender->readMsg());
-
-    switch (header.getType()) {
-
-    case Type::U_REGISTER:
-    case Type::U_LOGIN: {
-      auto derived = std::dynamic_pointer_cast<UserMessage>(base);
-      auto user = derived->getUser();
-      bool result = header.getType() == Type::U_LOGIN ? Model::logInUser(user)
-                                                      : Model::registerUser(user);
-      if (result) {
-        UserMessage newMsg(clientId, user);
-        FileListingMessage newMsg2(clientId, model->getAvailableFiles());
-        sender->sendMsg(header.getType() == Type::U_LOGIN ? Type::U_LOGIN_OK
-                                                          : Type::U_REGISTER_OK,
-                        newMsg);
-        model->insertUserActivity(sender, user);
-        sender->sendMsg(Type::F_LISTING, newMsg2);
-      } else {
-        BasicMessage msg(clientId);
-        sender->sendMsg(header.getType() == Type::U_LOGIN ? Type::U_LOGIN_KO
-                                                          : Type::U_REGISTER_KO,
-                        msg);
-      }
-      break;
+  switch (header.getType()) {
+  case Type::U_REGISTER:
+  case Type::U_LOGIN: {
+    UserMessage msg;
+    ds >> msg;
+    auto user = msg.getUser();
+    bool result = header.getType() == Type::U_LOGIN ? Model::logInUser(user)
+                                                    : Model::registerUser(user);
+    if (result) {
+      spdlog::error("Son qui");
+      UserMessage newMsg(clientId, user);
+      FileListingMessage newMsg2(clientId, model->getAvailableFiles());
+      prepareToSend(sender,
+                    header.getType() == Type::U_LOGIN ? Type::U_LOGIN_OK
+                                                      : Type::U_REGISTER_OK,
+                    newMsg);
+      model->insertUserActivity(sender, user);
+      prepareToSend(sender, Type::F_LISTING, newMsg2);
+    } else {
+      BasicMessage newMsg(clientId);
+      prepareToSend(sender,
+                    header.getType() == Type::U_LOGIN ? Type::U_LOGIN_KO
+                                                      : Type::U_REGISTER_KO,
+                    newMsg);
     }
-    case Type::S_INSERT:
-    case Type::S_ERASE: {
-      auto derived = std::dynamic_pointer_cast<CrdtMessage>(base);
-      try {
-        header.getType() == Type::S_INSERT
-            ? model->userInsert(sender, derived->getSymbols())
-            : model->userErase(sender, derived->getSymbols());
-        dispatch(sender, header.getType(), header, derived);
-      } catch (std::exception &e) {
-        spdlog::error("Error on remote operation:\nMsg -> {}", e.what());
-      }
-      break;
-    }
-    case Type::U_UPDATE: {
-      auto derived = std::dynamic_pointer_cast<UserMessage>(base);
-      auto user = derived->getUser();
-      if (Model::updateUser(user)) {
-        UserMessage newMsg(clientId, user);
-        sender->sendMsg(Type::U_UPDATE_OK, newMsg);
-      } else {
-        BasicMessage msg(clientId);
-        sender->sendMsg(Type::U_UPDATE_KO, msg);
-      }
-      break;
-    }
-    case Type::U_UNREGISTER: {
-      auto derived = std::dynamic_pointer_cast<UserMessage>(base);
-      auto user = derived->getUser();
-      if (Model::deleteUser(user)) {
-        UserMessage newMsg(clientId, user);
-        sender->sendMsg(Type::U_UNREGISTER_OK, newMsg);
-      } else {
-        BasicMessage msg(clientId);
-        sender->sendMsg(Type::U_UNREGISTER_KO, msg);
-      }
-      break;
-    }
-    case Type::F_CREATE:
-    case Type::F_OPEN: {
-      auto filename =
-          std::dynamic_pointer_cast<RequestMessage>(base)->getFilename();
-      FileText symbolList;
-
-      if (header.getType() == Type::F_OPEN &&
-          model->openFileByUser(sender, filename)) {
-        symbolList = model->getFileBySocket(sender)->getFileText();
-      } else if (header.getType() == Type::F_CREATE &&
-                 !model->createFileByUser(sender, filename)) {
-        BasicMessage newMsg(clientId);
-        sender->sendMsg(Type::F_FILE_KO, newMsg);
-        break;
-      }
-
-      File file(filename, symbolList);
-      FileMessage newMsg2(clientId, file);
-      sender->sendMsg(Type::F_FILE_OK, newMsg2);
-      dispatch(sender, Type::U_CONNECTED,Header(),
-              std::make_shared<UserMessage>(clientId, model->getUserActivity(sender)));
-      break;
-    }
-    case Type::S_UPDATE_ATTRIBUTE: {
-      auto derived = std::dynamic_pointer_cast<CrdtMessage>(base);
-      model->userReplace(sender, derived->getSymbols());
-      dispatch(sender, header.getType(), header, derived);
-      break;
-    }
-    case Type::U_DISCONNECTED: {
-      auto derived = std::dynamic_pointer_cast<BasicMessage>(base);
-      dispatch(sender, header.getType(), header, derived);
-      model->removeConnection(sender);
-      break;
-    }
-    default:
-      throw std::runtime_error("Must never read different types of Message!!!");
-    }
+    break;
   }
-  if (sender->isMessageAvailable()) {
-    onReadyRead();
+  case Type::S_INSERT:
+  case Type::S_ERASE: {
+    CrdtMessage msg;
+    ds >> msg;
+    try {
+      header.getType() == Type::S_INSERT
+          ? model->userInsert(sender, msg.getSymbols())
+          : model->userErase(sender, msg.getSymbols());
+      dispatch(sender, header.getType(), header, msg);
+    } catch (std::exception &e) {
+      spdlog::error("Error on remote operation:\nMsg -> {}", e.what());
+    }
+    break;
+  }
+  case Type::U_UPDATE: {
+    UserMessage msg;
+    ds >> msg;
+    auto user = msg.getUser();
+    if (Model::updateUser(user)) {
+      UserMessage newMsg(clientId, user);
+      prepareToSend(sender, Type::U_UPDATE_OK, newMsg);
+    } else {
+      BasicMessage newMsg(clientId);
+      prepareToSend(sender, Type::U_UPDATE_KO, msg);
+    }
+    break;
+  }
+  case Type::U_UNREGISTER: {
+    UserMessage msg;
+    ds >> msg;
+    auto user = msg.getUser();
+    if (Model::deleteUser(user)) {
+      UserMessage newMsg(clientId, user);
+      prepareToSend(sender, Type::U_UNREGISTER_OK, newMsg);
+    } else {
+      BasicMessage newMsg(clientId);
+      prepareToSend(sender, Type::U_UNREGISTER_KO, msg);
+    }
+    break;
+  }
+  case Type::F_CREATE:
+  case Type::F_OPEN: {
+    RequestMessage msg;
+    ds >> msg;
+    auto filename = msg.getFilename();
+    FileText symbolList;
+
+    if (header.getType() == Type::F_OPEN &&
+        model->openFileByUser(sender, filename)) {
+      symbolList = model->getFileBySocket(sender)->getFileText();
+    } else if (header.getType() == Type::F_CREATE &&
+               !model->createFileByUser(sender, filename)) {
+      BasicMessage newMsg(clientId);
+      prepareToSend(sender, Type::F_FILE_KO, newMsg);
+      break;
+    }
+    File file(filename, symbolList);
+    FileMessage newMsg(clientId, file);
+    UserMessage newMsg2(clientId, model->getUserActivity(sender));
+    prepareToSend(sender, Type::F_FILE_OK, newMsg);
+    dispatch(sender, Type::U_CONNECTED, Header(), newMsg2);
+    break;
+  }
+  case Type::S_UPDATE_ATTRIBUTE: {
+    CrdtMessage msg;
+    ds >> msg;
+    model->userReplace(sender, msg.getSymbols());
+    dispatch(sender, header.getType(), header, msg);
+    break;
+  }
+  case Type::U_DISCONNECTED: {
+    BasicMessage msg;
+    ds >> msg;
+    dispatch(sender, header.getType(), header, msg);
+    model->removeConnection(sender);
+    break;
+  }
+  default:
+    throw std::runtime_error("Must never read different types of Message!!!");
   }
 }
 
-void Controller::dispatch(TcpSocket* sender, Type headerType, Header header,
-        std::shared_ptr<BasicMessage> message) {
+void Controller::dispatch(TcpSocket *sender, Type headerType, Header header,
+                          BasicMessage &message) {
   auto serverFile = model->getFileBySocket(sender);
   if (serverFile == nullptr)
     return;
   auto fileConnections = model->getFileConnections(serverFile->getFileName());
   if (!fileConnections.empty()) {
-    std::for_each(fileConnections.begin(), fileConnections.end(),
-                  [&](auto &socket) {
-                      if (socket != sender) {
-                        if (header.getType() == headerType) {
-                          socket->sendMsg(header, *message);
-                        } else {
-                          socket->sendMsg(headerType, *message);
-                          if (headerType == Type::U_CONNECTED) {
-                            UserMessage remoteUser(socket->getIdentifier(),
-                                    model->getUserActivity(socket));
-                            sender->sendMsg(headerType, remoteUser);
-                          }
-                        }
-                        spdlog::debug("Dispatched message from {} to {}",
-                                      sender->getIdentifier(),
-                                      socket->getIdentifier());
-                      }
-                  });
+    std::for_each(
+        fileConnections.begin(), fileConnections.end(), [&](auto &socket) {
+          if (socket != sender) {
+            if (header.getType() == headerType) {
+              prepareToSend(socket, header.getType(), message);
+            } else {
+              prepareToSend(socket, headerType, message);
+              if (headerType == Type::U_CONNECTED) {
+                UserMessage remoteUser(socket->getIdentifier(),
+                                       model->getUserActivity(socket));
+                prepareToSend(socket, headerType, remoteUser);
+              }
+            }
+            spdlog::debug("Dispatched message from {} to {}",
+                          sender->getIdentifier(), socket->getIdentifier());
+          }
+        });
   }
 }

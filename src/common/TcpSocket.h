@@ -1,61 +1,53 @@
 #ifndef COOPERATIVEEDITOR_TCPSOCKET_H
 #define COOPERATIVEEDITOR_TCPSOCKET_H
 
-#include <spdlog/spdlog.h>
+#include <QDataStream>
 #include <QObject>
 #include <QTcpSocket>
-#include <QDataStream>
-#include <src/components/messages/Header.h>
 #include <components/messages/BasicMessage.h>
+#include <spdlog/spdlog.h>
+#include <src/components/messages/CrdtMessage.h>
 #include <src/components/messages/FileListingMessage.h>
+#include <src/components/messages/FileMessage.h>
+#include <src/components/messages/Header.h>
 #include <src/components/messages/RequestMessage.h>
 #include <src/components/messages/UserMessage.h>
-#include <src/components/messages/FileMessage.h>
-#include <src/components/messages/CrdtMessage.h>
 
 /**
  * TcpSocket class, an extension to the QTcpSocket which include more info
  */
 class TcpSocket : public QTcpSocket {
 
-Q_OBJECT
+  Q_OBJECT
+  Q_DISABLE_COPY(TcpSocket)
+
+signals:
+  void messageReceived(Header &header, QByteArray &msg);
+private slots:
+  void onReadyRead();
 
 private:
+  /// The dedicated socket data stream
+  QDataStream ds;
 
-    ///The dedicated socket data stream
-    QDataStream ds;
+  unsigned id;
 
-    unsigned id;
+  Header header;
 
-    Header header;
+  bool isMessageAvailable();
 
 public:
+  explicit TcpSocket(QObject *parent = nullptr);
 
-    explicit TcpSocket(QObject *parent = nullptr);
+  void setIdentifier(unsigned id);
 
-    void setIdentifier(unsigned id);
+  unsigned getIdentifier();
 
-    unsigned getIdentifier();
+  void sendMsg(Header &headerToSend, QByteArray &val);
 
-    Header &getHeader();
+  bool operator==(const TcpSocket &b) { return this->id == b.id; }
 
-    bool isMessageAvailable();
-
-    void sendMsg(Type type, BasicMessage &val);
-
-    void sendMsg(Header &headerToSend, BasicMessage &val);
-
-    BasicMessage *readMsg();
-
-    bool operator==(const TcpSocket &b) {
-      return this->id == b.id;
-    }
-
-    bool operator==(const TcpSocket *b) {
-      return this->id == b->id;
-    }
-
+  bool operator==(const TcpSocket *b) { return this->id == b->id; }
 };
 
-
-#endif //COOPERATIVEEDITOR_TCPSOCKET_H
+#endif // COOPERATIVEEDITOR_TCPSOCKET_H

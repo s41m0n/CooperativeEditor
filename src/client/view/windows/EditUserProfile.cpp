@@ -1,20 +1,17 @@
 #include "EditUserProfile.h"
 
-EditUserProfile::EditUserProfile(QWidget *parent) : QMainWindow(parent) {
+EditUserProfile::EditUserProfile(QWidget *parent) : QWidget(parent) {
 
   this->setWindowFlags(Qt::WindowStaysOnTopHint); //windows always on top
 
   this->setWindowTitle("Edit User Profile");
-  this->setFixedSize(this->minimumSize());
 
-  mainWidget = new QWidget(this);
-  auto layout = new QGridLayout(mainWidget);
+  auto layout = new QGridLayout(this);
 
-  setCentralWidget(mainWidget);
-  mainWidget->setLayout(layout);
+  this->setLayout(layout);
 
   registerBox = new QGroupBox(
-          "Change the following fields to edit your profile:", mainWidget);
+          "Change the following fields to edit your profile:", this);
   registerBox->setLayout(new QVBoxLayout());
   layout->addWidget(registerBox, 1, 0, 1, 2);
 
@@ -84,15 +81,15 @@ EditUserProfile::EditUserProfile(QWidget *parent) : QMainWindow(parent) {
   newPasswordTextFieldConfirm->setStyleSheet("lineedit-password-character: 42");
   registerBox->layout()->addWidget(newPasswordTextFieldConfirm);
 
-  buttonSaveAndBackToEditor = new QPushButton("Save and Exit", mainWidget);
+  buttonSaveAndBackToEditor = new QPushButton("Save and Exit", this);
   buttonSaveAndBackToEditor->setAutoDefault(true);
   layout->addWidget(buttonSaveAndBackToEditor, 2, 0, 1, 2);
 
-  buttonExit = new QPushButton("Exit Without Saving", mainWidget);
+  buttonExit = new QPushButton("Exit Without Saving", this);
   buttonExit->setAutoDefault(true);
   layout->addWidget(buttonExit, 3, 0, 1, 2);
 
-  buttonDeleteProfile = new QPushButton("Delete Your Profile", mainWidget);
+  buttonDeleteProfile = new QPushButton("Delete Your Profile", this);
   buttonDeleteProfile->setAutoDefault(true);
   layout->addWidget(buttonDeleteProfile, 4, 0, 1, 2);
 

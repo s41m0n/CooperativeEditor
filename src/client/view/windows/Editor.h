@@ -28,12 +28,11 @@
 /**
  * Editor application window
  */
-class Editor : public QMainWindow {
+class Editor : public QWidget {
 
 Q_OBJECT
 
 private:
-    QWidget *mainWidget;
     QTextEdit *textEdit;
     QMenuBar *topBar;
     QToolBar *toolBar;
@@ -85,13 +84,13 @@ public slots:
                         const QString &username, unsigned int editorId);
 
     ///Slot to notify the editor that a remote user has inserted a character
-    void onRemoteInsert(int index, const QVector<Symbol> &symbol);
+    void onRemoteInsert(int index, const FileText  &symbol);
 
     ///Slot to notify the editor that a remote user has deleted a character
     void onRemoteDelete(int index, int size);
 
     ///Slot to notify the editor that a remote user has updated a character
-    void onRemoteUpdate(int index, const QVector<Symbol> &symbol);
+    void onRemoteUpdate(int index, const FileText  &symbol);
 
     void onRemoteUserConnected(qint32 clientId, const QString &username);
 

@@ -63,5 +63,6 @@ public:
 
 };
 
+Q_DECLARE_METATYPE(User);
 
 #endif //COOPERATIVEEDITOR_USER_H
