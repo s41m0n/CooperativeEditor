@@ -1,19 +1,22 @@
 #include "SignUp.h"
 
-SignUp::SignUp(QWidget *parent) : QWidget(parent) {
+SignUp::SignUp(QWidget *parent) : QMainWindow(parent) {
 
   this->setWindowTitle("Sign Up Form");
+  this->setFixedSize(this->minimumSize());
 
-  auto layout = new QGridLayout(this);
+  mainWidget = new QWidget(this);
+  auto layout = new QGridLayout(mainWidget);
 
-  this->setLayout(layout);
+  setCentralWidget(mainWidget);
+  mainWidget->setLayout(layout);
 
   title = new QLabel(this);
   title->setText("Welcome to Our Cooperative Editor!");
   layout->addWidget(title, 0, 0);
 
   registerBox = new QGroupBox(
-          "Fill the following fields to sign up to the system:", this);
+          "Fill the following fields to sign up to the system:", mainWidget);
   registerBox->setLayout(new QVBoxLayout());
   layout->addWidget(registerBox, 1, 0, 1, 2);
 
@@ -80,7 +83,7 @@ SignUp::SignUp(QWidget *parent) : QWidget(parent) {
   registerBox->layout()->addWidget(buttonSignUp);
 
   alreadyRegisteredBox =
-          new QGroupBox("Are you already registered?", this);
+          new QGroupBox("Are you already registered?", mainWidget);
   alreadyRegisteredBox->setLayout(new QVBoxLayout());
   alreadyRegisteredBox->setWindowTitle("Error");
   layout->addWidget(alreadyRegisteredBox, 2, 0, 1, 2);
@@ -89,7 +92,7 @@ SignUp::SignUp(QWidget *parent) : QWidget(parent) {
   buttonBackToLogin->setAutoDefault(true);
   alreadyRegisteredBox->layout()->addWidget(buttonBackToLogin);
 
-  buttonExit = new QPushButton("Exit", this);
+  buttonExit = new QPushButton("Exit", mainWidget);
   buttonExit->setAutoDefault(true);
   layout->addWidget(buttonExit, 3, 0, 1, 2);
 

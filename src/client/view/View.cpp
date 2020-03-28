@@ -3,17 +3,18 @@
 #include <QtWidgets/QComboBox>
 #include <QtWidgets/QStackedWidget>
 
-View::View(const std::string &host, int port, QWidget *parent)
-    : ResizableStackedWidget(parent), controller(new Controller(host, port)),
-      msg(new QMessageBox()), worker(new QThread(this)) {
+View::View(Controller *controller, QWidget *parent)
+    : QWidget(parent), controller(controller), worker(new QThread(this)) {
 
-  connect(controller, &Controller::connected, this, &View::init);
-  connect(controller, &Controller::error, this, std::bind([this]() {
-            msg->setText("Connection error, the server is unreachable. Try "
-                         "later, please.");
-            msg->exec();
-            exit(-1);
-          }));
+  connect(controller, &Controller::connected, this,
+          std::bind(&View::init, this));
+  connect(
+      controller, &Controller::error, this, std::bind([this]() {
+        QMessageBox::warning(
+            this, "CooperativeEditor",
+            "Connection error, the server is unreachable. Try later, please.");
+        exit(-1);
+      }));
 }
 
 View::~View() {
@@ -26,37 +27,24 @@ View::~View() {
 
 void View::init() {
 
-  worker->start();
-  controller->moveToThread(worker);
-
-  auto login = new Login(this);
-  auto editor = new Editor(this);
-  auto fileVisualizer = new FileVisualizer(this);
-  auto signUp = new SignUp(this);
-  auto editProfile = new EditUserProfile(this);
-
-  addWidget(login);
-  addWidget(signUp);
-  addWidget(fileVisualizer);
-  addWidget(editor);
-  addWidget(editProfile);
-
-  setCurrentIndex(0);
+  login = new Login(this);
+  editor = new Editor(this);
+  fileVisualizer = new FileVisualizer(this);
+  signUp = new SignUp(this);
+  editProfile = new EditUserProfile(this);
 
   /// Bottone semplice da Login a SignUp se non ho un account e voglio
   /// registrarmi
-  QObject::connect(login, &Login::signUp, this,
-                   [this]() { setCurrentIndex(1); });
+  QObject::connect(login, &Login::signUp, signUp, &QMainWindow::show);
 
   /// Bottone semplice da SignUp a Login se non voglio registrarmi e tornare al
   /// login
-  QObject::connect(signUp, &SignUp::backToLogin, this,
-                   [this]() { setCurrentIndex(0); });
+  QObject::connect(signUp, &SignUp::backToLogin, login, &QMainWindow::show);
 
   /// Bottone semplice (azione da menu dropdown) da Editor e EditUserProfile per
   /// modificare il mio profilo
-  QObject::connect(editor, &Editor::openEditProfileFromEditor, this,
-                   [this]() { setCurrentIndex(4); });
+  QObject::connect(editor, &Editor::openEditProfileFromEditor, editProfile,
+                   &QMainWindow::show);
 
   /// Segnale intermedio per farsi passare dati utente
   QObject::connect(editProfile, &EditUserProfile::requestUserProfile,
@@ -94,45 +82,15 @@ void View::init() {
 
   /// Risposta di login
   QObject::connect(controller, &Controller::loginResponse, this,
-                   [this](bool isLogged) {
-                     if (isLogged) {
-                       setCurrentIndex(2);
-                     } else {
-                       msg->setText("Username and Password are not correct.");
-                       msg->exec();
-                     }
-                   });
+                   &View::onLoginResponse);
 
   /// Risposta con la lista di file ricevuti
   QObject::connect(controller, &Controller::fileListing, fileVisualizer,
                    &FileVisualizer::onFileListing);
 
   /// Risposta con risultato di apertura/creazione file
-  QObject::connect(
-      controller, &Controller::fileResult, this, [this](bool result) {
-        if (result) {
-          setCurrentIndex(3);
-        } else {
-          msg->setText("Sorry, the action requested cannot be performed (have "
-                       "you inserted "
-                       "an already existing file name?). Retry?");
-          msg->setStandardButtons(QMessageBox::Yes | QMessageBox::No);
-
-          int dialogResult = msg->exec();
-
-          switch (dialogResult) {
-          case QMessageBox::Yes:
-            msg->close();
-            break;
-          case QMessageBox::No:
-            close();
-            break;
-          default:
-            // error, should never be reached
-            break;
-          }
-        }
-      });
+  QObject::connect(controller, &Controller::fileResult, this,
+                   &View::onFileResult);
 
   /// Prima apertura del file nell'editor, setto il testo con i vari stili dei
   /// caratteri
@@ -173,4 +131,36 @@ void View::init() {
   /// scollegato
   QObject::connect(controller, &Controller::remoteUserDisconnected, editor,
                    &Editor::onRemoteUserDisconnected);
+
+  login->show();
+  worker->start();
+  controller->moveToThread(worker);
+
+}
+void View::onLoginResponse(bool result) {
+  if (result) {
+    fileVisualizer->show();
+    login->hide();
+    signUp->hide();
+  } else {
+    QMessageBox::warning(this, "CooperativeEditor",
+                         "Username and Password are not correct.");
+  }
+}
+
+void View::onFileResult(bool result) {
+  if (result) {
+    editor->show();
+    fileVisualizer->hide();
+  } else {
+    auto reply = QMessageBox::question(
+        this, "Cooperative",
+        "Sorry, the action requested cannot be performed (have "
+        "you inserted"
+        "an already existing file name?). Retry?",
+        QMessageBox::Yes | QMessageBox::No);
+    if (reply == QMessageBox::No) {
+      fileVisualizer->hide();
+    }
+  }
 }

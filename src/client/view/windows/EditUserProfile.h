@@ -14,11 +14,12 @@
 /**
  * Editor of user profile window
  */
-class EditUserProfile : public QWidget {
+class EditUserProfile : public QMainWindow {
 
 Q_OBJECT
 
 private:
+    QWidget *mainWidget;
     QGroupBox *registerBox;
     QLabel *imageLabel;
     QGroupBox *imageBorder;

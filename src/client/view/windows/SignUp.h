@@ -14,11 +14,12 @@
 /**
  * SignUp application window
  */
-class SignUp : public QWidget {
+class SignUp : public QMainWindow {
 
 Q_OBJECT
 
 private:
+    QWidget *mainWidget;
     QLabel *title;
     QGroupBox *registerBox;
     QLabel *imageLabel;

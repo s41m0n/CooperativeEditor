@@ -1,12 +1,4 @@
-#include <QHostAddress>
-#include <spdlog/spdlog.h>
-
 #include "Controller.h"
-#include "src/components/messages/BasicMessage.h"
-#include "src/components/messages/CrdtMessage.h"
-#include "src/components/messages/FileListingMessage.h"
-#include "src/components/messages/FileMessage.h"
-#include "src/components/messages/RequestMessage.h"
 
 Controller::Controller(Model *model, unsigned short port, QWidget *parent)
     : QTcpServer(parent), model(model) {
@@ -15,32 +7,22 @@ Controller::Controller(Model *model, unsigned short port, QWidget *parent)
                   QHostAddress::Any, port);
     exit(-1);
   }
-  connect(this, SIGNAL(newConnection()), this, SLOT(onNewConnection()));
 }
 
 void Controller::incomingConnection(qintptr handle) {
-  auto socket = new TcpSocket();
-  socket->setSocketDescriptor(handle);
-  addPendingConnection(socket);
-}
+  auto worker = new TcpSocket(this);
+  worker->setSocketDescriptor(handle);
 
-void Controller::onNewConnection() {
-
-  auto clientSocket = dynamic_cast<TcpSocket *>(nextPendingConnection());
-  auto clientId = clientSocket->socketDescriptor();
-  clientSocket->setIdentifier(clientId);
-
-  connect(clientSocket, &TcpSocket::messageReceived, this,
+  connect(worker, &TcpSocket::messageReceived, this,
           &Controller::onMessageReceived);
-  connect(clientSocket, SIGNAL(stateChanged(QAbstractSocket::SocketState)),
+  connect(worker, SIGNAL(stateChanged(QAbstractSocket::SocketState)),
           this, SLOT(onSocketStateChanged(QAbstractSocket::SocketState)));
 
-  spdlog::debug("Connected Editor {0:d}", clientId);
+  spdlog::debug("Connected Editor {0:d}", handle);
 
-  BasicMessage msg(clientId);
-  prepareToSend(clientSocket, Type::U_CONNECT, msg);
+  BasicMessage msg(handle);
+  prepareToSend(worker, Type::U_CONNECT, msg);
 }
-
 void Controller::prepareToSend(TcpSocket *sender, Type type,
                                BasicMessage &msg) {
   QByteArray buf;
@@ -55,7 +37,7 @@ void Controller::onSocketStateChanged(
     QAbstractSocket::SocketState socketState) {
   if (socketState == QAbstractSocket::ClosingState) {
     auto sender = dynamic_cast<TcpSocket *>(QObject::sender());
-    BasicMessage msg(sender->getIdentifier());
+    BasicMessage msg(sender->socketDescriptor());
     dispatch(sender, Type::U_DISCONNECTED, Header(), msg);
     model->removeUserActivity(sender);
     model->removeConnection(sender);
@@ -65,7 +47,7 @@ void Controller::onSocketStateChanged(
 
 void Controller::onMessageReceived(Header &header, QByteArray &buf) {
   auto sender = dynamic_cast<TcpSocket *>(QObject::sender());
-  auto clientId = sender->getIdentifier();
+  auto clientId = sender->socketDescriptor();
   QDataStream ds(&buf, QIODevice::ReadOnly);
 
   switch (header.getType()) {
@@ -192,13 +174,13 @@ void Controller::dispatch(TcpSocket *sender, Type headerType, Header header,
             } else {
               prepareToSend(socket, headerType, message);
               if (headerType == Type::U_CONNECTED) {
-                UserMessage remoteUser(socket->getIdentifier(),
+                UserMessage remoteUser(socket->socketDescriptor(),
                                        model->getUserActivity(socket));
                 prepareToSend(socket, headerType, remoteUser);
               }
             }
             spdlog::debug("Dispatched message from {} to {}",
-                          sender->getIdentifier(), socket->getIdentifier());
+                          sender->socketDescriptor(), socket->socketDescriptor());
           }
         });
   }

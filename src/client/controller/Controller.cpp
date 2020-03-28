@@ -3,6 +3,7 @@
 #include <QImage>
 #include <memory>
 #include <spdlog/spdlog.h>
+#include <src/components/messages/RequestMessage.h>
 #include <utility>
 
 #include "Controller.h"
@@ -12,8 +13,8 @@
 #include "src/components/messages/FileMessage.h"
 #include "src/components/messages/UserMessage.h"
 
-Controller::Controller(const std::string &host, int port)
-    : model(new Model()), socket(new TcpSocket(this)) {
+Controller::Controller(Model *model, const std::string &host, int port)
+    : model(model), socket(new TcpSocket(this)) {
   socket->connectToHost(QHostAddress(host.c_str()), port);
   connect(socket, &TcpSocket::messageReceived, this,
           &Controller::onMessageReceived);
@@ -34,7 +35,6 @@ void Controller::onMessageReceived(Header &header, QByteArray &buf) {
     BasicMessage msg;
     ds >> msg;
     model->setEditorId(msg.getEditorId());
-    socket->setIdentifier(msg.getEditorId());
     break;
   }
   case Type::U_REGISTER_KO:

@@ -27,7 +27,7 @@ private:
   void prepareToSend(Type type, BasicMessage &msg);
 
 public:
-  Controller(const std::string &host, int port);
+  Controller(Model *model, const std::string &host, int port);
 
 public slots:
 

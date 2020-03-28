@@ -25,8 +25,9 @@ int main(int argc, char **argv) {
 
   QApplication app(argc, argv);
 
-  View view(argv[1], std::stoi(argv[2]));
-  view.show();
+  Model model;
+  Controller controller(&model, argv[1], std::stoi(argv[2]));
+  View view(&controller);
 
   return app.exec();
 }

@@ -2,7 +2,6 @@
 #define COOPERATIVEEDITOR_VIEW_H
 
 #include "client/controller/Controller.h"
-#include "src/client/view/struct/ResizableStackedWidget.h"
 #include "windows/EditUserProfile.h"
 #include "windows/Editor.h"
 #include "windows/FileVisualizer.h"
@@ -13,21 +12,27 @@
 /**Class View, the responsible of the user interface
  *
  */
-class View : public ResizableStackedWidget {
+class View : public QWidget {
 
   Q_OBJECT
-
+  Q_DISABLE_COPY(View);
 private:
   Controller *controller;
   QThread *worker;
-  QMessageBox *msg;
+
+  Login *login{};
+  SignUp *signUp{};
+  Editor *editor{};
+  FileVisualizer *fileVisualizer{};
+  EditUserProfile *editProfile{};
 
 public:
-  explicit View(const std::string &host, int port, QWidget *parent = nullptr);
+  explicit View(Controller *controller, QWidget *parent = nullptr);
   ~View() override;
 
 public slots:
-
+  void onFileResult(bool result);
+  void onLoginResponse(bool result);
   void init();
 };
 

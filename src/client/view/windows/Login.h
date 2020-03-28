@@ -1,44 +1,48 @@
 #ifndef COOPERATIVEEDITOR_LOGIN_H
 #define COOPERATIVEEDITOR_LOGIN_H
 
-#include <QGridLayout>
-#include <QGroupBox>
+#include <QMainWindow>
 #include <QLabel>
+#include <QGroupBox>
 #include <QLineEdit>
-#include <QMessageBox>
 #include <QPushButton>
 #include <QString>
+#include <QMessageBox>
+#include <QGridLayout>
 
 /**
  * Login application window
  */
-class Login : public QWidget {
+class Login : public QMainWindow {
 
-  Q_OBJECT
+Q_OBJECT
 
 private:
-  QGroupBox *loginBox;
-  QLabel *usernameLabel;
-  QLineEdit *usernameTextField;
-  QLabel *passwordLabel;
-  QLineEdit *passwordTextField;
-  QGroupBox *registerBox;
-  QPushButton *buttonRegister;
-  QPushButton *buttonEnter;
-  QPushButton *buttonExit;
-  QMessageBox *errorMessageEmptyFields;
-  QMessageBox *areYouSureQuit;
+    QWidget *mainWidget;
+    QGroupBox *loginBox;
+    QLabel *usernameLabel;
+    QLineEdit *usernameTextField;
+    QLabel *passwordLabel;
+    QLineEdit *passwordTextField;
+    QGroupBox *registerBox;
+    QPushButton *buttonRegister;
+    QPushButton *buttonEnter;
+    QPushButton *buttonExit;
+    QMessageBox *errorMessageEmptyFields;
+    QMessageBox *areYouSureQuit;
 
 public:
-  explicit Login(QWidget *parent = nullptr);
+
+    explicit Login(QWidget *parent = nullptr);
 
 signals:
 
-  /// Signal to notify the controller that user wants log in
-  void loginRequest(QString username, QString password);
+    ///Signal to notify the controller that user wants log in
+    void loginRequest(QString username, QString password);
 
-  /// Signal to notify the view that a user wants to register himself
-  void signUp();
+    ///Signal to notify the view that a user wants to register himself
+    void signUp();
 };
 
-#endif // COOPERATIVEEDITOR_LOGIN_H
+
+#endif //COOPERATIVEEDITOR_LOGIN_H

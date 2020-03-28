@@ -1,15 +1,7 @@
 #include "TcpSocket.h"
 
-TcpSocket::TcpSocket(QObject *parent) : QTcpSocket(parent), ds(this), id(0) {
+TcpSocket::TcpSocket(QObject *parent) : QTcpSocket(parent), ds(this){
   connect(this, SIGNAL(readyRead()), this, SLOT(onReadyRead()));
-}
-
-unsigned TcpSocket::getIdentifier() {
-  return id;
-}
-
-void TcpSocket::setIdentifier(unsigned idToSet) {
-  id = idToSet;
 }
 
 bool TcpSocket::isMessageAvailable() {
@@ -29,7 +21,6 @@ void TcpSocket::onReadyRead() {
   while (isMessageAvailable()) {
     QByteArray buf = read(header.getSize());
     emit messageReceived(header, buf);
-    spdlog::debug("Read message with header {} ", header.toStdString());
     header = {};
   }
 }
