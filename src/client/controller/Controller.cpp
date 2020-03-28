@@ -179,6 +179,6 @@ void Controller::onShowEditProfile() {
 }
 
 void Controller::onFileClosed() {
-  spdlog::debug("Ciao Rick! :)");
-  //TODO:comunica al server che l'utente si è sconnesso dal file
+  BasicMessage msg(model->getEditorId());
+  sendMsg(Type::U_DISCONNECTED, msg);
 }

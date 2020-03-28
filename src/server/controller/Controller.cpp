@@ -150,6 +150,12 @@ void Controller::onReadyRead() {
       dispatch(sender, header.getType(), header, derived);
       break;
     }
+    case Type::U_DISCONNECTED: {
+      auto derived = std::dynamic_pointer_cast<BasicMessage>(base);
+      dispatch(sender, header.getType(), header, derived);
+      model->removeConnection(sender);
+      break;
+    }
     default:
       throw std::runtime_error("Must never read different types of Message!!!");
     }
