@@ -1,13 +1,9 @@
 #include <spdlog/spdlog.h>
-#include <QtWidgets/QListWidget>
-#include <QtWidgets/QInputDialog>
 #include "Editor.h"
 
 Editor::Editor(QWidget *parent) : QMainWindow(parent), usersOnlineList() {
 
-  //TODO:fai finestra readonly per vedere info utente con vettore
-
-  this->setMinimumWidth(500);
+  this->resize(1000, 500);
 
   mainWidget = new QWidget(this);
   auto layout = new QGridLayout(mainWidget);
@@ -16,7 +12,6 @@ Editor::Editor(QWidget *parent) : QMainWindow(parent), usersOnlineList() {
   mainWidget->setLayout(layout);
 
   createTopBar(layout);
-
   createToolBar(layout);
 
   fileCorrectlySaved = new QMessageBox();
@@ -101,16 +96,17 @@ Editor::Editor(QWidget *parent) : QMainWindow(parent), usersOnlineList() {
   linkDisplayer->hide();
   layout->addWidget(linkDisplayer, 5, 2, 1, 1);
 
+  textEdit->setFocus();
+
 }
 
 void Editor::onFileTextLoad(const FileText &text, const QString &fName,
-                            User user, unsigned int editorId) {
+                              const QString& username, unsigned int editorId) {
   fileName = fName;
   this->setWindowTitle(fileName);
-  usersOnline->addItem(user.getUsername());
-  usersOnlineList.insert(editorId, user);
-  usersOnlineDisplayer->setText(
-          "Users online: " + QString::number(usersOnlineList.size()));
+  clientId = editorId;
+  usersOnlineList.insert(editorId, username);
+  refreshUserView();
 
   for (Symbol s : text) {
     QTextCharFormat fmt;
@@ -120,6 +116,8 @@ void Editor::onFileTextLoad(const FileText &text, const QString &fName,
     textEdit->mergeCurrentCharFormat(fmt);
     textEdit->insertPlainText(s.getChar());
   }
+
+  textEdit->setFocus();
 }
 
 void Editor::onRemoteInsert(int index, const QVector<Symbol> &symbol) {
@@ -165,13 +163,9 @@ void Editor::onRemoteUpdate(int index, const QVector<Symbol> &symbol) {
   }
 }
 
-void Editor::onRemoteUserConnected(qint32 clientId, const QImage &image,
-                                   const QString &name,
-                                   const QString &surname, const QString &email,
-                                   const QString &username) {
+void Editor::onRemoteUserConnected(qint32 cId, const QString &username) {
 
-  User u(username, name, surname, email, "", image);
-  usersOnlineList.insert(clientId, u);
+  usersOnlineList.insert(cId, username);
 
   if (usersOnlineList.size() <= 5) {
     usersOnline->setFixedHeight(usersOnlineList.size() * 30);
@@ -179,16 +173,14 @@ void Editor::onRemoteUserConnected(qint32 clientId, const QImage &image,
     usersOnline->setFixedHeight(150);
   }
 
-  usersOnlineDisplayer->setText(
-          "Users online: " + QString::number(usersOnlineList.size()));
-  usersOnline->addItem(username);
+  refreshUserView();
+  textEdit->setFocus();
 }
 
-void Editor::onRemoteUserDisconnected(qint32 clientId) {
-  usersOnlineList.remove(clientId);
-  usersOnlineDisplayer->setText(
-          "Users online: " + QString::number(usersOnlineList.size()));
+void Editor::onRemoteUserDisconnected(qint32 cId) {
+  usersOnlineList.remove(cId);
   refreshUserView(); //it is not so easy to remove an element from the list, it's better to refresh
+  textEdit->setFocus();
 }
 
 bool
@@ -359,8 +351,11 @@ void Editor::createTopBar(QGridLayout *layout) {
   QObject::connect(actionClose, &QAction::triggered, this,
                    [this]() {
                        emit openVisualizerFromEditor();
-                       this->hide();
-                       //TODO: implementa bene con segnali di disconnessione ecc
+                       emit fileClosed(); //to inform the server the user has closed the file
+                       this->textEdit->clear(); //otherwise if I open again the same file the text is inserted 2 times
+                       usersOnlineList.clear();
+                       refreshUserView();
+                       this->close();
                    });
   file->addAction(actionClose);
 
@@ -421,7 +416,7 @@ void Editor::createTopBar(QGridLayout *layout) {
   QObject::connect(actionEditProfile, &QAction::triggered, this,
                    [this]() {
                        emit openEditProfileFromEditor();
-                       this->hide();
+                       this->setDisabled(true);
                    });
   edit->addAction(actionEditProfile);
   topBar->addSeparator();
@@ -516,15 +511,22 @@ void Editor::fileToPDF() {
 }
 
 void Editor::refreshUserView() {
-  if (usersOnlineList.size() <= 5) {
-    usersOnline->setFixedHeight(usersOnlineList.size() * 30);
+
+  auto usernames = usersOnlineList.values().toStdList();
+  usernames.unique(); //remove duplicates
+
+  if (usernames.size() <= 5) {
+    usersOnline->setFixedHeight((int) usernames.size() * 30);
   } else {
     usersOnline->setFixedHeight(150);
   }
 
+  usersOnlineDisplayer->setText(
+          "Users online: " + QString::number(usernames.size()));
+
   usersOnline->clear();
-  for (User u : usersOnlineList.values()) {
-    usersOnline->addItem(u.getUsername());
+  for (const QString& s : usernames) {
+      usersOnline->addItem(s);
   }
 }
 
@@ -568,4 +570,8 @@ void Editor::textUnderlined() {
     emit symbolUpdated(textCursor.selectionStart(), selection.size(),
                        Attribute::UNDERLINED, actionUnderlined->isChecked());
   }
+}
+
+void Editor::onComeBackFromEditProfileNoChanges() {
+  this->setDisabled(false);
 }

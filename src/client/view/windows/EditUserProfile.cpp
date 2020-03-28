@@ -2,6 +2,8 @@
 
 EditUserProfile::EditUserProfile(QWidget *parent) : QMainWindow(parent) {
 
+  this->setWindowFlags(Qt::WindowStaysOnTopHint); //windows always on top
+
   this->setWindowTitle("Edit User Profile");
   this->setFixedSize(this->minimumSize());
 
@@ -118,7 +120,6 @@ EditUserProfile::EditUserProfile(QWidget *parent) : QMainWindow(parent) {
                        switch (result) {
                          case QMessageBox::Yes:
                            this->close();
-                           //TODO: riapri editor
                            break;
                          case QMessageBox::No:
                            areYouSureQuit->close();
@@ -165,8 +166,13 @@ EditUserProfile::EditUserProfile(QWidget *parent) : QMainWindow(parent) {
 
   QObject::connect(buttonSaveAndBackToEditor, &QAbstractButton::clicked, this,
                    [this]() {
-                       //TODO: devo mandare i nuovi dati al server che deve salvarli + aprire di nuovo l'editor con il file di prima + check vecchia password
+                       //TODO: devo mandare i nuovi dati al server che deve salvarli + check vecchia password
                        this->close();
+                   });
+
+  QObject::connect(buttonDeleteProfile, &QAbstractButton::clicked, this,
+                   [this]() {
+                       //TODO: segnale per mandare al server la richiesta di cancellazione account
                    });
 }
 
@@ -185,6 +191,9 @@ EditUserProfile::onUserProfileInfo(const QImage &image, const QString &name,
 }
 
 void EditUserProfile::showEvent(QShowEvent *ev) {
-  QWidget::showEvent(ev);
   emit requestUserProfile();
+}
+
+void EditUserProfile::closeEvent(QCloseEvent *event) {
+  emit openEditorFromEditProfileNoChanges();
 }

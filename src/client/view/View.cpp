@@ -42,9 +42,18 @@ void View::init() {
   QObject::connect(controller, &Controller::userProfileInfo, editProfile,
                    &EditUserProfile::onUserProfileInfo);
 
+  ///Da EditUserProfile a Editor ma senza effettuare modifiche
+  QObject::connect(editProfile, &EditUserProfile::openEditorFromEditProfileNoChanges,
+                   editor, &Editor::onComeBackFromEditProfileNoChanges);
+
+
   ///Bottone semplice (azione da menu dropdown) da Editor a FileVisualizer per aprire un nuovo file
   QObject::connect(editor, &Editor::openVisualizerFromEditor, fileVisualizer,
                    &QMainWindow::show);
+
+  ///Oltre a tornare a FileVisualizer devo informare il server della chiusura del file
+  QObject::connect(editor, &Editor::fileClosed, controller,
+                   &Controller::onFileClosed);
 
   ///Segnale dal fileVisualizer per chiedere al server di aprire un file
   QObject::connect(fileVisualizer, &FileVisualizer::fileRequest, controller,
