@@ -3,6 +3,7 @@
 
 #include <QString>
 #include <QtGui/QImage>
+#include <utility>
 
 #include "src/include/lib/serialization/Serializable.h"
 

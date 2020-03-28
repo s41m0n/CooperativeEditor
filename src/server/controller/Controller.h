@@ -33,7 +33,7 @@ private:
   void dispatch(TcpSocket *sender, Type headerType, Header header,
                 BasicMessage &message);
 
-  void prepareToSend(TcpSocket *sender, Type type, BasicMessage &msg);
+  static void prepareToSend(TcpSocket *sender, Type type, BasicMessage &msg);
 
 public:
   Controller(Model *model, unsigned short port, QWidget *parent = nullptr);

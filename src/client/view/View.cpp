@@ -1,18 +1,14 @@
 #include "View.h"
-#include <QSizePolicy>
-#include <QtWidgets/QComboBox>
-#include <QtWidgets/QStackedWidget>
 
 View::View(Controller *controller, QWidget *parent)
     : QWidget(parent), controller(controller), worker(new QThread(this)) {
 
-  connect(controller, &Controller::connected, this,
-          std::bind(&View::init, this));
+  connect(controller, &Controller::connected, this, &View::init);
   connect(
       controller, &Controller::error, this, std::bind([this]() {
         QMessageBox::warning(
-            this, "CooperativeEditor",
-            "Connection error, the server is unreachable. Try later, please.");
+            nullptr, "CooperativeEditor",
+            "Connection error. Try later, please.");
         exit(-1);
       }));
 }
@@ -22,16 +18,13 @@ View::~View() {
   worker->wait();
 }
 
-// TODO: aggiungi metodo che raccolga errori lanciati dalla GUI e faccia vedere
-// il msg d'errore come sopra
-
 void View::init() {
 
-  login = new Login(this);
-  editor = new Editor(this);
-  fileVisualizer = new FileVisualizer(this);
-  signUp = new SignUp(this);
-  editProfile = new EditUserProfile(this);
+  login = new Login();
+  editor = new Editor();
+  fileVisualizer = new FileVisualizer();
+  signUp = new SignUp();
+  editProfile = new EditUserProfile();
 
   /// Bottone semplice da Login a SignUp se non ho un account e voglio
   /// registrarmi
@@ -57,7 +50,6 @@ void View::init() {
   ///Da EditUserProfile a Editor ma senza effettuare modifiche
   QObject::connect(editProfile, &EditUserProfile::openEditorFromEditProfileNoChanges,
                    editor, &Editor::onComeBackFromEditProfileNoChanges);
-
 
   ///Bottone semplice (azione da menu dropdown) da Editor a FileVisualizer per aprire un nuovo file
   QObject::connect(editor, &Editor::openVisualizerFromEditor, fileVisualizer,
@@ -135,7 +127,6 @@ void View::init() {
   login->show();
   worker->start();
   controller->moveToThread(worker);
-
 }
 void View::onLoginResponse(bool result) {
   if (result) {
@@ -143,7 +134,7 @@ void View::onLoginResponse(bool result) {
     login->hide();
     signUp->hide();
   } else {
-    QMessageBox::warning(this, "CooperativeEditor",
+    QMessageBox::information(login, "CooperativeEditor",
                          "Username and Password are not correct.");
   }
 }
@@ -154,13 +145,13 @@ void View::onFileResult(bool result) {
     fileVisualizer->hide();
   } else {
     auto reply = QMessageBox::question(
-        this, "Cooperative",
+        fileVisualizer, "Cooperative",
         "Sorry, the action requested cannot be performed (have "
         "you inserted"
         "an already existing file name?). Retry?",
         QMessageBox::Yes | QMessageBox::No);
     if (reply == QMessageBox::No) {
-      fileVisualizer->hide();
+      fileVisualizer->close();
     }
   }
 }

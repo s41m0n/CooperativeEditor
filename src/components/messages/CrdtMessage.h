@@ -11,24 +11,22 @@
 class CrdtMessage : public BasicMessage {
 
 private:
+  QVector<Symbol> symbols;
 
-    QVector<Symbol> symbols;
+  QDataStream &serialize(QDataStream &stream) const override;
+
+  QDataStream &deserialize(QDataStream &stream) override;
 
 public:
+  CrdtMessage(QVector<Symbol> symbols, unsigned editorId);
 
-    CrdtMessage(QVector<Symbol> symbols, unsigned editorId);
+  CrdtMessage() = default;
 
-    CrdtMessage() = default;
+  QVector<Symbol> &getSymbols();
 
-    QVector<Symbol> &getSymbols();
+  std::string toStdString(int level = 0) override;
 
-    std::string toStdString(int level = 0) override;
-
-    QDataStream &serialize(QDataStream &stream) const override;
-
-    QDataStream &deserialize(QDataStream &stream) override;
-
+  static CrdtMessage fromQByteArray(QByteArray &buf);
 };
 
-
-#endif //COOPERATIVEEDITOR_CRDTMESSAGE_H
+#endif // COOPERATIVEEDITOR_CRDTMESSAGE_H

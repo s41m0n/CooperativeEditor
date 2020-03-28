@@ -4,31 +4,30 @@
 #include "BasicMessage.h"
 #include "common/File.h"
 
-
 /**
- * FileContentMessage class, represents a File content transfer message between client-server
+ * FileContentMessage class, represents a File content transfer message between
+ * client-server
  *
  */
 class FileMessage : public BasicMessage {
 
 private:
+  File file;
 
-    File file;
+  QDataStream &serialize(QDataStream &stream) const override;
+
+  QDataStream &deserialize(QDataStream &stream) override;
 
 public:
+  FileMessage(unsigned editorId, File &file);
 
-    FileMessage(unsigned editorId, File &file);
+  FileMessage() = default;
 
-    FileMessage() = default;
+  File &getFile();
 
-    File &getFile();
+  std::string toStdString(int level = 0) override;
 
-    std::string toStdString(int level = 0) override;
-
-    QDataStream &serialize(QDataStream &stream) const override;
-
-    QDataStream &deserialize(QDataStream &stream) override;
-
+  static FileMessage fromQByteArray(QByteArray &buf);
 };
 
-#endif //COOPERATIVEEDITOR_FILEMESSAGE_H
+#endif // COOPERATIVEEDITOR_FILEMESSAGE_H

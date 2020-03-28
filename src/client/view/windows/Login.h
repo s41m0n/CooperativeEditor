@@ -28,8 +28,6 @@ private:
     QPushButton *buttonRegister;
     QPushButton *buttonEnter;
     QPushButton *buttonExit;
-    QMessageBox *errorMessageEmptyFields;
-    QMessageBox *areYouSureQuit;
 
 public:
 

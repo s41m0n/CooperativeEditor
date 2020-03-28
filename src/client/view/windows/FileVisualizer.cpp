@@ -21,11 +21,6 @@ FileVisualizer::FileVisualizer(QWidget *parent) : QMainWindow(parent) {
 
     boxFileList->layout()->addWidget(list);
 
-    areYouSureQuit = new QMessageBox(this);
-    areYouSureQuit->setText("Are you sure you want to exit?");
-    areYouSureQuit->setStandardButtons(QMessageBox::Yes | QMessageBox::No);
-    areYouSureQuit->setFixedSize(this->minimumSize());
-
     boxCreate = new QGroupBox("Click here to create a new file:", mainWidget);
     boxCreate->setLayout(new QVBoxLayout());
     layout->addWidget(boxCreate, 1, 0, 1, 2);
@@ -53,18 +48,10 @@ FileVisualizer::FileVisualizer(QWidget *parent) : QMainWindow(parent) {
 
     QObject::connect(buttonExit, &QAbstractButton::clicked, this,
                      [this]() {
-                         int resultExit = areYouSureQuit->exec();
+                         int resultExit = QMessageBox::question(this, "CooperativeEditor", "Are you sure you want to exit?", QMessageBox::Yes, QMessageBox::No);
 
-                         switch (resultExit) {
-                             case QMessageBox::Yes:
-                                 this->close();
-                                 break;
-                             case QMessageBox::No:
-                                 areYouSureQuit->close();
-                                 break;
-                             default:
-                                 //error, should never be reached
-                                 break;
+                         if(resultExit == QMessageBox::Yes) {
+                           this->close();
                          }
                      });
 

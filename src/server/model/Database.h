@@ -3,6 +3,7 @@
 
 #include <sqlite3.h>
 #include <src/common/User.h>
+#include <spdlog/spdlog.h>
 #include <string>
 
 class Database {

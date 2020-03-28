@@ -96,37 +96,18 @@ EditUserProfile::EditUserProfile(QWidget *parent) : QMainWindow(parent) {
   buttonDeleteProfile->setAutoDefault(true);
   layout->addWidget(buttonDeleteProfile, 4, 0, 1, 2);
 
-  areYouSureQuit = new QMessageBox(this);
-  areYouSureQuit->setText("Are you sure you want to exit?");
-  areYouSureQuit->setStandardButtons(QMessageBox::Yes | QMessageBox::No);
-  areYouSureQuit->setFixedSize(this->minimumSize());
-
-  errorMessageDifferentPasswords = new QMessageBox(this);
-  errorMessageDifferentPasswords->setText("The two passwords must match.");
-  errorMessageDifferentPasswords->setWindowTitle("Error");
-  errorMessageDifferentPasswords->setFixedSize(this->minimumSize());
-
-  errorMessageWrongOldPassword = new QMessageBox(this);
-  errorMessageWrongOldPassword->setText("The old password inserted is wrong.");
-  errorMessageWrongOldPassword->setWindowTitle("Error");
-  errorMessageWrongOldPassword->setFixedSize(this->minimumSize());
+  // TODO: implementare questi messaggi lato server
+  //QMessageBox::warning(this, "CooperativeEditor", "The two passwords must match.")
+  //QMessageBox::warning(this, "CooperativeEditor", "The old password inserted is wrong.")
 
   buttonSaveAndBackToEditor->setFocus();
 
   QObject::connect(buttonExit, &QAbstractButton::clicked, this,
                    [this]() {
-                       int result = areYouSureQuit->exec();
+                       int result = QMessageBox::question(this, "CooperativeEditor", "Are you sure you want to exit?", QMessageBox::Yes, QMessageBox::No);
 
-                       switch (result) {
-                         case QMessageBox::Yes:
-                           this->close();
-                           break;
-                         case QMessageBox::No:
-                           areYouSureQuit->close();
-                           break;
-                         default:
-                           //error, should never be reached
-                           break;
+                       if(result == QMessageBox::Yes) {
+                         this->close();
                        }
                    });
 

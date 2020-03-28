@@ -1,7 +1,5 @@
 #include "User.h"
 
-#include <utility>
-
 User::User(QString username, QString name,
            QString surname, QString email, QString password, QImage picture) : username(
         std::move(username)), name(std::move(name)), password(std::move(password)),

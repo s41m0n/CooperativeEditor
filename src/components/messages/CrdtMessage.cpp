@@ -28,3 +28,10 @@ QDataStream &CrdtMessage::deserialize(QDataStream &stream) {
   stream >> symbols;
   return stream;
 }
+
+CrdtMessage CrdtMessage::fromQByteArray(QByteArray &buf) {
+  QDataStream ds(&buf, QIODevice::ReadOnly);
+  CrdtMessage ret;
+  ds >> ret;
+  return ret;
+}

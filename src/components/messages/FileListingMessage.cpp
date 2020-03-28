@@ -32,3 +32,10 @@ QDataStream &FileListingMessage::deserialize(QDataStream &stream) {
   stream >> files;
   return stream;
 }
+
+FileListingMessage FileListingMessage::fromQByteArray(QByteArray &buf) {
+  QDataStream ds(&buf, QIODevice::ReadOnly);
+  FileListingMessage ret;
+  ds >> ret;
+  return ret;
+}

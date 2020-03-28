@@ -1,9 +1,5 @@
-#include <QFile>
-#include <algorithm>
-#include <filesystem>
-
 #include "Model.h"
-#include "src/include/lib/crdt/CrdtAlgorithm.h"
+
 
 Model::Model() : idGenerator(1) {
 

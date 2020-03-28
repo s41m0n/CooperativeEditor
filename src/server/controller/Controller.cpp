@@ -11,55 +11,48 @@ Controller::Controller(Model *model, unsigned short port, QWidget *parent)
 
 void Controller::incomingConnection(qintptr handle) {
   auto worker = new TcpSocket(this);
-  worker->setSocketDescriptor(handle);
+  if (!worker->setSocketDescriptor(handle)) {
+    worker->deleteLater();
+    return;
+  }
+  worker->setClientID(handle);
 
   connect(worker, &TcpSocket::messageReceived, this,
           &Controller::onMessageReceived);
-  connect(worker, SIGNAL(stateChanged(QAbstractSocket::SocketState)),
-          this, SLOT(onSocketStateChanged(QAbstractSocket::SocketState)));
+  connect(worker, SIGNAL(stateChanged(QAbstractSocket::SocketState)), this,
+          SLOT(onSocketStateChanged(QAbstractSocket::SocketState)));
 
   spdlog::debug("Connected Editor {0:d}", handle);
 
   BasicMessage msg(handle);
   prepareToSend(worker, Type::U_CONNECT, msg);
 }
-void Controller::prepareToSend(TcpSocket *sender, Type type,
-                               BasicMessage &msg) {
-  QByteArray buf;
-  QDataStream ds(&buf, QIODevice::WriteOnly);
-  ds << msg;
-  Header header(buf.size(), type);
-  sender->sendMsg(header, buf);
-  spdlog::info("Sending message:\n{}\n{}", header.toStdString(), msg.toStdString());
-}
 
 void Controller::onSocketStateChanged(
     QAbstractSocket::SocketState socketState) {
   if (socketState == QAbstractSocket::ClosingState) {
     auto sender = dynamic_cast<TcpSocket *>(QObject::sender());
-    BasicMessage msg(sender->socketDescriptor());
+    BasicMessage msg(sender->getClientID());
     dispatch(sender, Type::U_DISCONNECTED, Header(), msg);
     model->removeUserActivity(sender);
     model->removeConnection(sender);
+    spdlog::debug("Disconnected Editor {0:d}", sender->getClientID());
     sender->deleteLater();
   }
 }
 
 void Controller::onMessageReceived(Header &header, QByteArray &buf) {
   auto sender = dynamic_cast<TcpSocket *>(QObject::sender());
-  auto clientId = sender->socketDescriptor();
-  QDataStream ds(&buf, QIODevice::ReadOnly);
+  auto clientId = sender->getClientID();
 
   switch (header.getType()) {
   case Type::U_REGISTER:
   case Type::U_LOGIN: {
-    UserMessage msg;
-    ds >> msg;
+    auto msg = UserMessage::fromQByteArray(buf);
     auto user = msg.getUser();
     bool result = header.getType() == Type::U_LOGIN ? Model::logInUser(user)
                                                     : Model::registerUser(user);
     if (result) {
-      spdlog::error("Son qui");
       UserMessage newMsg(clientId, user);
       FileListingMessage newMsg2(clientId, model->getAvailableFiles());
       prepareToSend(sender,
@@ -79,8 +72,7 @@ void Controller::onMessageReceived(Header &header, QByteArray &buf) {
   }
   case Type::S_INSERT:
   case Type::S_ERASE: {
-    CrdtMessage msg;
-    ds >> msg;
+    auto msg = CrdtMessage::fromQByteArray(buf);
     try {
       header.getType() == Type::S_INSERT
           ? model->userInsert(sender, msg.getSymbols())
@@ -92,35 +84,32 @@ void Controller::onMessageReceived(Header &header, QByteArray &buf) {
     break;
   }
   case Type::U_UPDATE: {
-    UserMessage msg;
-    ds >> msg;
+    auto msg = UserMessage::fromQByteArray(buf);
     auto user = msg.getUser();
     if (Model::updateUser(user)) {
       UserMessage newMsg(clientId, user);
       prepareToSend(sender, Type::U_UPDATE_OK, newMsg);
     } else {
       BasicMessage newMsg(clientId);
-      prepareToSend(sender, Type::U_UPDATE_KO, msg);
+      prepareToSend(sender, Type::U_UPDATE_KO, newMsg);
     }
     break;
   }
   case Type::U_UNREGISTER: {
-    UserMessage msg;
-    ds >> msg;
+    auto msg = UserMessage::fromQByteArray(buf);
     auto user = msg.getUser();
     if (Model::deleteUser(user)) {
       UserMessage newMsg(clientId, user);
       prepareToSend(sender, Type::U_UNREGISTER_OK, newMsg);
     } else {
       BasicMessage newMsg(clientId);
-      prepareToSend(sender, Type::U_UNREGISTER_KO, msg);
+      prepareToSend(sender, Type::U_UNREGISTER_KO, newMsg);
     }
     break;
   }
   case Type::F_CREATE:
   case Type::F_OPEN: {
-    RequestMessage msg;
-    ds >> msg;
+    auto msg = RequestMessage::fromQByteArray(buf);
     auto filename = msg.getFilename();
     FileText symbolList;
 
@@ -135,21 +124,20 @@ void Controller::onMessageReceived(Header &header, QByteArray &buf) {
     }
     File file(filename, symbolList);
     FileMessage newMsg(clientId, file);
-    UserMessage newMsg2(clientId, model->getUserActivity(sender));
     prepareToSend(sender, Type::F_FILE_OK, newMsg);
+
+    UserMessage newMsg2(clientId, model->getUserActivity(sender));
     dispatch(sender, Type::U_CONNECTED, Header(), newMsg2);
     break;
   }
   case Type::S_UPDATE_ATTRIBUTE: {
-    CrdtMessage msg;
-    ds >> msg;
+    auto msg = CrdtMessage::fromQByteArray(buf);
     model->userReplace(sender, msg.getSymbols());
     dispatch(sender, header.getType(), header, msg);
     break;
   }
   case Type::U_DISCONNECTED: {
-    BasicMessage msg;
-    ds >> msg;
+    auto msg = BasicMessage::fromQByteArray(buf);
     dispatch(sender, header.getType(), header, msg);
     model->removeConnection(sender);
     break;
@@ -159,6 +147,13 @@ void Controller::onMessageReceived(Header &header, QByteArray &buf) {
   }
 }
 
+void Controller::prepareToSend(TcpSocket *sender, Type type,
+                               BasicMessage &msg) {
+  auto buf = BasicMessage::toQByteArray(msg);
+  Header header(buf.size(), type);
+  sender->sendMsg(header, buf);
+}
+
 void Controller::dispatch(TcpSocket *sender, Type headerType, Header header,
                           BasicMessage &message) {
   auto serverFile = model->getFileBySocket(sender);
@@ -166,21 +161,22 @@ void Controller::dispatch(TcpSocket *sender, Type headerType, Header header,
     return;
   auto fileConnections = model->getFileConnections(serverFile->getFileName());
   if (!fileConnections.empty()) {
+    // Serializing only once the message to forward and directly call
+    // socket->sendMsg instead of this->preparingMsg
+    auto buf = BasicMessage::toQByteArray(message);
+    auto head = header.getType() == headerType ? header
+                                               : Header(buf.size(), headerType);
     std::for_each(
         fileConnections.begin(), fileConnections.end(), [&](auto &socket) {
           if (socket != sender) {
-            if (header.getType() == headerType) {
-              prepareToSend(socket, header.getType(), message);
-            } else {
-              prepareToSend(socket, headerType, message);
-              if (headerType == Type::U_CONNECTED) {
-                UserMessage remoteUser(socket->socketDescriptor(),
-                                       model->getUserActivity(socket));
-                prepareToSend(socket, headerType, remoteUser);
-              }
+            socket->sendMsg(head, buf);
+            if (headerType == Type::U_CONNECTED) {
+              UserMessage remoteUser(socket->getClientID(),
+                                     model->getUserActivity(socket));
+              prepareToSend(sender, headerType, remoteUser);
             }
             spdlog::debug("Dispatched message from {} to {}",
-                          sender->socketDescriptor(), socket->socketDescriptor());
+                          sender->getClientID(), socket->getClientID());
           }
         });
   }

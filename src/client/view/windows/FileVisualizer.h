@@ -24,7 +24,6 @@ private:
     QLabel *titleOpen{};
     QPushButton *buttonExit{};
     QPushButton *buttonCreate{};
-    QMessageBox *areYouSureQuit{};
     QGroupBox *boxCreate{};
     QGroupBox *boxFileList{};
     QGroupBox *boxLink{};

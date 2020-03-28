@@ -6,7 +6,9 @@
 #include <string>
 #include <memory>
 #include <src/common/File.h>
+#include <memory>
 
+#include "src/include/lib/crdt/CrdtAlgorithm.h"
 #include "common/User.h"
 #include "components/Symbol.h"
 

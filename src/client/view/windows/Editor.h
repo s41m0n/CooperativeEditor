@@ -2,6 +2,8 @@
 #define COOPERATIVEEDITOR_EDITOR_H
 
 #include <QMainWindow>
+#include <QtWidgets/QInputDialog>
+#include <QtWidgets/QListWidget>
 #include <QLabel>
 #include <QPushButton>
 #include <QMessageBox>
@@ -37,9 +39,6 @@ private:
     QTextEdit *textEdit;
     QMenuBar *topBar;
     QToolBar *toolBar;
-    QMessageBox *fileCorrectlySaved;
-    QMessageBox *editorInfo;
-    QMessageBox *infoAboutUs;
     QListWidget *usersOnline;
     QAction *actionBold;
     QAction *actionItalic;
@@ -81,8 +80,8 @@ public:
 public slots:
 
     ///Slot to open the selected file in the editor the first time
-    void onFileTextLoad(const FileText &text, const QString &fileName,
-                        const QString &username, unsigned int editorId);
+    void onFileTextLoad(const FileText &text, const QString fileName,
+                        const QString username, unsigned int editorId);
 
     ///Slot to notify the editor that a remote user has inserted a character
     void onRemoteInsert(int index, const QVector<Symbol> &symbol);

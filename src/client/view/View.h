@@ -7,7 +7,7 @@
 #include "windows/FileVisualizer.h"
 #include "windows/Login.h"
 #include "windows/SignUp.h"
-#include <QtWidgets/QStackedWidget>
+
 
 /**Class View, the responsible of the user interface
  *

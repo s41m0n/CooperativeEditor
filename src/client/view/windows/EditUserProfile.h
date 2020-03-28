@@ -42,9 +42,6 @@ private:
     QPushButton *buttonExit;
     QPushButton *buttonSaveAndBackToEditor;
     QPushButton *buttonDeleteProfile;
-    QMessageBox *errorMessageDifferentPasswords;
-    QMessageBox *errorMessageWrongOldPassword;
-    QMessageBox *areYouSureQuit;
     QImage userImage;
 
 protected:

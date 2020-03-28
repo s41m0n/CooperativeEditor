@@ -27,3 +27,10 @@ QDataStream &UserMessage::deserialize(QDataStream &stream) {
   stream >> user;
   return stream;
 }
+
+UserMessage UserMessage::fromQByteArray(QByteArray &buf) {
+  QDataStream ds(&buf, QIODevice::ReadOnly);
+  UserMessage ret;
+  ds >> ret;
+  return ret;
+}

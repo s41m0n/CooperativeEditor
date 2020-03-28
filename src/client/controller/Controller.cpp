@@ -1,17 +1,4 @@
-#include <QCryptographicHash>
-#include <QHostAddress>
-#include <QImage>
-#include <memory>
-#include <spdlog/spdlog.h>
-#include <src/components/messages/RequestMessage.h>
-#include <utility>
-
 #include "Controller.h"
-#include "src/components/messages/BasicMessage.h"
-#include "src/components/messages/CrdtMessage.h"
-#include "src/components/messages/FileListingMessage.h"
-#include "src/components/messages/FileMessage.h"
-#include "src/components/messages/UserMessage.h"
 
 Controller::Controller(Model *model, const std::string &host, int port)
     : model(model), socket(new TcpSocket(this)) {
@@ -20,8 +7,6 @@ Controller::Controller(Model *model, const std::string &host, int port)
           &Controller::onMessageReceived);
   connect(socket, &QTcpSocket::connected, this, &Controller::connected);
   connect(socket, &QTcpSocket::disconnected, this, &Controller::disconnected);
-  // Forward the error signal, QOverload is necessary as error() is overloaded,
-  // see the Qt docs
   connect(socket,
           QOverload<QAbstractSocket::SocketError>::of(&QAbstractSocket::error),
           this, &Controller::error);
@@ -29,11 +14,9 @@ Controller::Controller(Model *model, const std::string &host, int port)
 
 void Controller::onMessageReceived(Header &header, QByteArray &buf) {
 
-  QDataStream ds(&buf, QIODevice::ReadOnly);
   switch (header.getType()) {
   case Type::U_CONNECT: {
-    BasicMessage msg;
-    ds >> msg;
+    auto msg = BasicMessage::fromQByteArray(buf);
     model->setEditorId(msg.getEditorId());
     break;
   }
@@ -45,14 +28,12 @@ void Controller::onMessageReceived(Header &header, QByteArray &buf) {
   case Type::U_REGISTER_OK:
   case Type::U_LOGIN_OK: {
     emit loginResponse(true);
-    UserMessage msg;
-    ds >> msg;
+    auto msg = UserMessage::fromQByteArray(buf);
     model->setCurrentUser(msg.getUser());
     break;
   }
   case Type::F_LISTING: {
-    FileListingMessage msg;
-    ds >> msg;
+    auto msg = FileListingMessage::fromQByteArray(buf);
     emit fileListing(msg.getFiles());
     break;
   }
@@ -62,19 +43,17 @@ void Controller::onMessageReceived(Header &header, QByteArray &buf) {
   }
   case Type::F_FILE_OK: {
     emit fileResult(true);
-    FileMessage msg;
-    ds >> msg;
+    auto msg = FileMessage::fromQByteArray(buf);
     model->setCurrentFile(msg.getFile());
     emit loadFileText(model->getFileText(), model->getFile().getFileName(),
-                      model->getUser(), model->getEditorId());
+                      model->getUser().getUsername(), model->getEditorId());
     break;
   }
   case Type::S_UPDATE_ATTRIBUTE:
   case Type::S_INSERT:
   case Type::S_ERASE: {
     try {
-      CrdtMessage msg;
-      ds >> msg;
+      auto msg = CrdtMessage::fromQByteArray(buf);
       auto symbols = msg.getSymbols();
       if (header.getType() == Type::S_INSERT) {
         emit remoteUserInsert(model->remoteInsert(symbols), symbols);
@@ -89,32 +68,25 @@ void Controller::onMessageReceived(Header &header, QByteArray &buf) {
     break;
   }
   case Type::U_CONNECTED: {
-    UserMessage msg;
-    ds >> msg;
+    auto msg = UserMessage::fromQByteArray(buf);
     auto userConnected = msg.getUser();
     emit remoteUserConnected(
         msg.getEditorId(), userConnected.getName());
     break;
   }
   case Type::U_DISCONNECTED: {
-    BasicMessage msg;
-    ds >> msg;
+    auto msg = BasicMessage::fromQByteArray(buf);
     emit remoteUserDisconnected(msg.getEditorId());
     break;
   }
   default:
-    throw std::runtime_error("Unknown message received\n" +
-                             header.toStdString());
+    emit error();
   }
 }
 
 void Controller::prepareToSend(Type type, BasicMessage &msg) {
-  QByteArray buf;
-  QDataStream ds(&buf, QIODevice::WriteOnly);
-  ds << msg;
+  auto buf = BasicMessage::toQByteArray(msg);
   Header header(buf.size(), type);
-  spdlog::info("Sending message:\n{}\n{}", header.toStdString(),
-               msg.toStdString());
   socket->sendMsg(header, buf);
 }
 

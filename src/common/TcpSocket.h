@@ -24,6 +24,8 @@ private:
   /// The dedicated socket data stream
   QDataStream ds;
 
+  qint32 clientID;
+
   Header header;
 
   bool isMessageAvailable();
@@ -33,12 +35,16 @@ public:
 
   void sendMsg(Header &headerToSend, QByteArray &val);
 
+  void setClientID(qintptr handle);
+
+  qint32 getClientID();
+
   bool operator==(const TcpSocket &b) {
-    return this->socketDescriptor() == b.socketDescriptor();
+    return this->clientID == b.clientID;
   }
 
   bool operator==(const TcpSocket *b) {
-    return this->socketDescriptor() == b->socketDescriptor();
+    return this->clientID == b->clientID;
   }
 };
 

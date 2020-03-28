@@ -6,7 +6,19 @@
 #include <QString>
 #include <QTcpSocket>
 #include <string>
+#include <QCryptographicHash>
+#include <QHostAddress>
+#include <QImage>
+#include <memory>
+#include <spdlog/spdlog.h>
+#include <src/components/messages/RequestMessage.h>
+#include <utility>
 
+#include "src/components/messages/BasicMessage.h"
+#include "src/components/messages/CrdtMessage.h"
+#include "src/components/messages/FileListingMessage.h"
+#include "src/components/messages/FileMessage.h"
+#include "src/components/messages/UserMessage.h"
 #include "client/model/Model.h"
 #include "common/TcpSocket.h"
 #include "components/messages/BasicMessage.h"
@@ -74,7 +86,7 @@ signals:
   void fileResult(bool result);
 
   /// Method to notify the view that a file has to be opened for the first time
-  void loadFileText(FileText text, QString fileName, User user,
+  void loadFileText(FileText text, QString fileName, QString username,
                     unsigned int editorId);
 
   /// Method to notify the view a character has been inserted by a remote user

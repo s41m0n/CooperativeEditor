@@ -31,3 +31,11 @@ QDataStream &FileMessage::deserialize(QDataStream &stream) {
   stream >> file;
   return stream;
 }
+
+
+FileMessage FileMessage::fromQByteArray(QByteArray &buf) {
+  QDataStream ds(&buf, QIODevice::ReadOnly);
+  FileMessage ret;
+  ds >> ret;
+  return ret;
+}

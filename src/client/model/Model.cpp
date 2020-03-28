@@ -1,9 +1,5 @@
 #include "Model.h"
 
-#include <memory>
-
-#include "src/include/lib/crdt/CrdtAlgorithm.h"
-
 Model::Model() : editorId(0), digitGenerator(0), file(), user() {
 }
 
