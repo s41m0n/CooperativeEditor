@@ -177,3 +177,8 @@ void Controller::onShowEditProfile() {
   emit userProfileInfo(user.getPicture(), user.getName(), user.getSurname(),
                        user.getEmail(), user.getUsername());
 }
+
+void Controller::onFileClosed() {
+  spdlog::debug("Ciao Rick! :)");
+  //TODO:comunica al server che l'utente si è sconnesso dal file
+}

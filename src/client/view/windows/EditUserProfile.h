@@ -52,6 +52,7 @@ protected:
 
 public:
     explicit EditUserProfile(QWidget *parent = nullptr);
+    void closeEvent(QCloseEvent *event) override;
 
 public slots:
 
@@ -62,6 +63,7 @@ public slots:
 signals:
 
     void requestUserProfile();
+    void openEditorFromEditProfileNoChanges();
 
 };
 

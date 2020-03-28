@@ -54,6 +54,8 @@ public slots:
 
     void onShowEditProfile();
 
+    void onFileClosed();
+
 signals:
 
     ///Signal to notify the view about the login

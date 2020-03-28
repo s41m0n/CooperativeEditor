@@ -1,13 +1,9 @@
 #include <spdlog/spdlog.h>
-#include <QtWidgets/QListWidget>
-#include <QtWidgets/QInputDialog>
 #include "Editor.h"
 
 Editor::Editor(QWidget *parent) : QMainWindow(parent), usersOnlineList() {
 
-  //TODO:fai finestra readonly per vedere info utente con vettore
-
-  this->setMinimumWidth(500);
+  this->resize(1000, 500);
 
   mainWidget = new QWidget(this);
   auto layout = new QGridLayout(mainWidget);
@@ -16,7 +12,6 @@ Editor::Editor(QWidget *parent) : QMainWindow(parent), usersOnlineList() {
   mainWidget->setLayout(layout);
 
   createTopBar(layout);
-
   createToolBar(layout);
 
   fileCorrectlySaved = new QMessageBox();
@@ -359,8 +354,8 @@ void Editor::createTopBar(QGridLayout *layout) {
   QObject::connect(actionClose, &QAction::triggered, this,
                    [this]() {
                        emit openVisualizerFromEditor();
-                       this->hide();
-                       //TODO: implementa bene con segnali di disconnessione ecc
+                       emit fileClosed(); //to inform the server the user has closed the file
+                       this->close();
                    });
   file->addAction(actionClose);
 
@@ -421,7 +416,7 @@ void Editor::createTopBar(QGridLayout *layout) {
   QObject::connect(actionEditProfile, &QAction::triggered, this,
                    [this]() {
                        emit openEditProfileFromEditor();
-                       this->hide();
+                       this->setDisabled(true);
                    });
   edit->addAction(actionEditProfile);
   topBar->addSeparator();
@@ -568,4 +563,8 @@ void Editor::textUnderlined() {
     emit symbolUpdated(textCursor.selectionStart(), selection.size(),
                        Attribute::UNDERLINED, actionUnderlined->isChecked());
   }
+}
+
+void Editor::onComeBackFromEditProfileNoChanges() {
+  this->setDisabled(false);
 }

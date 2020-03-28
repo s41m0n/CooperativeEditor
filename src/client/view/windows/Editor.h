@@ -19,6 +19,8 @@
 #include <QtPrintSupport/QPrinter>
 #include <QTextStream>
 #include <QGroupBox>
+#include <QCloseEvent>
+#include <QInputDialog>
 #include <src/components/Symbol.h>
 #include <src/common/File.h>
 #include <src/common/User.h>
@@ -97,6 +99,8 @@ public slots:
 
     void onRemoteUserDisconnected(qint32 clientId);
 
+    void onComeBackFromEditProfileNoChanges();
+
 signals:
 
     ///Signal emitted when the user wants to edit his profile
@@ -115,6 +119,9 @@ signals:
     ///Signal emitted when the user updates a symbol in the editor
     void
     symbolUpdated(int position, int size, Attribute attribute, bool set);
+
+    ///Signal emitted to inform the server the client has closed the file
+    void fileClosed();
 
 };
 
