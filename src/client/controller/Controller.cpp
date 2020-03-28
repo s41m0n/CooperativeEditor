@@ -58,7 +58,7 @@ void Controller::onReadyRead() {
         model->setCurrentFile(
                 std::dynamic_pointer_cast<FileMessage>(base)->getFile());
         emit loadFileText(model->getFileText(), model->getFile().getFileName(),
-                          model->getUser(), model->getEditorId());
+                          model->getUser().getUsername(), model->getEditorId());
         break;
       }
       case Type::S_INSERT:
@@ -80,10 +80,6 @@ void Controller::onReadyRead() {
         auto userConnected =
                 std::dynamic_pointer_cast<UserMessage>(base)->getUser();
         emit remoteUserConnected(base->getEditorId(),
-                                 userConnected.getPicture(),
-                                 userConnected.getName(),
-                                 userConnected.getSurname(),
-                                 userConnected.getEmail(),
                                  userConnected.getUsername());
         break;
       }

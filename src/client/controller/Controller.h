@@ -68,7 +68,7 @@ signals:
     void fileResult(bool result);
 
     ///Method to notify the view that a file has to be opened for the first time
-    void loadFileText(FileText text, QString fileName, User user, unsigned int editorId);
+    void loadFileText(FileText text, QString fileName, QString username, unsigned int editorId);
 
     ///Method to notify the view a character has been inserted by a remote user
     void remoteUserInsert(int index, QVector<Symbol> symbols);
@@ -83,8 +83,7 @@ signals:
     void userProfileInfo(QImage image, QString name, QString surname,
             QString email, QString username);
 
-    void remoteUserConnected(qint32 clientId, QImage image, QString name,
-            QString surname, QString email, QString username);
+    void remoteUserConnected(qint32 clientId, QString username);
 
     void remoteUserDisconnected(quint32 clientId);
 
