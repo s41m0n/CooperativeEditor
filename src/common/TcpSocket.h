@@ -1,61 +1,51 @@
 #ifndef COOPERATIVEEDITOR_TCPSOCKET_H
 #define COOPERATIVEEDITOR_TCPSOCKET_H
 
-#include <spdlog/spdlog.h>
+#include <QDataStream>
 #include <QObject>
 #include <QTcpSocket>
-#include <QDataStream>
 #include <src/components/messages/Header.h>
-#include <components/messages/BasicMessage.h>
-#include <src/components/messages/FileListingMessage.h>
-#include <src/components/messages/RequestMessage.h>
-#include <src/components/messages/UserMessage.h>
-#include <src/components/messages/FileMessage.h>
-#include <src/components/messages/CrdtMessage.h>
+#include <spdlog/spdlog.h>
 
 /**
  * TcpSocket class, an extension to the QTcpSocket which include more info
  */
 class TcpSocket : public QTcpSocket {
 
-Q_OBJECT
+  Q_OBJECT
+  Q_DISABLE_COPY(TcpSocket)
+
+signals:
+  void messageReceived(Header &header, QByteArray &msg);
+private slots:
+  void onReadyRead();
 
 private:
+  /// The dedicated socket data stream
+  QDataStream ds;
 
-    ///The dedicated socket data stream
-    QDataStream ds;
+  qint32 clientID;
 
-    unsigned id;
+  Header header;
 
-    Header header;
+  bool isMessageAvailable();
 
 public:
+  explicit TcpSocket(QObject *parent = nullptr);
 
-    explicit TcpSocket(QObject *parent = nullptr);
+  void sendMsg(Header &headerToSend, QByteArray &val);
 
-    void setIdentifier(unsigned id);
+  void setClientID(qintptr handle);
 
-    unsigned getIdentifier();
+  qint32 getClientID();
 
-    Header &getHeader();
+  bool operator==(const TcpSocket &b) {
+    return this->clientID == b.clientID;
+  }
 
-    bool isMessageAvailable();
-
-    void sendMsg(Type type, BasicMessage &val);
-
-    void sendMsg(Header &headerToSend, BasicMessage &val);
-
-    BasicMessage *readMsg();
-
-    bool operator==(const TcpSocket &b) {
-      return this->id == b.id;
-    }
-
-    bool operator==(const TcpSocket *b) {
-      return this->id == b->id;
-    }
-
+  bool operator==(const TcpSocket *b) {
+    return this->clientID == b->clientID;
+  }
 };
 
-
-#endif //COOPERATIVEEDITOR_TCPSOCKET_H
+#endif // COOPERATIVEEDITOR_TCPSOCKET_H

@@ -46,31 +46,15 @@ Login::Login(QWidget *parent) : QMainWindow(parent) {
   buttonExit->setAutoDefault(true);
   layout->addWidget(buttonExit, 5, 0, 1, 2);
 
-  errorMessageEmptyFields = new QMessageBox(this);
-  errorMessageEmptyFields->setText("Please insert username and password.");
-  errorMessageEmptyFields->setFixedSize(this->minimumSize());
-
-  areYouSureQuit = new QMessageBox(this);
-  areYouSureQuit->setText("Are you sure you want to exit?");
-  areYouSureQuit->setStandardButtons(QMessageBox::Yes | QMessageBox::No);
-  areYouSureQuit->setFixedSize(this->minimumSize());
 
   buttonExit->setFocus();
 
   QObject::connect(buttonExit, &QAbstractButton::clicked, this,
                    [this]() {
-                       int result = areYouSureQuit->exec();
+                       int result = QMessageBox::question(this, "CooperativeEditor", "Are you sure you want to exit?", QMessageBox::Yes, QMessageBox::No);
 
-                       switch (result) {
-                         case QMessageBox::Yes:
-                           this->close();
-                           break;
-                         case QMessageBox::No:
-                           areYouSureQuit->close();
-                           break;
-                         default:
-                           //error, should never be reached
-                           break;
+                       if(result == QMessageBox::Yes) {
+                         this->close();
                        }
                    });
 
@@ -81,7 +65,7 @@ Login::Login(QWidget *parent) : QMainWindow(parent) {
                          emit loginRequest(usernameTextField->text(),
                                            passwordTextField->text());
                        } else {
-                         errorMessageEmptyFields->exec();
+                         QMessageBox::information(this, "CooperativeEditor", "Please insert username and password.");
                        }
                    });
 

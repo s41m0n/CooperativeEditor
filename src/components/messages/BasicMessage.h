@@ -10,23 +10,24 @@
 class BasicMessage : public Serializable {
 
 protected:
+  unsigned editorId;
 
-    unsigned editorId;
+  QDataStream &serialize(QDataStream &stream) const override;
+
+  QDataStream &deserialize(QDataStream &stream) override;
 
 public:
+  BasicMessage(unsigned editorId);
 
-    BasicMessage(unsigned editorId);
+  BasicMessage();
 
-    BasicMessage();
+  quint32 getEditorId();
 
-    quint32 getEditorId();
+  std::string toStdString(int level = 0) override;
 
-    std::string toStdString(int level = 0) override;
+  static BasicMessage fromQByteArray(QByteArray &buf);
 
-    QDataStream &serialize(QDataStream &stream) const override;
-
-    QDataStream &deserialize(QDataStream &stream) override;
-
+  static QByteArray toQByteArray(BasicMessage &msg);
 };
 
-#endif //COOPERATIVEEDITOR_BASICMESSAGE_H
+#endif // COOPERATIVEEDITOR_BASICMESSAGE_H

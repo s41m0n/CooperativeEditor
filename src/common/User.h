@@ -3,6 +3,7 @@
 
 #include <QString>
 #include <QtGui/QImage>
+#include <utility>
 
 #include "src/include/lib/serialization/Serializable.h"
 
@@ -63,5 +64,6 @@ public:
 
 };
 
+Q_DECLARE_METATYPE(User);
 
 #endif //COOPERATIVEEDITOR_USER_H

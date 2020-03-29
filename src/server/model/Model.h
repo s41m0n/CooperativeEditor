@@ -7,7 +7,11 @@
 #include <map>
 #include <memory>
 #include <mutex>
+#include <QFile>
+#include <algorithm>
+#include <filesystem>
 
+#include "src/include/lib/crdt/CrdtAlgorithm.h"
 #include "components/Symbol.h"
 
 #include "Database.h"

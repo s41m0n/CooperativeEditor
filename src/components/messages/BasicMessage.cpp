@@ -24,3 +24,17 @@ QDataStream &BasicMessage::deserialize(QDataStream &stream) {
   stream >> editorId;
   return stream;
 }
+
+BasicMessage BasicMessage::fromQByteArray(QByteArray &buf) {
+  QDataStream ds(&buf, QIODevice::ReadOnly);
+  BasicMessage ret;
+  ds >> ret;
+  return ret;
+}
+
+QByteArray BasicMessage::toQByteArray(BasicMessage &msg) {
+  QByteArray buf;
+  QDataStream ds(&buf, QIODevice::WriteOnly);
+  ds << msg;
+  return buf;
+}

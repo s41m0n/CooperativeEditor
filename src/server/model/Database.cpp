@@ -1,6 +1,4 @@
 #include "Database.h"
-#include <iostream>
-#include <spdlog/spdlog.h>
 
 Database::Database() {
   if (openConnection()) {

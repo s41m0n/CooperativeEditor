@@ -96,36 +96,14 @@ SignUp::SignUp(QWidget *parent) : QMainWindow(parent) {
   buttonExit->setAutoDefault(true);
   layout->addWidget(buttonExit, 3, 0, 1, 2);
 
-  errorMessageEmptyFields = new QMessageBox(this);
-  errorMessageEmptyFields->setText("Please fill all the requested fields.");
-  errorMessageEmptyFields->setWindowTitle("Error");
-  errorMessageEmptyFields->setFixedSize(this->minimumSize());
-
-  areYouSureQuit = new QMessageBox(this);
-  areYouSureQuit->setText("Are you sure you want to exit?");
-  areYouSureQuit->setStandardButtons(QMessageBox::Yes | QMessageBox::No);
-  areYouSureQuit->setFixedSize(this->minimumSize());
-
-  errorMessageDifferentPasswords = new QMessageBox(this);
-  errorMessageDifferentPasswords->setText("The two passwords must match.");
-  errorMessageDifferentPasswords->setWindowTitle("Error");
-  errorMessageDifferentPasswords->setFixedSize(this->minimumSize());
 
   buttonExit->setFocus();
 
   QObject::connect(buttonExit, &QAbstractButton::clicked, this, [this]() {
-      int result = areYouSureQuit->exec();
+      int result = QMessageBox::warning(this, "CooperativeEditor", "Are you sure you want to exit?", QMessageBox::Yes, QMessageBox::No);
 
-      switch (result) {
-        case QMessageBox::Yes:
-          this->close();
-          break;
-        case QMessageBox::No:
-          areYouSureQuit->close();
-          break;
-        default:
-          // error, should never be reached
-          break;
+      if(result == QMessageBox::Yes) {
+        this->close();
       }
   });
 
@@ -139,18 +117,12 @@ SignUp::SignUp(QWidget *parent) : QMainWindow(parent) {
                 userImage = QImage(path);
 
                 if (userImage.sizeInBytes() > 1048576) { //maxSize = 1MB
-                  auto errorSizeLimit = new QMessageBox(this);
-                  errorSizeLimit->setWindowTitle("Error");
-                  errorSizeLimit->setText(
-                          "The image you have selected is too big. Try again.");
-                  errorSizeLimit->setFixedSize(this->minimumSize());
-                  errorSizeLimit->show();
+                  QMessageBox::information(this, "CooperativeEditor", "The image you have selected is too big. Try again.");
                   userImage = QImage();
                 } else {
                   displayImage->setPixmap(
                           QPixmap::fromImage(userImage).scaled(75, 75,
                                                                Qt::KeepAspectRatio));
-
                   imageBorder->layout()->addWidget(displayImage);
                   imageBorder->show();
                   displayImage->show();
@@ -180,10 +152,10 @@ SignUp::SignUp(QWidget *parent) : QMainWindow(parent) {
                              usernameTextField->text(),
                              emailTextField->text(), passwordTextField->text());
         } else {
-          errorMessageDifferentPasswords->exec();
+          QMessageBox::warning(this, "CooperativeEditor", "The two passwords must match.");
         }
       } else {
-        errorMessageEmptyFields->exec();
+        QMessageBox::information(this, "CooperativeEditor", "Please fill all the requested fields.");
       }
   });
 }

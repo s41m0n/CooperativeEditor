@@ -7,24 +7,22 @@
 class UserMessage : public BasicMessage {
 
 private:
+  User user;
 
-    User user;
+  QDataStream &serialize(QDataStream &stream) const override;
+
+  QDataStream &deserialize(QDataStream &stream) override;
 
 public:
+  explicit UserMessage(unsigned editorId, User user);
 
-    explicit UserMessage(unsigned editorId, User user);
+  UserMessage() = default;
 
-    UserMessage() = default;
+  User &getUser();
 
-    User &getUser();
+  std::string toStdString(int level = 0) override;
 
-    std::string toStdString(int level = 0) override;
-
-    QDataStream &serialize(QDataStream &stream) const override;
-
-    QDataStream &deserialize(QDataStream &stream) override;
-
+  static UserMessage fromQByteArray(QByteArray &buf);
 };
 
-
-#endif //COOPERATIVEEDITOR_USERMESSAGE_H
+#endif // COOPERATIVEEDITOR_USERMESSAGE_H

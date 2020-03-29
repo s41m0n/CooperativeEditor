@@ -1,8 +1,6 @@
 #include <QApplication>
 #include <spdlog/spdlog.h>
 
-#include "client/controller/Controller.h"
-#include "client/model/Model.h"
 #include "client/view/View.h"
 
 int main(int argc, char **argv) {
@@ -19,6 +17,11 @@ int main(int argc, char **argv) {
   } else {
     spdlog::set_level(spdlog::level::critical);
   }
+
+  qRegisterMetaType<QVector<QString>>();
+  qRegisterMetaType<FileText>();
+  qRegisterMetaType<User>();
+  qRegisterMetaType<Attribute>();
 
   QApplication app(argc, argv);
 

@@ -1,111 +1,103 @@
-#include <QCryptographicHash>
-#include <QHostAddress>
-#include <QImage>
-#include <memory>
-#include <spdlog/spdlog.h>
-#include <utility>
-
 #include "Controller.h"
-#include "src/components/messages/BasicMessage.h"
-#include "src/components/messages/CrdtMessage.h"
-#include "src/components/messages/FileListingMessage.h"
-#include "src/components/messages/FileMessage.h"
-#include "src/components/messages/UserMessage.h"
 
 Controller::Controller(Model *model, const std::string &host, int port)
-        : model(model) {
-  connectToHost(QHostAddress(host.c_str()), port);
-  connect(this, SIGNAL(readyRead()), this, SLOT(onReadyRead()));
+    : model(model), socket(new TcpSocket(this)) {
+  socket->connectToHost(QHostAddress(host.c_str()), port);
+  connect(socket, &TcpSocket::messageReceived, this,
+          &Controller::onMessageReceived);
+  connect(socket, &QTcpSocket::connected, this, &Controller::connected);
+  connect(socket, &QTcpSocket::disconnected, this, &Controller::disconnected);
+  connect(socket,
+          QOverload<QAbstractSocket::SocketError>::of(&QAbstractSocket::error),
+          this, &Controller::error);
 }
 
-void Controller::onReadyRead() {
+void Controller::onMessageReceived(Header &header, QByteArray &buf) {
 
-  while (isMessageAvailable()) {
-
-    auto header = getHeader();
-    std::shared_ptr<BasicMessage> base(readMsg());
-
-    switch (header.getType()) {
-      case Type::U_CONNECT: {
-        model->setEditorId(base->getEditorId());
-        setIdentifier(base->getEditorId());
-        break;
-      }
-      case Type::U_REGISTER_KO:
-      case Type::U_LOGIN_KO: {
-        emit loginResponse(false);
-        break;
-      }
-      case Type::U_REGISTER_OK:
-      case Type::U_LOGIN_OK: {
-        emit loginResponse(true);
-        model->setCurrentUser(
-                std::dynamic_pointer_cast<UserMessage>(base)->getUser());
-        break;
-      }
-      case Type::F_LISTING: {
-        emit fileListing(
-                std::dynamic_pointer_cast<FileListingMessage>(
-                        base)->getFiles());
-        break;
-      }
-      case Type::F_FILE_KO: {
-        emit fileResult(false);
-        break;
-      }
-      case Type::F_FILE_OK: {
-        emit fileResult(true);
-        model->setCurrentFile(
-                std::dynamic_pointer_cast<FileMessage>(base)->getFile());
-        emit loadFileText(model->getFileText(), model->getFile().getFileName(),
-                          model->getUser().getUsername(), model->getEditorId());
-        break;
-      }
-      case Type::S_INSERT:
-      case Type::S_ERASE: {
-        try {
-          auto symbols = std::dynamic_pointer_cast<CrdtMessage>(
-                  base)->getSymbols();
-          if (header.getType() == Type::S_INSERT) {
-            emit remoteUserInsert(model->remoteInsert(symbols), symbols);
-          } else {
-            emit remoteUserDelete(model->remoteErase(symbols), symbols.size());
-          }
-        } catch (std::exception &e) {
-          spdlog::error("Error on remote operation:\nMsg -> {}", e.what());
-        }
-        break;
-      }
-      case Type::U_CONNECTED: {
-        auto userConnected =
-                std::dynamic_pointer_cast<UserMessage>(base)->getUser();
-        emit remoteUserConnected(base->getEditorId(),
-                                 userConnected.getUsername());
-        break;
-      }
-      case Type::U_DISCONNECTED: {
-        emit remoteUserDisconnected(base->getEditorId());
-        break;
-      }
-      case Type::S_UPDATE_ATTRIBUTE: {
-        auto symbols = std::dynamic_pointer_cast<CrdtMessage>(
-                base)->getSymbols();
-        emit remoteUserUpdate(model->remoteUpdate(symbols), symbols);
-        break;
-      }
-      default:
-        throw std::runtime_error("Unknown message received");
-    }
+  switch (header.getType()) {
+  case Type::U_CONNECT: {
+    auto msg = BasicMessage::fromQByteArray(buf);
+    model->setEditorId(msg.getEditorId());
+    break;
   }
+  case Type::U_REGISTER_KO:
+  case Type::U_LOGIN_KO: {
+    emit loginResponse(false);
+    break;
+  }
+  case Type::U_REGISTER_OK:
+  case Type::U_LOGIN_OK: {
+    emit loginResponse(true);
+    auto msg = UserMessage::fromQByteArray(buf);
+    model->setCurrentUser(msg.getUser());
+    break;
+  }
+  case Type::F_LISTING: {
+    auto msg = FileListingMessage::fromQByteArray(buf);
+    emit fileListing(msg.getFiles());
+    break;
+  }
+  case Type::F_FILE_KO: {
+    emit fileResult(false);
+    break;
+  }
+  case Type::F_FILE_OK: {
+    emit fileResult(true);
+    auto msg = FileMessage::fromQByteArray(buf);
+    model->setCurrentFile(msg.getFile());
+    emit loadFileText(model->getFileText(), model->getFile().getFileName(),
+                      model->getUser().getUsername(), model->getEditorId());
+    break;
+  }
+  case Type::S_UPDATE_ATTRIBUTE:
+  case Type::S_INSERT:
+  case Type::S_ERASE: {
+    try {
+      auto msg = CrdtMessage::fromQByteArray(buf);
+      auto symbols = msg.getSymbols();
+      if (header.getType() == Type::S_INSERT) {
+        emit remoteUserInsert(model->remoteInsert(symbols), symbols);
+      } else if (header.getType() == Type::S_ERASE) {
+        emit remoteUserDelete(model->remoteErase(symbols), symbols.size());
+      } else {
+        emit remoteUserUpdate(model->remoteUpdate(symbols), symbols);
+      }
+    } catch (std::exception &e) {
+      spdlog::error("Error on remote operation:\nMsg -> {}", e.what());
+    }
+    break;
+  }
+  case Type::U_CONNECTED: {
+    auto msg = UserMessage::fromQByteArray(buf);
+    auto userConnected = msg.getUser();
+    emit remoteUserConnected(
+        msg.getEditorId(), userConnected.getName());
+    break;
+  }
+  case Type::U_DISCONNECTED: {
+    auto msg = BasicMessage::fromQByteArray(buf);
+    emit remoteUserDisconnected(msg.getEditorId());
+    break;
+  }
+  default:
+    emit error();
+  }
+}
+
+void Controller::prepareToSend(Type type, BasicMessage &msg) {
+  auto buf = BasicMessage::toQByteArray(msg);
+  Header header(buf.size(), type);
+  socket->sendMsg(header, buf);
 }
 
 void Controller::onCharInserted(int index, const QString &value,
                                 const QVector<bool> &attributes) {
 
   try {
+
     CrdtMessage msg(model->localInsert(index, value, attributes),
                     model->getEditorId());
-    sendMsg(Type::S_INSERT, msg);
+    prepareToSend(Type::S_INSERT, msg);
   } catch (std::exception &e) {
     spdlog::error("Error on local insert:\nIndex-> {}\nMsg -> {}", index,
                   e.what());
@@ -116,19 +108,19 @@ void Controller::onCharErased(int index, int size) {
 
   try {
     CrdtMessage msg(model->localErase(index, size), model->getEditorId());
-    sendMsg(Type::S_ERASE, msg);
+    prepareToSend(Type::S_ERASE, msg);
   } catch (std::exception &e) {
     spdlog::error("Error on local erase: Index-> {} @ Msg -> {}", index,
                   e.what());
   }
 }
 
-void
-Controller::onCharUpdated(int index, int size, Attribute attribute, bool set) {
+void Controller::onCharUpdated(int index, int size, Attribute attribute,
+                               bool set) {
   try {
     CrdtMessage msg(model->localUpdate(index, size, attribute, set),
                     model->getEditorId());
-    sendMsg(Type::S_UPDATE_ATTRIBUTE, msg);
+    prepareToSend(Type::S_UPDATE_ATTRIBUTE, msg);
   } catch (std::exception &e) {
     spdlog::error("Error on local update: Index-> {} @ Msg -> {}", index,
                   e.what());
@@ -139,12 +131,11 @@ void Controller::onLoginRequest(const QString &username,
                                 const QString &password) {
 
   QByteArray hashedPassword =
-          QCryptographicHash::hash(password.toUtf8(),
-                                   QCryptographicHash::Sha512);
+      QCryptographicHash::hash(password.toUtf8(), QCryptographicHash::Sha512);
 
   UserMessage msg(model->getEditorId(),
                   User(username, QString(hashedPassword.toHex())));
-  sendMsg(Type::U_LOGIN, msg);
+  prepareToSend(Type::U_LOGIN, msg);
 }
 
 void Controller::onSignUpRequest(QImage image, QString name, QString surname,
@@ -152,20 +143,19 @@ void Controller::onSignUpRequest(QImage image, QString name, QString surname,
                                  const QString &password) {
 
   QByteArray hashedPassword =
-          QCryptographicHash::hash(password.toUtf8(),
-                                   QCryptographicHash::Sha512);
+      QCryptographicHash::hash(password.toUtf8(), QCryptographicHash::Sha512);
 
   UserMessage msg(model->getEditorId(),
                   User(std::move(username), std::move(name), std::move(surname),
                        std::move(email), QString(hashedPassword.toHex()),
                        std::move(image)));
-  sendMsg(Type::U_REGISTER, msg);
+  prepareToSend(Type::U_REGISTER, msg);
 }
 
 void Controller::onFileRequest(const QString &filename, bool exists) {
 
   RequestMessage msg(model->getEditorId(), filename);
-  sendMsg(exists ? Type::F_OPEN : Type::F_CREATE, msg);
+  prepareToSend(exists ? Type::F_OPEN : Type::F_CREATE, msg);
 }
 
 void Controller::onShowEditProfile() {
@@ -176,5 +166,5 @@ void Controller::onShowEditProfile() {
 
 void Controller::onFileClosed() {
   BasicMessage msg(model->getEditorId());
-  sendMsg(Type::U_DISCONNECTED, msg);
+  prepareToSend(Type::U_DISCONNECTED, msg);
 }

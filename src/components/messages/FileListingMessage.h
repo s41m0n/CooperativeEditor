@@ -1,8 +1,8 @@
 #ifndef COOPERATIVEEDITOR_FILELISTINGMESSAGE_H
 #define COOPERATIVEEDITOR_FILELISTINGMESSAGE_H
 
-#include <QVector>
 #include <QString>
+#include <QVector>
 
 #include "BasicMessage.h"
 
@@ -13,25 +13,22 @@
 class FileListingMessage : public BasicMessage {
 
 private:
+  QVector<QString> files;
 
-    QVector<QString> files;
+  QDataStream &serialize(QDataStream &stream) const override;
+
+  QDataStream &deserialize(QDataStream &stream) override;
 
 public:
+  FileListingMessage(unsigned editorId, QVector<QString> &files);
 
-    FileListingMessage(unsigned editorId,
-                       QVector<QString> &files);
+  FileListingMessage() = default;
 
-    FileListingMessage() = default;
+  QVector<QString> &getFiles();
 
-    QVector<QString> &getFiles();
+  std::string toStdString(int level = 0) override;
 
-    std::string toStdString(int level = 0) override;
-
-    QDataStream &serialize(QDataStream &stream) const override;
-
-    QDataStream &deserialize(QDataStream &stream) override;
-
+  static FileListingMessage fromQByteArray(QByteArray &buf);
 };
 
-
-#endif //COOPERATIVEEDITOR_FILELISTINGMESSAGE_H
+#endif // COOPERATIVEEDITOR_FILELISTINGMESSAGE_H

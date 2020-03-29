@@ -41,9 +41,6 @@ private:
     QPushButton *buttonSignUp;
     QPushButton *buttonExit;
     QGroupBox *alreadyRegisteredBox;
-    QMessageBox *errorMessageEmptyFields;
-    QMessageBox *errorMessageDifferentPasswords;
-    QMessageBox *areYouSureQuit;
     QImage userImage;
 
 protected:
