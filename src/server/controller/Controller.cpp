@@ -132,7 +132,7 @@ void Controller::onMessageReceived(Header &header, QByteArray &buf) {
   }
   case Type::S_UPDATE_ATTRIBUTE: {
     auto msg = CrdtMessage::fromQByteArray(buf);
-    model->userReplace(sender, msg.getSymbols());
+    //model->userReplace(sender, msg.getSymbols());
     dispatch(sender, header.getType(), header, msg);
     break;
   }

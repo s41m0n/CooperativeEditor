@@ -44,8 +44,9 @@ void Controller::onMessageReceived(Header &header, QByteArray &buf) {
   case Type::F_FILE_OK: {
     emit fileResult(true);
     auto msg = FileMessage::fromQByteArray(buf);
-    model->setCurrentFile(msg.getFile());
-    emit loadFileText(model->getFileText(), model->getFile().getFileName(),
+    auto file = msg.getFile();
+    model->setCurrentFile(file);
+    emit loadFileText(file.getFileText(), file.getFileName(),
                       model->getUser().getUsername(), model->getEditorId());
     break;
   }
@@ -55,13 +56,14 @@ void Controller::onMessageReceived(Header &header, QByteArray &buf) {
     try {
       auto msg = CrdtMessage::fromQByteArray(buf);
       auto symbols = msg.getSymbols();
+      /*
       if (header.getType() == Type::S_INSERT) {
         emit remoteUserInsert(model->remoteInsert(symbols), symbols);
       } else if (header.getType() == Type::S_ERASE) {
         emit remoteUserDelete(model->remoteErase(symbols), symbols.size());
       } else {
-        emit remoteUserUpdate(model->remoteUpdate(symbols), symbols);
-      }
+        //emit remoteUserUpdate(model->remoteUpdate(symbols), symbols);
+      }*/
     } catch (std::exception &e) {
       spdlog::error("Error on remote operation:\nMsg -> {}", e.what());
     }
@@ -70,8 +72,7 @@ void Controller::onMessageReceived(Header &header, QByteArray &buf) {
   case Type::U_CONNECTED: {
     auto msg = UserMessage::fromQByteArray(buf);
     auto userConnected = msg.getUser();
-    emit remoteUserConnected(
-        msg.getEditorId(), userConnected.getName());
+    emit remoteUserConnected(msg.getEditorId(), userConnected.getName());
     break;
   }
   case Type::U_DISCONNECTED: {
@@ -94,9 +95,11 @@ void Controller::onCharInserted(int index, const QString &value,
                                 const QVector<bool> &attributes) {
 
   try {
-
-    CrdtMessage msg(model->localInsert(index, value, attributes),
-                    model->getEditorId());
+    QVector<Symbol> toSend;
+    for(int i=0; i < value.size(); i++) {
+      toSend.push_back(model->localInsert(index+i, value[i], attributes));
+    }
+    CrdtMessage msg(toSend, model->getEditorId());
     prepareToSend(Type::S_INSERT, msg);
   } catch (std::exception &e) {
     spdlog::error("Error on local insert:\nIndex-> {}\nMsg -> {}", index,
@@ -118,9 +121,10 @@ void Controller::onCharErased(int index, int size) {
 void Controller::onCharUpdated(int index, int size, Attribute attribute,
                                bool set) {
   try {
+    /*
     CrdtMessage msg(model->localUpdate(index, size, attribute, set),
                     model->getEditorId());
-    prepareToSend(Type::S_UPDATE_ATTRIBUTE, msg);
+    prepareToSend(Type::S_UPDATE_ATTRIBUTE, msg);*/
   } catch (std::exception &e) {
     spdlog::error("Error on local update: Index-> {} @ Msg -> {}", index,
                   e.what());

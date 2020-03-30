@@ -1,74 +1,147 @@
-#include <iostream>
 #include "client/model/Model.h"
+#include <iostream>
+
+std::vector<std::vector<std::pair<QChar, std::vector<Identifier>>>> toStandardVector(FileText text) {
+  std::vector<std::vector<std::pair<QChar, std::vector<Identifier>>>> out;
+  for(auto &val: text) {
+    auto tmp = std::vector<std::pair<QChar, std::vector<Identifier>>>();
+    for(auto &s: val) {
+      auto sl = std::vector<Identifier>();
+      for(auto &x : s.getPos()) {
+        sl.emplace_back(x);
+      }
+      tmp.emplace_back(std::make_pair(s.getChar(), sl));
+    }
+    out.emplace_back(tmp);
+  }
+  return out;
+}
+
+void testLocalInsert(Model &client) {
+
+  client.localInsert(0, 'c', {false, false, false});
+  client.localInsert(1, 'i', {false, false, false});
+  client.localInsert(2, 'a', {false, false, false});
+  client.localInsert(3, 'o', {false, false, false});
+  client.localInsert(4, '\n', {false, false, false});
+  client.localInsert(5, 's', {false, false, false});
+  client.localInsert(6, 'i', {false, false, false});
+  client.localInsert(7, 'm', {false, false, false});
+  client.localInsert(8, 'o', {false, false, false});
+
+  if (client.textify().toStdString() != "ciao\nsimo") {
+    auto msg = "testLocalInsert() FAILED! Expected: `ciao\nsimo` , Got: `" +
+                     client.textify().toStdString() + "`";
+    throw std::runtime_error(msg);
+  } else {
+    std::cout << "testLocalInsert() SUCCESS!" << std::endl;
+  }
+}
+
+void testLocalErase(Model &client) {
+  client.localErase(0, 1);
+  client.localErase(5, 2);
+
+  if (client.textify().toStdString() != "iao\nso") {
+    auto msg = "testLocalErase() FAILED! Expected: `iao\nso` , Got: `" +
+                     client.textify().toStdString() + "`";
+    throw std::runtime_error(msg);
+  } else {
+    std::cout << "testLocalErase() SUCCESS!" << std::endl;
+  }
+}
+
+void testRemoteFileSetting(Model &client1, Model &client2) {
+  File file("prova.crdt", client1.getFileText());
+  client2.setCurrentFile(file);
+  if (client2.getFileName() != "prova.crdt" &&
+      client2.textify().toStdString() != "Hi|") {
+    auto msg = "testRemoteFileSetting() FAILED! Expected: {`prova.crdt`, `"
+              + client1.textify().toStdString() + "`} , Got: {`"
+              + client2.getFileName().toStdString() + "`, `"
+              + client2.textify().toStdString() +"`}";
+    throw std::runtime_error(msg);
+  } else {
+    std::cout << "testRemoteFileSetting() SUCCESS!" << std::endl;
+  }
+}
+
+//iao\nso
+void testRemoteInsert(Model &client1, Model &client2) {
+
+  Symbol sym1 = client2.localInsert(0, '-', {false, false, false});
+  client1.remoteInsert(sym1);
+
+  Symbol sym2 = client2.localInsert(2, '\n', {false, false, false});
+  client1.remoteInsert(sym2);
+
+  Symbol sym3 = client2.localInsert(8, 'P', {false, false, false});
+  client1.remoteInsert(sym3);
+
+  if (client1.textify().toStdString() != client2.textify().toStdString()) {
+    auto msg = "testRemoteInsert() FAILED! Expected: `"
+              + client2.textify().toStdString()
+              + "` , Got: " + client1.textify().toStdString() + "`";
+    throw std::runtime_error(msg);
+  } else {
+    std::cout << "testRemoteInsert() SUCCESS!" << std::endl;
+  }
+}
+
+// -i\nao\nsoP
+void testRemoteErase(Model &client1, Model &client2) {
+  auto deleted = client1.localErase(0, 9);
+  for (auto &val : deleted)
+    client2.remoteErase(val);
+
+  if (client2.textify().toStdString() != client1.textify().toStdString()) {
+    auto msg = "testRemoteInsert() FAILED! Expected: `"
+              + client1.textify().toStdString()
+              + "` , Got: " + client2.textify().toStdString() + "`";
+    throw std::runtime_error(msg);
+  } else {
+    std::cout << "testRemoteErase() SUCCESS!" << std::endl;
+  }
+}
+
+void testEmptyFileRemote(Model &client1, Model &client2) {
+  auto s = client1.localInsert(0, 'a', {false, false, false});
+  client2.remoteInsert(s);
+
+  if(client2.textify() != client1.textify()) {
+    auto msg = "testEmptyFileRemote() FAILED! Expected `"
+        + client1.textify().toStdString()
+        + "` , Got: " + client2.textify().toStdString();
+    throw std::runtime_error(msg);
+  } else {
+    std::cout << "testEmptyFileRemote() SUCCESS!" << std::endl;
+  }
+}
+
+void runTest(Model &client1, Model &client2, int i) {
+
+  testEmptyFileRemote(client1, client2);
+  /*
+  testLocalInsert(client1);
+
+  testLocalErase(client1);
+
+  testRemoteFileSetting(client1, client2);
+
+  testRemoteInsert(client1, client2);
+
+  testRemoteErase(client1, client2);
+  */
+}
 
 int main(int argc, char **argv) {
-  Model model;
-  model.setEditorId(1);
-  model.localInsert(0, 0, 'c', {false,false,false});
-  model.localInsert(0, 1, 'i', {false,false,false});
-  model.localInsert(1, 0, 'a', {false,false,false});
-  model.localInsert(1, 1, 'o', {false,false,false});
-  //Mi aspetto  "ci|ao"
-  auto a = model.textify().toStdString();
+  Model client1, client2;
+  client1.setEditorId(1);
+  client2.setEditorId(2);
 
-  model.localInsert(2, 0, 's', {false,false,false});
-  model.localInsert(2, 1, 'i', {false,false,false});
-  model.localInsert(2, 2, 'm', {false,false,false});
-  model.localInsert(2, 3, 'o', {false,false,false});
-  //Mi aspetto "ci|ao|simo"
-  auto b = model.textify().toStdString();
-
-  model.localInsert(0, 1, 'H', {false,false,false});
-  //Mi aspetto "cHi|ao|simo"
-  auto c = model.textify().toStdString();
-
-
-  auto d = model.localErase(0, 0, 0, 1)[0].getChar().toLatin1();
-  //Mi aspetto "Hi|ao|simo"
-  auto dd = model.textify().toStdString();
-
-  auto e = model.localErase(2, 2, 2, 3)[0].getChar().toLatin1();
-  //Mi aspetto "Hi|ao|sio"
-  auto ee = model.textify().toStdString();
-
-  auto k = model.localErase(1, 0, 2, 3).size();
-  auto kk = model.textify().toStdString();
-  //Mi aspetto "Hi|"
-
-  auto s = model.getFileText().size();
-
-  //Simulo un altro client
-  Model model2;
-  model2.setEditorId(2);
-  File file("asdasdasd", model.getFileText());
-  model2.setCurrentFile(file);
-  //Mi aspetto che il file settato sia "Hi|"
-  auto m2f = model2.textify().toStdString();
-
-  //Il client2 scrive e diventa => "Hi|-"
-  //Symbol sym = model2.localInsert(0,0, '-', {false,false,false});
-  Symbol sym2 = model2.localInsert(0,2, '\n', {false,false,false});
-  Symbol sym3 = model2.localInsert(1,0, 'P', {false,false,false});
-
-  auto oi = model2.textify().toStdString();
-
-  //model.remoteInsert(sym);
-  model.remoteInsert(sym2);
-  model.remoteInsert(sym3);
-
-  //Mi aspetto "-Hi|P"
-  auto kkk = model.textify().toStdString();
-
-  auto cc = model.localErase(0, 0, 1, 1);
-  //Mi aspetto vuoto ""
-  auto pp = model.textify().toStdString();
-
-  for(auto &val: cc)
-    model2.remoteErase(val);
-
-  //Mi aspetto vuoto ""
-  auto jj = model2.textify().toStdString();
-
+  for (int i = 0; i < 1000; i++) {
+    runTest(client1, client2, i);
+    std::cout << "TEST " << i << std::endl;
+  }
   return 0;
-
 }

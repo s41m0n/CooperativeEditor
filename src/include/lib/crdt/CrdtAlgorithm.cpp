@@ -6,7 +6,7 @@
 unsigned int CrdtAlgorithm::generateIdBetween(unsigned int id1,
                                               unsigned int id2,
                                               bool boundaryStrategy) {
-  if ((id2 - id1) < CrdtAlgorithm::boundary) {
+  if ((id2 - id1) <= CrdtAlgorithm::boundary +1 ) {
     id1++;
     id2--;
   } else {
@@ -74,10 +74,10 @@ QVector<Identifier> CrdtAlgorithm::generatePosBetween(
   throw std::runtime_error("Fix Position Sorting");
 }
 
-void CrdtAlgorithm::remoteErase(Symbol &s, FileText &symbols) {
+std::pair<int,int> CrdtAlgorithm::remoteErase(Symbol &s, FileText &symbols) {
   auto pos = findPosition(s, symbols);
 
-  if (pos.first == -1 && pos.second == -1) return;
+  if (pos.first == -1 && pos.second == -1) return {-1, -1};
 
   symbols[pos.first].remove(pos.second);
 
@@ -86,6 +86,7 @@ void CrdtAlgorithm::remoteErase(Symbol &s, FileText &symbols) {
   }
 
   removeEmptyLines(symbols);
+  return pos;
 }
 
 void CrdtAlgorithm::removeEmptyLines(FileText &symbols) {
@@ -109,6 +110,10 @@ void CrdtAlgorithm::mergeLines(int fromLine, FileText &symbols) {
 
 std::pair<int, int> CrdtAlgorithm::findPositionInsert(Symbol &s,
                                                       FileText &symbols) {
+  if (symbols.isEmpty() || s.compareTo(symbols[0][0]) <= 0) {
+    return std::make_pair(0, 0);
+  }
+
   int minLine = 0;
   int totalLines = symbols.size();
   int maxLine = totalLines - 1;
@@ -116,11 +121,7 @@ std::pair<int, int> CrdtAlgorithm::findPositionInsert(Symbol &s,
   int midLine;
   QVector<Symbol> *currentLine;
 
-  if (symbols.isEmpty() || s.compareTo(symbols[0][0]) < 0) {
-    return std::make_pair(0, 0);
-  }
-
-  Symbol *lastChar = &lastLine[lastLine.size() - 1];
+  Symbol *lastChar = &lastLine.last();
 
   if (s.compareTo(*lastChar) > 0) {
     return findEndPosition(*lastChar, lastLine, totalLines);
@@ -129,7 +130,7 @@ std::pair<int, int> CrdtAlgorithm::findPositionInsert(Symbol &s,
   while (minLine + 1 < maxLine) {
     midLine = std::floor(minLine + (maxLine - minLine) / 2);
     currentLine = &symbols[midLine];
-    lastChar = const_cast<Symbol *>(&currentLine->at(currentLine->size() - 1));
+    lastChar = &currentLine->last();
 
     if (s.compareTo(*lastChar) == 0) {
       return std::make_pair(midLine, currentLine->size() - 1);
@@ -141,9 +142,9 @@ std::pair<int, int> CrdtAlgorithm::findPositionInsert(Symbol &s,
   }
 
   auto minCurrentLine = symbols[minLine];
-  auto minLastChar = minCurrentLine[minCurrentLine.size() - 1];
+  auto minLastChar = minCurrentLine.last();
   auto maxCurrentLine = symbols[maxLine];
-  auto maxLastChar = maxCurrentLine[maxCurrentLine.size() - 1];
+  auto maxLastChar = maxCurrentLine.last();
 
   if (s.compareTo(minLastChar) <= 0) {
     int index = findInsertIndexInLine(s, minCurrentLine, symbols);
@@ -157,7 +158,7 @@ std::pair<int, int> CrdtAlgorithm::findPositionInsert(Symbol &s,
 std::pair<int, int> CrdtAlgorithm::findEndPosition(Symbol &lastChar,
                                                    QVector<Symbol> &lastLine,
                                                    int totalLines) {
-  if (lastChar.getChar() == "\n") {
+  if (lastChar.getChar() == '\n') {
     return std::make_pair(totalLines, 0);
   } else {
     return std::make_pair(totalLines - 1, lastLine.size());
@@ -238,9 +239,9 @@ void CrdtAlgorithm::insertSymbol(Symbol &symbol, int line, int index,
   }
 
   // if inserting a newline, split line into two lines
-  if (symbol.getChar() == "\n") {
+  if (symbol.getChar() == '\n') {
     auto lineAfter = symbols[line].mid(index);
-    symbols[line].remove(index, symbols[line].size()-index);
+    symbols[line].erase(symbols[line].begin() + index, symbols[line].end());
 
     if (lineAfter.empty()) {
       symbols[line].insert(index, symbol);
@@ -256,10 +257,11 @@ void CrdtAlgorithm::insertSymbol(Symbol &symbol, int line, int index,
   }
 }
 
-void CrdtAlgorithm::remoteInsert(Symbol &s, FileText &symbols) {
+std::pair<int,int> CrdtAlgorithm::remoteInsert(Symbol &s, FileText &symbols) {
   auto index = CrdtAlgorithm::findPositionInsert(s, symbols);
 
   insertSymbol(s, index.first, index.second, symbols);
+  return index;
 }
 
 bool CrdtAlgorithm::retrieveStrategy(int level) {

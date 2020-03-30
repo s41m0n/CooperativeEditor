@@ -84,30 +84,35 @@ void Editor::onFileTextLoad(const FileText &text, const QString fName,
   usersOnlineList.insert(editorId, username);
   refreshUserView();
 
-  for (Symbol s : text) {
-    QTextCharFormat fmt;
-    fmt.setFontWeight(s.isAttributeSet(BOLD) ? QFont::Bold : QFont::Normal);
-    fmt.setFontItalic(s.isAttributeSet(ITALIC));
-    fmt.setFontUnderline(s.isAttributeSet(UNDERLINED));
-    textEdit->mergeCurrentCharFormat(fmt);
-    textEdit->insertPlainText(s.getChar());
+  for(auto &vec: text) {
+    for (Symbol s : vec) {
+      QTextCharFormat fmt;
+      fmt.setFontWeight(s.isAttributeSet(BOLD) ? QFont::Bold : QFont::Normal);
+      fmt.setFontItalic(s.isAttributeSet(ITALIC));
+      fmt.setFontUnderline(s.isAttributeSet(UNDERLINED));
+      textEdit->mergeCurrentCharFormat(fmt);
+      textEdit->insertPlainText(s.getChar());
+    }
   }
 
   textEdit->setFocus();
 }
 
-void Editor::onRemoteInsert(int index, const QVector<Symbol> &symbol) {
+void Editor::onRemoteInsert(int index, FileText &symbols) {
   auto cursor = textEdit->textCursor(); // I retrieve the cursor
-  cursor.movePosition(
-      QTextCursor::Start); // I place it at the beginning of the document
-  cursor.movePosition(QTextCursor::Right, QTextCursor::MoveAnchor,
-                      index); // cursor is now where I want to insert the text
-  for (Symbol s : symbol) {
-    QTextCharFormat fmt;
-    fmt.setFontWeight(s.isAttributeSet(BOLD) ? QFont::Bold : QFont::Normal);
-    fmt.setFontItalic(s.isAttributeSet(ITALIC));
-    fmt.setFontUnderline(s.isAttributeSet(UNDERLINED));
-    cursor.insertText(s.getChar(), fmt);
+  // I place it at the beginning of the document
+  cursor.movePosition(QTextCursor::Start);
+  // cursor is now where I want to insert the text
+  cursor.movePosition(QTextCursor::Right, QTextCursor::MoveAnchor,index);
+
+  for(auto &val: symbols) {
+    for (Symbol s : val) {
+      QTextCharFormat fmt;
+      fmt.setFontWeight(s.isAttributeSet(BOLD) ? QFont::Bold : QFont::Normal);
+      fmt.setFontItalic(s.isAttributeSet(ITALIC));
+      fmt.setFontUnderline(s.isAttributeSet(UNDERLINED));
+      cursor.insertText(s.getChar(), fmt);
+    }
   }
 }
 
@@ -122,20 +127,22 @@ void Editor::onRemoteDelete(int index, int size) {
   }
 }
 
-void Editor::onRemoteUpdate(int index, const QVector<Symbol> &symbol) {
+void Editor::onRemoteUpdate(int index, FileText &symbols) {
   auto cursor = textEdit->textCursor(); // I retrieve the cursor
-  cursor.movePosition(
-      QTextCursor::Start); // I place it at the beginning of the document
-  cursor.movePosition(QTextCursor::Right, QTextCursor::MoveAnchor,
-                      index); // cursor is now where I want to update the text
-  for (Symbol s : symbol) {
-    cursor.movePosition(QTextCursor::Right, QTextCursor::KeepAnchor, 1);
-    QTextCharFormat fmt;
-    fmt.setFontWeight(s.isAttributeSet(BOLD) ? QFont::Bold : QFont::Normal);
-    fmt.setFontItalic(s.isAttributeSet(ITALIC));
-    fmt.setFontUnderline(s.isAttributeSet(UNDERLINED));
-    cursor.mergeCharFormat(fmt);
-    cursor.clearSelection();
+  // I place it at the beginning of the document
+  cursor.movePosition(QTextCursor::Start);
+  // cursor is now where I want to update the text
+  cursor.movePosition(QTextCursor::Right, QTextCursor::MoveAnchor,index);
+  for(auto &val: symbols) {
+    for (Symbol s : val) {
+      cursor.movePosition(QTextCursor::Right, QTextCursor::KeepAnchor, 1);
+      QTextCharFormat fmt;
+      fmt.setFontWeight(s.isAttributeSet(BOLD) ? QFont::Bold : QFont::Normal);
+      fmt.setFontItalic(s.isAttributeSet(ITALIC));
+      fmt.setFontUnderline(s.isAttributeSet(UNDERLINED));
+      cursor.mergeCharFormat(fmt);
+      cursor.clearSelection();
+    }
   }
 }
 

@@ -70,7 +70,7 @@ void Model::userErase(TcpSocket *socket, const QVector<Symbol>& symbols) {
 
   storeFileSymbols(serverFile);
 }
-
+/*
 void Model::userReplace(TcpSocket *socket, const QVector<Symbol>& symbols) {
   auto serverFile =
           std::find_if(usersFile.begin(), usersFile.end(),
@@ -86,7 +86,7 @@ void Model::userReplace(TcpSocket *socket, const QVector<Symbol>& symbols) {
 
   storeFileSymbols(serverFile);
 }
-
+*/
 bool Model::createFileByUser(TcpSocket *socket, const QString &filename) {
 
   auto newFile = std::make_shared<ServerFile>(filename + ".crdt");

@@ -19,11 +19,9 @@ class Model {
 private:
   unsigned editorId{};
 
-  FileText file;
+  File file;
 
   User user;
-
-  unsigned digitGenerator{};
 
   Symbol generateSymbol(int line, int index, QChar value);
 
@@ -37,25 +35,27 @@ private:
   QVector<Symbol> deleteMultipleLines(int fromLine, int fromIndex, int toLine,
                                       int toIndex);
 
+  std::pair<int, int> matricize(int index);
+
+  int linearize(std::pair<int, int> pos);
+
 public:
   User getUser();
 
   /// Crdt local method to insert a symbol
-  Symbol localInsert(int line, int index, QChar value,
-                              const QVector<bool> &attributes);
+  Symbol localInsert(int index, QChar value, const QVector<bool> &attributes);
 
   /// Crdt local method to erase a symbol
-  QVector<Symbol> localErase(int fromLine, int fromIndex, int toLine,
-                             int toIndex);
+  QVector<Symbol> localErase(int from, int offset);
 
-  QVector<Symbol> localUpdate(int index, int size, Attribute attribute,
+  Symbol localUpdate(int index, int size, Attribute attribute,
                               bool set);
 
   /// Method to update the list of symbol after a remote insertion
-  void remoteInsert(Symbol &symbol);
+  int remoteInsert(Symbol &symbol);
 
   /// Method to update the list of symbol after a remote deletion
-  void remoteErase(Symbol &symbol);
+  int remoteErase(Symbol &symbol);
 
   int remoteUpdate(QVector<Symbol> symbol);
 
@@ -69,15 +69,12 @@ public:
   /// Method to set the current user data
   void setCurrentUser(User &userToSet);
 
-  File getFile();
+  QString getFileName();
 
   FileText getFileText();
 
   /// Return the file content
   QString textify();
-
-  /// Return the file content as a std::string
-  std::string textifyToStdString();
 };
 
 #endif // COOPERATIVEEDITOR_MODEL_H
