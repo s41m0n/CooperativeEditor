@@ -51,6 +51,12 @@ add_executable(CooperativeServer src/mainserver.cpp src/server/controller/Contro
         src/include/lib/serialization/Serializable.cpp src/components/messages/Header.cpp
         src/server/model/Database.cpp)
 
+#Test
+add_executable(Test src/test.cpp src/client/model/Model.cpp
+        src/components/Symbol.cpp src/components/Identifier.cpp
+        src/include/lib/crdt/CrdtAlgorithm.cpp
+        src/common/User.cpp src/common/File.cpp src/include/lib/serialization/Serializable.cpp )
+
 #Add libraries to compile the client
 if (CMAKE_G++_COMPILER_VERSION VERSION_LESS 9.0.0)
     target_link_libraries(CooperativeServer "-lstdc++fs")
@@ -58,3 +64,4 @@ endif ()
 
 target_link_libraries(CooperativeClient Qt5::Core Qt5::Network Qt5::Widgets Qt5::PrintSupport)
 target_link_libraries(CooperativeServer sqlite3 Qt5::Core Qt5::Network Qt5::Widgets Qt5::PrintSupport)
+target_link_libraries(Test Qt5::Core Qt5::Network Qt5::Widgets Qt5::PrintSupport)

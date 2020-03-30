@@ -55,7 +55,7 @@ public:
     bool isAttributeSet(Attribute attribute);
 };
 
-typedef QVector<Symbol> FileText;
+typedef QVector<QVector<Symbol>> FileText;
 
 Q_DECLARE_METATYPE(FileText);
 Q_DECLARE_METATYPE(Attribute);

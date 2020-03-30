@@ -15,7 +15,8 @@ std::string FileMessage::toStdString(int level) {
          std::to_string(editorId) + "\n";
   tmp += std::string(level + 1, '\t') + "content: [\n";
   for (auto &s: file.getFileText())
-    tmp += s.toStdString(level + 2) + "\n";
+    for(auto &ss: s)
+    tmp += ss.toStdString(level + 2) + "\n";
   tmp += std::string(level + 1, '\t') + "]\n" + std::string(level, '\t') + "}";
   return tmp;
 }

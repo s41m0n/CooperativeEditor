@@ -27,8 +27,9 @@ std::string File::toStdString(int level) {
                   std::string(level + 1, '\t') + "filename: " +
                   fileName.toStdString() + "\n" +
                   std::string(level + 1, '\t') + "text: ");
-  for (auto val: fileText)
-    tmp += val.getChar().toLatin1();
+  for (auto &val: fileText)
+    for(auto &s: val)
+    tmp += s.getChar().toLatin1();
   tmp += "\n" + std::string(level, '\t') + "}";
   return tmp;
 }

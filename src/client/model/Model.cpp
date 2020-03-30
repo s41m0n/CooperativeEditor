@@ -1,136 +1,138 @@
 #include "Model.h"
 
-Model::Model() : editorId(0), digitGenerator(0), file(), user() {
-}
+User Model::getUser() { return this->user; }
 
-User Model::getUser() {
-  return this->user;
-}
-
-FileText Model::getFileText() {
-  return this->file.getFileText();
-}
+FileText Model::getFileText() { return file; }
 
 QString Model::textify() {
   QString str;
-  for (auto &val : file.getFileText()) {
-    str += val.getChar();
+  for (auto &val : file) {
+    for (auto &s : val) {
+      str += s.getChar();
+    }
+    str += "|";
   }
   return str;
 }
 
-std::string Model::textifyToStdString() {
-  return textify().toStdString();
+QVector<Identifier> Model::findPosBefore(int line, int index) {
+
+  if (index == 0) {
+    if (line == 0)
+      return QVector<Identifier>();
+    line = line - 1;
+    index = file[line].size();
+  }
+
+  return file[line][index - 1].getPos();
 }
 
-QVector<Symbol>
-Model::localInsert(int index, QString value, const QVector<bool> &attributes) {
+QVector<Identifier> Model::findPosAfter(int line, int index) {
 
-  if (index > file.getFileText().size() || index < 0) {
-    throw std::runtime_error("No valid position: TextSize:" +
-                             std::to_string(file.getFileText().size()));
+  int numLines = file.size();
+  int numChars = line < numLines ? file[line].size() : 0;
+
+  if ((line == numLines - 1) && (index == numChars)) {
+    return {};
+  } else if ((line < numLines - 1) && (index == numChars)) {
+    line = line + 1;
+    index = 0;
+  } else if ((line > numLines - 1) && index == 0) {
+    return {};
   }
 
-  QVector<Symbol> toReturn;
-  for (int i = 0; i < value.size(); i++) {
-    Symbol s = generateSymbol(index + i, value[i]);
-    s.setAttributes(attributes);
-    file.getFileText().insert(file.getFileText().begin() + index + i, s);
-    toReturn.push_back(s);
-  }
-
-  return toReturn;
+  return file[line][index].getPos();
 }
 
-QVector<Symbol> Model::localErase(int index, int size) {
-
-  if (index >= file.getFileText().size() || index < 0) {
-    throw std::runtime_error("No symbol to erase: TextSize:" +
-                             std::to_string(file.getFileText().size()));
-  }
-
-  QVector<Symbol> toReturn;
-  for (int i = 0; i < size; ++i) {
-    Symbol s = std::move(file.getFileText()[index]);
-    file.getFileText().erase(file.getFileText().begin() + index);
-    toReturn.push_back(s);
-  }
-
-  return toReturn;
-}
-
-QVector<Symbol>
-Model::localUpdate(int index, int size, Attribute attribute, bool set) {
-  if (index >= file.getFileText().size() || index < 0) {
-    throw std::runtime_error("No symbol to update: TextSize:" +
-                             std::to_string(file.getFileText().size()));
-  }
-
-  QVector<Symbol> toReturn;
-  for (int i = 0; i < size; ++i) {
-    Symbol &s = file.getFileText()[index + i];
-    s.setAttribute(attribute, set);
-    toReturn.push_back(s);
-  }
-
-  return toReturn;
-}
-
-int Model::remoteInsert(QVector<Symbol> symbol) {
-  int index = CrdtAlgorithm::remoteInsert(symbol[0], file.getFileText());
-  for (int i = 1; i < symbol.size(); i++) {
-    CrdtAlgorithm::remoteInsert(symbol[i], file.getFileText());
-  }
-  return index;
-}
-
-int Model::remoteErase(QVector<Symbol> symbol) {
-  int index = CrdtAlgorithm::remoteErase(symbol[0], file.getFileText());
-  for (int i = 1; i < symbol.size(); i++) {
-    CrdtAlgorithm::remoteErase(symbol[i], file.getFileText());
-  }
-  return index;
-}
-
-int Model::remoteUpdate(QVector<Symbol> symbol) {
-  int index = CrdtAlgorithm::replaceSymbol(symbol[0], file.getFileText());
-  for (int i = 1; i < symbol.size(); i++) {
-    CrdtAlgorithm::replaceSymbol(symbol[i], file.getFileText());
-  }
-  return index;
-}
-
-Symbol Model::generateSymbol(int index, QChar value) {
-  auto pos1 = (index - 1 < file.getFileText().size() && index - 1 >= 0 &&
-               !file.getFileText()[index - 1].getPos().empty()) ?
-              file.getFileText()[
-                      index - 1].getPos() : QVector<Identifier>();
-  auto pos2 = (index < file.getFileText().size() && index >= 0 &&
-               !file.getFileText()[index].getPos().empty()) ?
-              file.getFileText()[
-                      index].getPos() : QVector<Identifier>();
+Symbol Model::generateSymbol(int line, int index, QChar value) {
+  auto pos1 = findPosBefore(line, index);
+  auto pos2 = findPosAfter(line, index);
   auto newPos = CrdtAlgorithm::generatePosBetween(pos1, pos2, editorId);
 
   return std::move(Symbol(value, editorId, newPos));
 }
 
 
-void Model::setEditorId(unsigned int newEditorId) {
-  editorId = newEditorId;
+
+Symbol Model::localInsert(int line, int index, QChar value,
+                                   const QVector<bool> &attributes) {
+
+  Symbol s = generateSymbol(line, index, value);
+  s.setAttributes(attributes);
+  CrdtAlgorithm::insertSymbol(s, line, index, file);
+
+  return s;
 }
 
-unsigned Model::getEditorId() {
-  return editorId;
+QVector<Symbol> Model::localErase(int fromLine, int fromIndex, int toLine,
+                                  int toIndex) {
+  QVector<Symbol> chars;
+  bool newlineRemoved = false;
+
+  // for multi-line deletes
+  if (fromLine != toLine) {
+    // delete chars on first line from startPos.ch to end of line
+    newlineRemoved = true;
+    chars = deleteMultipleLines(fromLine, fromIndex, toLine, toIndex);
+
+    // single-line deletes
+  } else {
+    chars = deleteSingleLine(fromLine, fromIndex, toLine, toIndex);
+
+    auto it = std::find_if(chars.begin(), chars.end(), [](Symbol &val) {
+      return val.getChar() == "\n";
+    });
+    if (it != chars.end())
+      newlineRemoved = true;
+  }
+
+  CrdtAlgorithm::removeEmptyLines(file);
+
+  if (newlineRemoved && fromLine + 1 < file.size()) {
+    CrdtAlgorithm::mergeLines(fromLine, file);
+  }
+  return chars;
+}
+
+
+QVector<Symbol> Model::deleteSingleLine(int fromLine, int fromIndex, int toLine,
+                                        int toIndex) {
+  auto charNum = toIndex - fromIndex;
+  auto chars = file[fromLine].mid(fromIndex, charNum);
+  file[fromLine].remove(fromIndex, charNum);
+
+  return chars;
+}
+
+QVector<Symbol> Model::deleteMultipleLines(int fromLine, int fromIndex,
+                                           int toLine, int toIndex) {
+  QVector<Symbol> chars = file[fromLine].mid(fromIndex);
+  file[fromLine].remove(fromIndex, file[fromLine].size());
+
+  for (int line = fromLine + 1; line < toLine; line++) {
+    chars.append(file[line]);
+    file.remove(line);
+  }
+
+  if (!file[toLine].empty()) {
+    chars.append(file[toLine].mid(0, toIndex));
+    file[toLine].remove(0, toIndex);
+  }
+
+  return chars;
+}
+
+void Model::remoteInsert(Symbol &symbol) {
+    CrdtAlgorithm::remoteInsert(symbol, file);
+}
+
+void Model::remoteErase(Symbol &symbol) {
+  CrdtAlgorithm::remoteErase(symbol, file);
 }
 
 void Model::setCurrentFile(File &fileToSet) {
-  file = fileToSet;
+  file = fileToSet.getFileText();
 }
-
-void Model::setCurrentUser(User &userToSet) {
-  user = std::move(userToSet);
-}
-
-File Model::getFile() {
-  return this->file;
+void Model::setEditorId(unsigned newEditorId) {
+  editorId = newEditorId;
 }
