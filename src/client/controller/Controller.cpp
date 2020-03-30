@@ -95,12 +95,11 @@ void Controller::onCharInserted(int index, const QString &value,
                                 const QVector<bool> &attributes) {
 
   try {
-    QVector<Symbol> toSend;
     for(int i=0; i < value.size(); i++) {
-      toSend.push_back(model->localInsert(index+i, value[i], attributes));
+      auto s = model->localInsert(index+i, value[i], attributes);
+      CrdtMessage msg(QVector<Symbol>({s}), model->getEditorId());
+      prepareToSend(Type::S_INSERT, msg);
     }
-    CrdtMessage msg(toSend, model->getEditorId());
-    prepareToSend(Type::S_INSERT, msg);
   } catch (std::exception &e) {
     spdlog::error("Error on local insert:\nIndex-> {}\nMsg -> {}", index,
                   e.what());

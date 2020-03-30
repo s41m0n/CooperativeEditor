@@ -21,9 +21,6 @@ private slots:
   void onReadyRead();
 
 private:
-  /// The dedicated socket data stream
-  QDataStream ds;
-
   qint32 clientID;
 
   Header header;
