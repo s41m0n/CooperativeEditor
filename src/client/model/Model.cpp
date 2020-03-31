@@ -69,16 +69,28 @@ Model::localUpdate(int index, int size, Attribute attribute, bool set) {
   return toReturn;
 }
 
-int Model::remoteInsert(QVector<Symbol> symbol) {
-  return CrdtAlgorithm::remoteInsert(symbol, file.getFileText());
+QVector<int> Model::remoteInsert(QVector<Symbol>& symbols) {
+  QVector<int> indexes;
+  for(auto &s: symbols) {
+    indexes.push_back(CrdtAlgorithm::remoteInsert(s, file.getFileText()));
+  }
+  return indexes;
 }
 
-int Model::remoteErase(QVector<Symbol> symbol) {
-  return CrdtAlgorithm::remoteErase(symbol, file.getFileText());
+QVector<int> Model::remoteErase(QVector<Symbol>& symbols) {
+  QVector<int> indexes;
+  for(auto &s: symbols) {
+    indexes.push_back(CrdtAlgorithm::remoteErase(s, file.getFileText()));
+  }
+  return indexes;
 }
 
-int Model::remoteUpdate(QVector<Symbol> symbol) {
-  return CrdtAlgorithm::replaceSymbol(symbol, file.getFileText());
+QVector<int> Model::remoteUpdate(QVector<Symbol>& symbols) {
+  QVector<int> indexes;
+  for(auto &s: symbols) {
+    indexes.push_back(CrdtAlgorithm::replaceSymbol(s, file.getFileText()));
+  }
+  return indexes;
 }
 
 Symbol Model::generateSymbol(int index, QChar value) {

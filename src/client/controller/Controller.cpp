@@ -58,7 +58,7 @@ void Controller::onMessageReceived(Header &header, QByteArray &buf) {
       if (header.getType() == Type::S_INSERT) {
         emit remoteUserInsert(model->remoteInsert(symbols), symbols);
       } else if (header.getType() == Type::S_ERASE) {
-        emit remoteUserDelete(model->remoteErase(symbols), symbols.size());
+        emit remoteUserDelete(model->remoteErase(symbols));
       } else {
         emit remoteUserUpdate(model->remoteUpdate(symbols), symbols);
       }

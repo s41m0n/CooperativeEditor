@@ -84,13 +84,13 @@ public slots:
                       unsigned int editorId);
 
   /// Slot to notify the editor that a remote user has inserted a character
-  void onRemoteInsert(int index, FileText &symbol);
+  void onRemoteInsert(QVector<int> indexes, FileText &symbols);
 
   /// Slot to notify the editor that a remote user has deleted a character
-  void onRemoteDelete(int index, int size);
+  void onRemoteDelete(const QVector<int>& indexes);
 
   /// Slot to notify the editor that a remote user has updated a character
-  void onRemoteUpdate(int index, FileText &symbol);
+  void onRemoteUpdate(QVector<int> indexes, FileText &symbols);
 
   void onRemoteUserConnected(qint32 clientId, const QString& username);
 

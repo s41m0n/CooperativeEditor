@@ -41,13 +41,13 @@ namespace CrdtAlgorithm {
                                            int level = 0);
 
     ///Method to update the list of symbol after a remote insertion
-    int remoteInsert(FileText toInsert, FileText &symbols);
+    int remoteInsert(Symbol &toInsert, FileText &symbols);
 
     ///Method to update the list of symbol after a remote deletion
-    int remoteErase(FileText toErase, FileText &symbols);
+    int remoteErase(Symbol &toErase, FileText &symbols);
 
     ///Method to replace/update a given symbol
-    int replaceSymbol(FileText toReplace, FileText &symbols);
+    int replaceSymbol(Symbol &toReplace, FileText &symbols);
 }
 
 #endif //COOPERATIVEEDITOR_CRDTALGORITHM_H

@@ -170,42 +170,39 @@ bool CrdtAlgorithm::retrieveStrategy(int level) {
   return strategySelected;
 }
 
-int CrdtAlgorithm::remoteErase(FileText toErase, FileText &symbols) {
-  auto debug = toErase[0].toStdString();
-  int index = CrdtAlgorithm::findPositionErase(toErase[0], symbols);
+int CrdtAlgorithm::remoteErase(Symbol &toErase, FileText &symbols) {
+
+  int index = CrdtAlgorithm::findPositionErase(toErase, symbols);
 
   if (index < 0) {
     throw std::runtime_error("Remote erase bad index" + std::to_string(index));
   }
 
-  symbols.erase(symbols.begin() + index, symbols.begin() + index + toErase.size());
+  symbols.remove(index);
 
   return index;
 }
 
-int CrdtAlgorithm::remoteInsert(FileText toInsert, FileText &symbols) {
-  int index = CrdtAlgorithm::findPositionInsert(toInsert[0], symbols);
+int CrdtAlgorithm::remoteInsert(Symbol &toInsert, FileText &symbols) {
+  int index = CrdtAlgorithm::findPositionInsert(toInsert, symbols);
 
   if (index < 0) {
     throw std::runtime_error("Remote insert bad index" + std::to_string(index));
   }
-  
-  for (int i=0; i < toInsert.size(); i++) {
-    symbols.insert(symbols.begin() + index + i, toInsert[i]);
-  }
+
+  symbols.insert(index, toInsert);
+
   return index;
 }
 
-int CrdtAlgorithm::replaceSymbol(FileText toUpdate, FileText &symbols) {
-  int index = CrdtAlgorithm::findPositionErase(toUpdate[0], symbols);
+int CrdtAlgorithm::replaceSymbol(Symbol &toUpdate, FileText &symbols) {
+  int index = CrdtAlgorithm::findPositionErase(toUpdate, symbols);
 
   if (index < 0) {
     throw std::runtime_error("Remote update bad index" + std::to_string(index));
   }
 
-  for(int i=index; i < toUpdate.size(); i++) {
-    symbols[i].setAttributes(toUpdate[i].getAttributes());
-  }
+  symbols[index].setAttributes(toUpdate.getAttributes());
 
   return index;
 }

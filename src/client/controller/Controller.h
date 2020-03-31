@@ -85,13 +85,13 @@ signals:
                     unsigned int editorId);
 
   /// Method to notify the view a character has been inserted by a remote user
-  void remoteUserInsert(int index, FileText &symbols);
+  void remoteUserInsert(QVector<int> indexes, FileText &symbols);
 
   /// Method to notify the view a character has been deleted by a remote user
-  void remoteUserDelete(int index, int size);
+  void remoteUserDelete(QVector<int> indexes);
 
   /// Method to notify the view a character has been updated by a remote user
-  void remoteUserUpdate(int index, FileText &symbols);
+  void remoteUserUpdate(QVector<int> indexes, FileText &symbols);
 
   /// Method to send to the view the information about the user
   void userProfileInfo(QImage &image, QString &name, QString &surname,
