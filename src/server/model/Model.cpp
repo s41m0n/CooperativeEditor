@@ -1,6 +1,5 @@
 #include "Model.h"
 
-
 Model::Model() : idGenerator(1) {
 
   // Loading all files name in the directory
@@ -39,7 +38,7 @@ void Model::loadFileSymbols(const std::shared_ptr<ServerFile> &serverFile) {
   ds >> serverFile->getFileText();
 }
 
-void Model::userInsert(TcpSocket *socket, const QVector<Symbol>& symbols) {
+void Model::userInsert(TcpSocket *socket, const QVector<Symbol> &symbols) {
 
   auto serverFile =
       std::find_if(usersFile.begin(), usersFile.end(), [socket](auto &pair) {
@@ -48,14 +47,12 @@ void Model::userInsert(TcpSocket *socket, const QVector<Symbol>& symbols) {
 
   std::lock_guard<std::mutex> guard(serverFile->mutex);
 
-  for (Symbol s : symbols) {
-    CrdtAlgorithm::remoteInsert(s, serverFile->getFileText());
-  }
+  CrdtAlgorithm::remoteInsert(symbols, serverFile->getFileText());
 
   storeFileSymbols(serverFile);
 }
 
-void Model::userErase(TcpSocket *socket, const QVector<Symbol>& symbols) {
+void Model::userErase(TcpSocket *socket, const QVector<Symbol> &symbols) {
 
   auto serverFile =
       std::find_if(usersFile.begin(), usersFile.end(), [socket](auto &pair) {
@@ -64,25 +61,20 @@ void Model::userErase(TcpSocket *socket, const QVector<Symbol>& symbols) {
 
   std::lock_guard<std::mutex> guard(serverFile->mutex);
 
-  for (Symbol s : symbols) {
-    CrdtAlgorithm::remoteErase(s, serverFile->getFileText());
-  }
+  CrdtAlgorithm::remoteErase(symbols, serverFile->getFileText());
 
   storeFileSymbols(serverFile);
 }
 
-void Model::userReplace(TcpSocket *socket, const QVector<Symbol>& symbols) {
+void Model::userReplace(TcpSocket *socket, const QVector<Symbol> &symbols) {
   auto serverFile =
-          std::find_if(usersFile.begin(), usersFile.end(),
-                       [socket](auto &pair) {
-                           return socket == pair.second;
-                       })->first;
+      std::find_if(usersFile.begin(), usersFile.end(), [socket](auto &pair) {
+        return socket == pair.second;
+      })->first;
 
   std::lock_guard<std::mutex> guard(serverFile->mutex);
 
-  for (Symbol s : symbols) {
-    CrdtAlgorithm::replaceSymbol(s, serverFile->getFileText());
-  }
+  CrdtAlgorithm::replaceSymbol(symbols, serverFile->getFileText());
 
   storeFileSymbols(serverFile);
 }
@@ -129,8 +121,9 @@ bool Model::openFileByUser(TcpSocket *socket, QString filename) {
 QVector<QString> &Model::getAvailableFiles() { return availableFiles; }
 
 std::shared_ptr<ServerFile> Model::getFileBySocket(TcpSocket *socket) {
-  auto fileToSocket = std::find_if(usersFile.begin(), usersFile.end(),
-                                   [socket](auto &pair) { return socket == pair.second; });
+  auto fileToSocket =
+      std::find_if(usersFile.begin(), usersFile.end(),
+                   [socket](auto &pair) { return socket == pair.second; });
   if (fileToSocket != usersFile.end())
     return fileToSocket->first;
   return nullptr;
@@ -156,7 +149,7 @@ std::vector<TcpSocket *> Model::getFileConnections(const QString &fileName) {
   return fileConnections;
 }
 
-void Model::insertUserActivity(TcpSocket *socket, const User& user) {
+void Model::insertUserActivity(TcpSocket *socket, const User &user) {
   socketToUser.emplace(socket, user);
 }
 
@@ -187,7 +180,10 @@ bool Model::checkInvite(const QString &link) {
   return Database::getInstance().checkInvite(link);
 }
 bool Model::insertInvite(const QString &username, const QString &filename) {
-  QString hashedLink = QString(QCryptographicHash::hash(QString(username+filename).toUtf8(), QCryptographicHash::Sha512).toHex());
+  QString hashedLink =
+      QString(QCryptographicHash::hash(QString(username + filename).toUtf8(),
+                                       QCryptographicHash::Sha512)
+                  .toHex());
   return Database::getInstance().insertInvite(hashedLink);
 }
 bool Model::deleteInvite(const QString &link) {

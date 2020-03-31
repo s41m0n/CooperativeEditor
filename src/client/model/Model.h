@@ -65,13 +65,10 @@ public:
 
     File getFile();
 
-    FileText getFileText();
+    FileText &getFileText();
 
     ///Return the file content
-    QString textify();
-
-    ///Return the file content as a std::string
-    std::string textifyToStdString();
+    std::string toStdString();
 
 };
 

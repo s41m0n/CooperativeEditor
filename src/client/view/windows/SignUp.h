@@ -1,15 +1,16 @@
 #ifndef COOPERATIVEEDITOR_SIGNUP_H
 #define COOPERATIVEEDITOR_SIGNUP_H
 
-#include <QMainWindow>
-#include <QLabel>
+#include <QFileDialog>
+#include <QGridLayout>
 #include <QGroupBox>
+#include <QLabel>
 #include <QLineEdit>
+#include <QMainWindow>
+#include <QMessageBox>
 #include <QPushButton>
 #include <QString>
-#include <QMessageBox>
-#include <QGridLayout>
-#include <QFileDialog>
+#include <src/common/User.h>
 
 /**
  * SignUp application window
@@ -53,9 +54,7 @@ public:
 signals:
 
     ///Signal to notify the server an user wants to sign up
-    void signUpRequest(QImage image, QString name, QString surname,
-                       QString username,
-                       QString email, QString password);
+    void signUpRequest(User user);
 
     ///Signal to go back to the login page
     void backToLogin();

@@ -1,5 +1,7 @@
 #include "Editor.h"
 
+#include <QtConcurrent/QtConcurrentRun>
+
 Editor::Editor(QWidget *parent) : QMainWindow(parent), usersOnlineList() {
 
   this->resize(1000, 500);
@@ -76,15 +78,15 @@ Editor::Editor(QWidget *parent) : QMainWindow(parent), usersOnlineList() {
   textEdit->setFocus();
 }
 
-void Editor::onFileTextLoad(const FileText &text, const QString fName,
-                            const QString username, unsigned int editorId) {
+void Editor::onFileTextLoad(FileText &text, QString &fName,
+                            QString &username, unsigned int editorId) {
   fileName = fName;
   this->setWindowTitle(fileName);
   clientId = editorId;
   usersOnlineList.insert(editorId, username);
   refreshUserView();
 
-  for (Symbol s : text) {
+  for (Symbol &s : text) {
     QTextCharFormat fmt;
     fmt.setFontWeight(s.isAttributeSet(BOLD) ? QFont::Bold : QFont::Normal);
     fmt.setFontItalic(s.isAttributeSet(ITALIC));
@@ -92,11 +94,10 @@ void Editor::onFileTextLoad(const FileText &text, const QString fName,
     textEdit->mergeCurrentCharFormat(fmt);
     textEdit->insertPlainText(s.getChar());
   }
-
   textEdit->setFocus();
 }
 
-void Editor::onRemoteInsert(int index, const QVector<Symbol> &symbol) {
+void Editor::onRemoteInsert(int index, FileText &symbol) {
   auto cursor = textEdit->textCursor(); // I retrieve the cursor
   cursor.movePosition(
       QTextCursor::Start); // I place it at the beginning of the document
@@ -122,7 +123,7 @@ void Editor::onRemoteDelete(int index, int size) {
   }
 }
 
-void Editor::onRemoteUpdate(int index, const QVector<Symbol> &symbol) {
+void Editor::onRemoteUpdate(int index, FileText &symbol) {
   auto cursor = textEdit->textCursor(); // I retrieve the cursor
   cursor.movePosition(
       QTextCursor::Start); // I place it at the beginning of the document
@@ -139,7 +140,7 @@ void Editor::onRemoteUpdate(int index, const QVector<Symbol> &symbol) {
   }
 }
 
-void Editor::onRemoteUserConnected(qint32 cId, const QString &username) {
+void Editor::onRemoteUserConnected(qint32 cId, const QString& username) {
 
   usersOnlineList.insert(cId, username);
 
@@ -268,8 +269,7 @@ void Editor::paste() {
     QVector<bool> arrayOfStyle = {actionBold->isChecked(),
                                   actionItalic->isChecked(),
                                   actionUnderlined->isChecked()};
-
-    emit symbolInserted(getCursorPos(), selectedText, arrayOfStyle);
+    emit symbolInserted(textEdit->textCursor().selectionStart(), selectedText, arrayOfStyle);
   }
 }
 

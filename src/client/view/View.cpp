@@ -1,21 +1,14 @@
 #include "View.h"
 
 View::View(Controller *controller, QWidget *parent)
-    : QWidget(parent), controller(controller), worker(new QThread(this)) {
+    : QWidget(parent), controller(controller) {
 
   connect(controller, &Controller::connected, this, &View::init);
-  connect(
-      controller, &Controller::error, this, std::bind([this]() {
-        QMessageBox::warning(
-            nullptr, "CooperativeEditor",
-            "Connection error. Try later, please.");
-        exit(-1);
-      }));
-}
-
-View::~View() {
-  worker->quit();
-  worker->wait();
+  connect(controller, &Controller::error, this, [this]() {
+    QMessageBox::warning(nullptr, "CooperativeEditor",
+                         "Connection error. Try later, please.");
+    exit(-1);
+  });
 }
 
 void View::init() {
@@ -47,19 +40,22 @@ void View::init() {
   QObject::connect(controller, &Controller::userProfileInfo, editProfile,
                    &EditUserProfile::onUserProfileInfo);
 
-  ///Da EditUserProfile a Editor ma senza effettuare modifiche
-  QObject::connect(editProfile, &EditUserProfile::openEditorFromEditProfileNoChanges,
-                   editor, &Editor::onComeBackFromEditProfileNoChanges);
+  /// Da EditUserProfile a Editor ma senza effettuare modifiche
+  QObject::connect(editProfile,
+                   &EditUserProfile::openEditorFromEditProfileNoChanges, editor,
+                   &Editor::onComeBackFromEditProfileNoChanges);
 
-  ///Bottone semplice (azione da menu dropdown) da Editor a FileVisualizer per aprire un nuovo file
+  /// Bottone semplice (azione da menu dropdown) da Editor a FileVisualizer per
+  /// aprire un nuovo file
   QObject::connect(editor, &Editor::openVisualizerFromEditor, fileVisualizer,
                    &QMainWindow::show);
 
-  ///Oltre a tornare a FileVisualizer devo informare il server della chiusura del file
+  /// Oltre a tornare a FileVisualizer devo informare il server della chiusura
+  /// del file
   QObject::connect(editor, &Editor::fileClosed, controller,
                    &Controller::onFileClosed);
 
-  ///Segnale dal fileVisualizer per chiedere al server di aprire un file
+  /// Segnale dal fileVisualizer per chiedere al server di aprire un file
   QObject::connect(fileVisualizer, &FileVisualizer::fileRequest, controller,
                    &Controller::onFileRequest);
 
@@ -125,8 +121,6 @@ void View::init() {
                    &Editor::onRemoteUserDisconnected);
 
   login->show();
-  worker->start();
-  controller->moveToThread(worker);
 }
 void View::onLoginResponse(bool result) {
   if (result) {
@@ -135,7 +129,7 @@ void View::onLoginResponse(bool result) {
     signUp->hide();
   } else {
     QMessageBox::information(login, "CooperativeEditor",
-                         "Username and Password are not correct.");
+                             "Username and Password are not correct.");
   }
 }
 

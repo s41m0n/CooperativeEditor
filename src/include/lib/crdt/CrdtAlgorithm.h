@@ -1,6 +1,8 @@
 #ifndef COOPERATIVEEDITOR_CRDTALGORITHM_H
 #define COOPERATIVEEDITOR_CRDTALGORITHM_H
 
+#include <cmath>
+#include <random>
 #include <QVector>
 
 #include "components/Symbol.h"
@@ -9,13 +11,14 @@ namespace CrdtAlgorithm {
 
     ///Enumeration that defines the different position generation strategy
     enum class Strategy {
-        PLUS, MINUS, RANDOM, ALTERNATE
+        PLUS, MINUS, RANDOM, EVERY2ND, EVERY3RD, LOW_LEVEL_1ST
     };
 
     ///Static variable to space between the position generation
     const static int base = 32;
     const static int boundary = 10;
-    const static Strategy strategy = Strategy::RANDOM;
+    const static Strategy strategy = Strategy::LOW_LEVEL_1ST;
+    static std::vector<bool> cache;
 
     ///True means '+', false means '-'
     bool retrieveStrategy(int level);
@@ -38,12 +41,13 @@ namespace CrdtAlgorithm {
                                            int level = 0);
 
     ///Method to update the list of symbol after a remote insertion
-    int remoteInsert(Symbol &s, FileText &symbols);
+    int remoteInsert(FileText toInsert, FileText &symbols);
 
     ///Method to update the list of symbol after a remote deletion
-    int remoteErase(Symbol &s, FileText &symbols);
+    int remoteErase(FileText toErase, FileText &symbols);
 
-    int replaceSymbol(Symbol &s, FileText &symbols);
+    ///Method to replace/update a given symbol
+    int replaceSymbol(FileText toReplace, FileText &symbols);
 }
 
 #endif //COOPERATIVEEDITOR_CRDTALGORITHM_H

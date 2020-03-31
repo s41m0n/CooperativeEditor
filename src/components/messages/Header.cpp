@@ -35,7 +35,3 @@ Type &Header::getType() {
 quint32 Header::getSize() {
   return size;
 }
-
-quint32 Header::objectSize() {
-  return sizeof(type) + sizeof(std::underlying_type_t<Type>);
-}

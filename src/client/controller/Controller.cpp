@@ -70,8 +70,7 @@ void Controller::onMessageReceived(Header &header, QByteArray &buf) {
   case Type::U_CONNECTED: {
     auto msg = UserMessage::fromQByteArray(buf);
     auto userConnected = msg.getUser();
-    emit remoteUserConnected(
-        msg.getEditorId(), userConnected.getName());
+    emit remoteUserConnected(msg.getEditorId(), userConnected.getName());
     break;
   }
   case Type::U_DISCONNECTED: {
@@ -90,11 +89,10 @@ void Controller::prepareToSend(Type type, BasicMessage &msg) {
   socket->sendMsg(header, buf);
 }
 
-void Controller::onCharInserted(int index, const QString &value,
-                                const QVector<bool> &attributes) {
+void Controller::onCharInserted(int index, QString value,
+                                QVector<bool> &attributes) {
 
   try {
-
     CrdtMessage msg(model->localInsert(index, value, attributes),
                     model->getEditorId());
     prepareToSend(Type::S_INSERT, msg);
@@ -127,8 +125,7 @@ void Controller::onCharUpdated(int index, int size, Attribute attribute,
   }
 }
 
-void Controller::onLoginRequest(const QString &username,
-                                const QString &password) {
+void Controller::onLoginRequest(const QString &username, const QString &password) {
 
   QByteArray hashedPassword =
       QCryptographicHash::hash(password.toUtf8(), QCryptographicHash::Sha512);
@@ -138,17 +135,9 @@ void Controller::onLoginRequest(const QString &username,
   prepareToSend(Type::U_LOGIN, msg);
 }
 
-void Controller::onSignUpRequest(QImage image, QString name, QString surname,
-                                 QString username, QString email,
-                                 const QString &password) {
+void Controller::onSignUpRequest(User user) {
 
-  QByteArray hashedPassword =
-      QCryptographicHash::hash(password.toUtf8(), QCryptographicHash::Sha512);
-
-  UserMessage msg(model->getEditorId(),
-                  User(std::move(username), std::move(name), std::move(surname),
-                       std::move(email), QString(hashedPassword.toHex()),
-                       std::move(image)));
+  UserMessage msg(model->getEditorId(),std::move(user));
   prepareToSend(Type::U_REGISTER, msg);
 }
 

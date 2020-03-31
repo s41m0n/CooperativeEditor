@@ -21,7 +21,7 @@ public:
 
     File() = default;
 
-    QString getFileName();
+    QString &getFileName();
 
     FileText &getFileText();
 

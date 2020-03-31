@@ -2,16 +2,11 @@
 #define COOPERATIVEEDITOR_SYMBOL_H
 
 #include <QVector>
-#include "src/include/lib/serialization/Serializable.h"
 
 #include "Identifier.h"
+#include "src/include/lib/serialization/Serializable.h"
 
-enum Attribute {
-    BOLD,
-    ITALIC,
-    UNDERLINED,
-    ATTRIBUTE_SIZE
-};
+enum Attribute { BOLD, ITALIC, UNDERLINED, ATTRIBUTE_SIZE };
 
 /**
  * Symbol class, to identify each inserted character
@@ -20,39 +15,38 @@ enum Attribute {
 class Symbol : public Serializable {
 
 private:
+  QChar character;
 
-    QChar character;
+  unsigned siteId;
 
-    unsigned siteId;
+  QVector<Identifier> position;
 
-    QVector<Identifier> position;
-
-    QVector<bool> attributes;
+  QVector<bool> attributes;
 
 public:
+  Symbol(QChar character, unsigned siteId, QVector<Identifier> &position);
 
-    Symbol(QChar character, unsigned siteId,
-           QVector<Identifier> &position);
+  Symbol();
 
-    Symbol();
+  int compareTo(const Symbol &s);
 
-    int compareTo(const Symbol &s);
+  QChar &getChar();
 
-    QChar &getChar();
+  QVector<Identifier> &getPos();
 
-    QVector<Identifier> &getPos();
+  std::string toStdString(int level = 0) override;
 
-    std::string toStdString(int level = 0) override;
+  QDataStream &serialize(QDataStream &stream) const override;
 
-    QDataStream &serialize(QDataStream &stream) const override;
+  QDataStream &deserialize(QDataStream &stream) override;
 
-    QDataStream &deserialize(QDataStream &stream) override;
+  void setAttributes(QVector<bool> attributes);
 
-    void setAttributes(QVector<bool> attributes);
+  void setAttribute(Attribute attribute, bool set);
 
-    void setAttribute(Attribute attribute, bool set);
+  bool isAttributeSet(Attribute attribute);
 
-    bool isAttributeSet(Attribute attribute);
+  QVector<bool> &getAttributes();
 };
 
 typedef QVector<Symbol> FileText;
@@ -60,4 +54,4 @@ typedef QVector<Symbol> FileText;
 Q_DECLARE_METATYPE(FileText);
 Q_DECLARE_METATYPE(Attribute);
 
-#endif //COOPERATIVEEDITOR_SYMBOL_H
+#endif // COOPERATIVEEDITOR_SYMBOL_H

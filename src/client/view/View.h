@@ -18,7 +18,6 @@ class View : public QWidget {
   Q_DISABLE_COPY(View);
 private:
   Controller *controller;
-  QThread *worker;
 
   Login *login{};
   SignUp *signUp{};
@@ -28,7 +27,6 @@ private:
 
 public:
   explicit View(Controller *controller, QWidget *parent = nullptr);
-  ~View() override;
 
 public slots:
   void onFileResult(bool result);

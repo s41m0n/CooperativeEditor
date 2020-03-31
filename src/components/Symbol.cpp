@@ -95,3 +95,5 @@ void Symbol::setAttribute(Attribute attribute, bool set) {
 bool Symbol::isAttributeSet(Attribute attribute) {
   return attributes[attribute];
 }
+
+QVector<bool> &Symbol::getAttributes() { return attributes; }

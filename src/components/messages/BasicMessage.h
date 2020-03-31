@@ -1,6 +1,7 @@
 #ifndef COOPERATIVEEDITOR_BASICMESSAGE_H
 #define COOPERATIVEEDITOR_BASICMESSAGE_H
 
+#include <QByteArray>
 #include "src/include/lib/serialization/Serializable.h"
 
 /**
@@ -17,9 +18,9 @@ protected:
   QDataStream &deserialize(QDataStream &stream) override;
 
 public:
-  BasicMessage(unsigned editorId);
+  explicit BasicMessage(unsigned editorId);
 
-  BasicMessage();
+  BasicMessage() = default;
 
   quint32 getEditorId();
 

@@ -45,7 +45,7 @@ private:
     QImage userImage;
 
 protected:
-    void showEvent(QShowEvent *ev);
+    void showEvent(QShowEvent *ev) override;
 
 public:
     explicit EditUserProfile(QWidget *parent = nullptr);

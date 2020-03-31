@@ -2,8 +2,6 @@
 
 BasicMessage::BasicMessage(unsigned editorId) : editorId(editorId) {}
 
-BasicMessage::BasicMessage() : editorId(0) {}
-
 unsigned int BasicMessage::getEditorId() {
   return editorId;
 }

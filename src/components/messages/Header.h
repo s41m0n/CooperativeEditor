@@ -6,31 +6,29 @@
 class Header : public Serializable {
 
 private:
+  quint32 size;
 
-    quint32 size;
-
-    Type type;
+  Type type;
 
 public:
+  Header(quint32 size, Type type);
 
-    Header(quint32 size, Type type);
+  Header();
 
-    Header();
+  bool isValid();
 
-    bool isValid();
+  Type &getType();
 
-    Type &getType();
+  quint32 getSize();
 
-    quint32 getSize();
+  std::string toStdString(int level = 0) override;
 
-    std::string toStdString(int level = 0) override;
+  QDataStream &serialize(QDataStream &stream) const override;
 
-    QDataStream &serialize(QDataStream &stream) const override;
+  QDataStream &deserialize(QDataStream &stream) override;
 
-    QDataStream &deserialize(QDataStream &stream) override;
-
-    quint32 objectSize();
+  static const quint32 OBJECT_SIZE =
+      sizeof(type) + sizeof(std::underlying_type_t<Type>);
 };
 
-
-#endif //COOPERATIVEEDITOR_HEADER_H
+#endif // COOPERATIVEEDITOR_HEADER_H

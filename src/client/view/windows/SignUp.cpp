@@ -16,7 +16,7 @@ SignUp::SignUp(QWidget *parent) : QMainWindow(parent) {
   layout->addWidget(title, 0, 0);
 
   registerBox = new QGroupBox(
-          "Fill the following fields to sign up to the system:", mainWidget);
+      "Fill the following fields to sign up to the system:", mainWidget);
   registerBox->setLayout(new QVBoxLayout());
   layout->addWidget(registerBox, 1, 0, 1, 2);
 
@@ -83,7 +83,7 @@ SignUp::SignUp(QWidget *parent) : QMainWindow(parent) {
   registerBox->layout()->addWidget(buttonSignUp);
 
   alreadyRegisteredBox =
-          new QGroupBox("Are you already registered?", mainWidget);
+      new QGroupBox("Are you already registered?", mainWidget);
   alreadyRegisteredBox->setLayout(new QVBoxLayout());
   alreadyRegisteredBox->setWindowTitle("Error");
   layout->addWidget(alreadyRegisteredBox, 2, 0, 1, 2);
@@ -96,66 +96,69 @@ SignUp::SignUp(QWidget *parent) : QMainWindow(parent) {
   buttonExit->setAutoDefault(true);
   layout->addWidget(buttonExit, 3, 0, 1, 2);
 
-
   buttonExit->setFocus();
 
   QObject::connect(buttonExit, &QAbstractButton::clicked, this, [this]() {
-      int result = QMessageBox::warning(this, "CooperativeEditor", "Are you sure you want to exit?", QMessageBox::Yes, QMessageBox::No);
+    int result = QMessageBox::warning(this, "CooperativeEditor",
+                                      "Are you sure you want to exit?",
+                                      QMessageBox::Yes, QMessageBox::No);
 
-      if(result == QMessageBox::Yes) {
-        this->close();
-      }
+    if (result == QMessageBox::Yes) {
+      this->close();
+    }
   });
 
   QObject::connect(
-          buttonSelectImage, &QAbstractButton::clicked, this, [this]() {
-              auto path =
-                      QFileDialog::getOpenFileName(this, tr("Open Image"),
-                                                   "/home",
-                                                   tr("Image Files (*.png *.jpg *.bmp)"));
-              if (!path.isEmpty()) {
-                userImage = QImage(path);
+      buttonSelectImage, &QAbstractButton::clicked, this, [this]() {
+        auto path =
+            QFileDialog::getOpenFileName(this, tr("Open Image"), "/home",
+                                         tr("Image Files (*.png *.jpg *.bmp)"));
+        if (!path.isEmpty()) {
+          userImage = QImage(path);
 
-                if (userImage.sizeInBytes() > 1048576) { //maxSize = 1MB
-                  QMessageBox::information(this, "CooperativeEditor", "The image you have selected is too big. Try again.");
-                  userImage = QImage();
-                } else {
-                  displayImage->setPixmap(
-                          QPixmap::fromImage(userImage).scaled(75, 75,
-                                                               Qt::KeepAspectRatio));
-                  imageBorder->layout()->addWidget(displayImage);
-                  imageBorder->show();
-                  displayImage->show();
-                  buttonSelectImage->setText("Select Another Icon");
-                }
-              } else {
-                buttonSelectImage->setText("Select Icon");
-              }
-          });
+          if (userImage.sizeInBytes() > 1048576) { // maxSize = 1MB
+            QMessageBox::information(
+                this, "CooperativeEditor",
+                "The image you have selected is too big. Try again.");
+            userImage = QImage();
+          } else {
+            displayImage->setPixmap(QPixmap::fromImage(userImage).scaled(
+                75, 75, Qt::KeepAspectRatio));
+            imageBorder->layout()->addWidget(displayImage);
+            imageBorder->show();
+            displayImage->show();
+            buttonSelectImage->setText("Select Another Icon");
+          }
+        } else {
+          buttonSelectImage->setText("Select Icon");
+        }
+      });
 
   QObject::connect(buttonBackToLogin, &QAbstractButton::clicked, this,
                    [this]() {
-                       emit backToLogin();
-                       this->hide();
+                     emit backToLogin();
+                     this->hide();
                    });
 
   QObject::connect(buttonSignUp, &QAbstractButton::clicked, this, [this]() {
-      if (!userImage.isNull() && !nameTextField->text().isEmpty() &&
-          !surnameTextField->text().isEmpty() &&
-          !usernameTextField->text().isEmpty() &&
-          !emailTextField->text().isEmpty() &&
-          !passwordTextField->text().isEmpty()) {
+    if (!userImage.isNull() && !nameTextField->text().isEmpty() &&
+        !surnameTextField->text().isEmpty() &&
+        !usernameTextField->text().isEmpty() &&
+        !emailTextField->text().isEmpty() &&
+        !passwordTextField->text().isEmpty()) {
 
-        if (passwordTextField->text() == passwordTextFieldConfirm->text()) {
-          emit signUpRequest(userImage, nameTextField->text(),
-                             surnameTextField->text(),
-                             usernameTextField->text(),
-                             emailTextField->text(), passwordTextField->text());
-        } else {
-          QMessageBox::warning(this, "CooperativeEditor", "The two passwords must match.");
-        }
+      if (passwordTextField->text() == passwordTextFieldConfirm->text()) {
+        emit signUpRequest(User(usernameTextField->text(),
+                                nameTextField->text(), surnameTextField->text(),
+                                emailTextField->text(),
+                                passwordTextField->text(), userImage));
       } else {
-        QMessageBox::information(this, "CooperativeEditor", "Please fill all the requested fields.");
+        QMessageBox::warning(this, "CooperativeEditor",
+                             "The two passwords must match.");
       }
+    } else {
+      QMessageBox::information(this, "CooperativeEditor",
+                               "Please fill all the requested fields.");
+    }
   });
 }
