@@ -1,7 +1,5 @@
-#include <cmath>
-#include <random>
-
 #include "CrdtAlgorithm.h"
+#include <src/include/lib/spdlog/spdlog.h>
 
 unsigned int CrdtAlgorithm::generateIdBetween(unsigned int id1,
                                               unsigned int id2,
@@ -24,12 +22,13 @@ unsigned int CrdtAlgorithm::generateIdBetween(unsigned int id1,
   return distribution(gen);
 }
 
+// TODO : check if <= 0 is ok
 int CrdtAlgorithm::findPositionErase(Symbol &s, FileText &symbols) {
   int left = 0, mid;
   auto right = symbols.size() - 1;
 
   // check if struct is empty or char is less than first char
-  if (symbols.empty() || s.compareTo(symbols[left]) < 0)
+  if (symbols.empty() || s.compareTo(symbols[left]) <= 0)
     return 0;
   else if (s.compareTo(symbols[right]) > 0)
     return symbols.size();
@@ -78,10 +77,10 @@ int CrdtAlgorithm::findPositionInsert(Symbol &s, FileText &symbols) {
 }
 
 QVector<Identifier> CrdtAlgorithm::generatePosBetween(
-        QVector<Identifier> pos1, QVector<Identifier> pos2,
-        unsigned int editorId, QVector<Identifier> newPos, int level) {
+    QVector<Identifier> pos1, QVector<Identifier> pos2, unsigned int editorId,
+    QVector<Identifier> newPos, int level) {
 
-  auto baseValue = (unsigned int) (std::pow(2, level) * CrdtAlgorithm::base);
+  auto baseValue = (unsigned int)(std::pow(2, level) * CrdtAlgorithm::base);
   if (!baseValue) {
     baseValue = UINT_MAX;
   }
@@ -91,9 +90,8 @@ QVector<Identifier> CrdtAlgorithm::generatePosBetween(
   auto id2 = !pos2.empty() ? pos2[0] : Identifier(editorId, baseValue);
 
   if (id2.getDigit() - id1.getDigit() > 1) {
-    auto newDigit = CrdtAlgorithm::generateIdBetween(id1.getDigit(),
-                                                     id2.getDigit(),
-                                                     boundaryStrategy);
+    auto newDigit = CrdtAlgorithm::generateIdBetween(
+        id1.getDigit(), id2.getDigit(), boundaryStrategy);
     newPos.push_back({editorId, newDigit});
     return newPos;
   } else if (id2.getDigit() - id1.getDigit() == 1) {
@@ -128,61 +126,83 @@ QVector<Identifier> CrdtAlgorithm::generatePosBetween(
   throw std::runtime_error("Fix Position Sorting");
 }
 
-int CrdtAlgorithm::remoteErase(Symbol &s, FileText &symbols) {
-  int index = CrdtAlgorithm::findPositionErase(s, symbols);
+bool CrdtAlgorithm::retrieveStrategy(int level) {
+
+  if (level < cache.size()) {
+    return cache[level];
+  }
+
+  bool strategySelected;
+  switch (CrdtAlgorithm::strategy) {
+  case Strategy::PLUS:
+    strategySelected = true;
+    break;
+  case Strategy::MINUS:
+    strategySelected = false;
+    break;
+  case Strategy::RANDOM: {
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> distribution(0, 1);
+    strategySelected = distribution(gen) != 0;
+    break;
+  }
+  case Strategy::EVERY2ND:
+    strategySelected = ((level + 1) % 2) != 0;
+    break;
+  case Strategy::EVERY3RD:
+    strategySelected = ((level + 1) % 3) != 0;
+    break;
+  case Strategy ::LOW_LEVEL_1ST: {
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> distribution(0, level);
+    strategySelected = distribution(gen) > 1;
+    break;
+  }
+  default:
+    strategySelected = ((level + 1) % 2 != 0);
+    break;
+  }
+
+  if (level >= cache.size())
+    cache.emplace_back(strategySelected);
+  return strategySelected;
+}
+
+int CrdtAlgorithm::remoteErase(Symbol &toErase, FileText &symbols) {
+
+  int index = CrdtAlgorithm::findPositionErase(toErase, symbols);
 
   if (index < 0) {
     throw std::runtime_error("Remote erase bad index" + std::to_string(index));
   }
 
-  symbols.erase(symbols.begin() + index);
+  symbols.remove(index);
+
   return index;
 }
 
-int CrdtAlgorithm::remoteInsert(Symbol &s, FileText &symbols) {
-  int index = CrdtAlgorithm::findPositionInsert(s, symbols);
+int CrdtAlgorithm::remoteInsert(Symbol &toInsert, FileText &symbols) {
+  int index = CrdtAlgorithm::findPositionInsert(toInsert, symbols);
 
   if (index < 0) {
     throw std::runtime_error("Remote insert bad index" + std::to_string(index));
   }
 
-  symbols.insert(symbols.begin() + index, s);
+  symbols.insert(index, toInsert);
+
   return index;
 }
 
-bool CrdtAlgorithm::retrieveStrategy(int level) {
-
-  bool strategySelected;
-  switch (CrdtAlgorithm::strategy) {
-    case Strategy::PLUS:
-      strategySelected = true;
-      break;
-    case Strategy::MINUS:
-      strategySelected = false;
-      break;
-    case Strategy::RANDOM: {
-      std::random_device rd;
-      std::mt19937 gen(rd());
-      std::uniform_int_distribution<> distribution(0, 1);
-      strategySelected = distribution(gen) != 0;
-    }
-      break;
-    default:
-      strategySelected = ((level % 2) == 0);
-      break;
-  }
-
-  return strategySelected;
-}
-
-int CrdtAlgorithm::replaceSymbol(Symbol &s, FileText &symbols) {
-  int index = CrdtAlgorithm::findPositionErase(s, symbols);
+int CrdtAlgorithm::replaceSymbol(Symbol &toUpdate, FileText &symbols) {
+  int index = CrdtAlgorithm::findPositionErase(toUpdate, symbols);
 
   if (index < 0) {
     throw std::runtime_error("Remote update bad index" + std::to_string(index));
   }
 
-  symbols.erase(symbols.begin() + index);
-  symbols.insert(symbols.begin() + index, s);
+  symbols[index].setAttributes(toUpdate.getAttributes());
+
   return index;
 }

@@ -17,7 +17,8 @@ class TcpSocket : public QTcpSocket {
 
 signals:
   void messageReceived(Header &header, QByteArray &msg);
-private slots:
+
+  private slots:
   void onReadyRead();
 
 private:

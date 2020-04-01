@@ -5,7 +5,7 @@ CrdtMessage::CrdtMessage(QVector<Symbol> symbols, unsigned editorId)
           symbols(std::move(symbols)) {
 }
 
-QVector<Symbol> &CrdtMessage::getSymbols() {
+FileText &CrdtMessage::getSymbols() {
   return symbols;
 }
 

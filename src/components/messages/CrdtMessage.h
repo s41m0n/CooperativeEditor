@@ -11,7 +11,7 @@
 class CrdtMessage : public BasicMessage {
 
 private:
-  QVector<Symbol> symbols;
+  FileText symbols;
 
   QDataStream &serialize(QDataStream &stream) const override;
 
@@ -22,7 +22,7 @@ public:
 
   CrdtMessage() = default;
 
-  QVector<Symbol> &getSymbols();
+  FileText  &getSymbols();
 
   std::string toStdString(int level = 0) override;
 

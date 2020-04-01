@@ -13,7 +13,7 @@ void TcpSocket::setClientID(qintptr idToSet) {
 }
 
 bool TcpSocket::isMessageAvailable() {
-  if (!header.isValid() && bytesAvailable() >= header.objectSize()) {
+  if (!header.isValid() && bytesAvailable() >= Header::OBJECT_SIZE) {
     ds >> header;
   }
   return header.isValid() && bytesAvailable() >= header.getSize();
@@ -22,6 +22,7 @@ bool TcpSocket::isMessageAvailable() {
 void TcpSocket::sendMsg(Header &headerToSend, QByteArray &val) {
     ds << headerToSend;
     write(val);
+    //flush()
     spdlog::debug("Sent message\n{}", headerToSend.toStdString());
 }
 

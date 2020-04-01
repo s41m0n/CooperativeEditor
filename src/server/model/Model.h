@@ -50,12 +50,12 @@ public:
   Model();
 
   /// Method to handle user remote insertion
-  void userInsert(TcpSocket *socket, const QVector<Symbol>& symbols);
+  void userInsert(TcpSocket *socket, QVector<Symbol>& symbols);
 
   /// Method to handle user remote deletion
-  void userErase(TcpSocket *socket, const QVector<Symbol>& symbols);
+  void userErase(TcpSocket *socket, QVector<Symbol>& symbols);
 
-  void userReplace(TcpSocket *socket, const QVector<Symbol>& symbols);
+  void userReplace(TcpSocket *socket, QVector<Symbol>& symbols);
 
   void removeConnection(TcpSocket *socket);
 

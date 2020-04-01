@@ -18,9 +18,7 @@ int main(int argc, char **argv) {
     spdlog::set_level(spdlog::level::critical);
   }
 
-  qRegisterMetaType<QVector<QString>>();
   qRegisterMetaType<FileText>();
-  qRegisterMetaType<User>();
   qRegisterMetaType<Attribute>();
 
   QApplication app(argc, argv);

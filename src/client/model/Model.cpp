@@ -7,20 +7,16 @@ User Model::getUser() {
   return this->user;
 }
 
-FileText Model::getFileText() {
+FileText &Model::getFileText() {
   return this->file.getFileText();
 }
 
-QString Model::textify() {
-  QString str;
+std::string Model::toStdString() {
+  std::string str;
   for (auto &val : file.getFileText()) {
-    str += val.getChar();
+    str += val.getChar().toLatin1();
   }
   return str;
-}
-
-std::string Model::textifyToStdString() {
-  return textify().toStdString();
 }
 
 QVector<Symbol>
@@ -50,11 +46,8 @@ QVector<Symbol> Model::localErase(int index, int size) {
   }
 
   QVector<Symbol> toReturn;
-  for (int i = 0; i < size; ++i) {
-    Symbol s = std::move(file.getFileText()[index]);
-    file.getFileText().erase(file.getFileText().begin() + index);
-    toReturn.push_back(s);
-  }
+  toReturn.append(file.getFileText().mid(index, size));
+  file.getFileText().remove(index, size);
 
   return toReturn;
 }
@@ -76,28 +69,28 @@ Model::localUpdate(int index, int size, Attribute attribute, bool set) {
   return toReturn;
 }
 
-int Model::remoteInsert(QVector<Symbol> symbol) {
-  int index = CrdtAlgorithm::remoteInsert(symbol[0], file.getFileText());
-  for (int i = 1; i < symbol.size(); i++) {
-    CrdtAlgorithm::remoteInsert(symbol[i], file.getFileText());
+QVector<int> Model::remoteInsert(QVector<Symbol>& symbols) {
+  QVector<int> indexes;
+  for(auto &s: symbols) {
+    indexes.push_back(CrdtAlgorithm::remoteInsert(s, file.getFileText()));
   }
-  return index;
+  return indexes;
 }
 
-int Model::remoteErase(QVector<Symbol> symbol) {
-  int index = CrdtAlgorithm::remoteErase(symbol[0], file.getFileText());
-  for (int i = 1; i < symbol.size(); i++) {
-    CrdtAlgorithm::remoteErase(symbol[i], file.getFileText());
+QVector<int> Model::remoteErase(QVector<Symbol>& symbols) {
+  QVector<int> indexes;
+  for(auto &s: symbols) {
+    indexes.push_back(CrdtAlgorithm::remoteErase(s, file.getFileText()));
   }
-  return index;
+  return indexes;
 }
 
-int Model::remoteUpdate(QVector<Symbol> symbol) {
-  int index = CrdtAlgorithm::replaceSymbol(symbol[0], file.getFileText());
-  for (int i = 1; i < symbol.size(); i++) {
-    CrdtAlgorithm::replaceSymbol(symbol[i], file.getFileText());
+QVector<int> Model::remoteUpdate(QVector<Symbol>& symbols) {
+  QVector<int> indexes;
+  for(auto &s: symbols) {
+    indexes.push_back(CrdtAlgorithm::replaceSymbol(s, file.getFileText()));
   }
-  return index;
+  return indexes;
 }
 
 Symbol Model::generateSymbol(int index, QChar value) {

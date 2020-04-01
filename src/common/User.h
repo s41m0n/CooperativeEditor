@@ -3,6 +3,7 @@
 
 #include <QString>
 #include <QtGui/QImage>
+#include <QCryptographicHash>
 #include <utility>
 
 #include "src/include/lib/serialization/Serializable.h"
@@ -29,13 +30,7 @@ private:
 
 public:
     User(QString username, QString name, QString surname,
-         QString email, QString password, QImage picture);
-
-    User(QString username, QString name, QString surname,
-         QString email, QString password);
-
-    User(QString username, QString name, QString surname,
-         QString email);
+         QString email, const QString& password, QImage picture);
 
     User(QString username, QString name, QString surname,
          QString email, QImage picture);

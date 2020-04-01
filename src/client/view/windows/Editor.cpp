@@ -1,5 +1,7 @@
 #include "Editor.h"
 
+#include <QtConcurrent/QtConcurrentRun>
+
 Editor::Editor(QWidget *parent) : QMainWindow(parent), usersOnlineList() {
 
   this->resize(1000, 500);
@@ -76,15 +78,15 @@ Editor::Editor(QWidget *parent) : QMainWindow(parent), usersOnlineList() {
   textEdit->setFocus();
 }
 
-void Editor::onFileTextLoad(const FileText &text, const QString fName,
-                            const QString username, unsigned int editorId) {
+void Editor::onFileTextLoad(FileText &text, QString &fName,
+                            QString &username, unsigned int editorId) {
   fileName = fName;
   this->setWindowTitle(fileName);
   clientId = editorId;
   usersOnlineList.insert(editorId, username);
   refreshUserView();
 
-  for (Symbol s : text) {
+  for (Symbol &s : text) {
     QTextCharFormat fmt;
     fmt.setFontWeight(s.isAttributeSet(BOLD) ? QFont::Bold : QFont::Normal);
     fmt.setFontItalic(s.isAttributeSet(ITALIC));
@@ -92,17 +94,14 @@ void Editor::onFileTextLoad(const FileText &text, const QString fName,
     textEdit->mergeCurrentCharFormat(fmt);
     textEdit->insertPlainText(s.getChar());
   }
-
   textEdit->setFocus();
 }
 
-void Editor::onRemoteInsert(int index, const QVector<Symbol> &symbol) {
-  auto cursor = textEdit->textCursor(); // I retrieve the cursor
-  cursor.movePosition(
-      QTextCursor::Start); // I place it at the beginning of the document
-  cursor.movePosition(QTextCursor::Right, QTextCursor::MoveAnchor,
-                      index); // cursor is now where I want to insert the text
-  for (Symbol s : symbol) {
+void Editor::onRemoteInsert(QVector<int> indexes, FileText &symbols) {
+  auto cursor = textEdit->textCursor();
+  for(int i=0; i< indexes.size(); i++){
+    cursor.setPosition(indexes[i]);
+    auto &s = symbols[i];
     QTextCharFormat fmt;
     fmt.setFontWeight(s.isAttributeSet(BOLD) ? QFont::Bold : QFont::Normal);
     fmt.setFontItalic(s.isAttributeSet(ITALIC));
@@ -111,35 +110,29 @@ void Editor::onRemoteInsert(int index, const QVector<Symbol> &symbol) {
   }
 }
 
-void Editor::onRemoteDelete(int index, int size) {
-  auto cursor = textEdit->textCursor(); // I retrieve the cursor
-  cursor.movePosition(
-      QTextCursor::Start); // I place it at the beginning of the document
-  cursor.movePosition(QTextCursor::Right, QTextCursor::MoveAnchor,
-                      index); // cursor is now where I want to remove the text
-  for (int i = 0; i < size; i++) {
+void Editor::onRemoteDelete(const QVector<int>& indexes) {
+  auto cursor = textEdit->textCursor();
+  for (auto &i: indexes) {
+    cursor.setPosition(i);
     cursor.deleteChar();
   }
 }
 
-void Editor::onRemoteUpdate(int index, const QVector<Symbol> &symbol) {
-  auto cursor = textEdit->textCursor(); // I retrieve the cursor
-  cursor.movePosition(
-      QTextCursor::Start); // I place it at the beginning of the document
-  cursor.movePosition(QTextCursor::Right, QTextCursor::MoveAnchor,
-                      index); // cursor is now where I want to update the text
-  for (Symbol s : symbol) {
+void Editor::onRemoteUpdate(QVector<int> indexes, FileText &symbols) {
+  auto cursor = textEdit->textCursor();
+  for (int i=0; i<indexes.size(); i++) {
+    cursor.setPosition(indexes[i]);
     cursor.movePosition(QTextCursor::Right, QTextCursor::KeepAnchor, 1);
+    auto &s = symbols[i];
     QTextCharFormat fmt;
     fmt.setFontWeight(s.isAttributeSet(BOLD) ? QFont::Bold : QFont::Normal);
     fmt.setFontItalic(s.isAttributeSet(ITALIC));
     fmt.setFontUnderline(s.isAttributeSet(UNDERLINED));
-    cursor.mergeCharFormat(fmt);
-    cursor.clearSelection();
+    cursor.setCharFormat(fmt);
   }
 }
 
-void Editor::onRemoteUserConnected(qint32 cId, const QString &username) {
+void Editor::onRemoteUserConnected(qint32 cId, const QString& username) {
 
   usersOnlineList.insert(cId, username);
 
@@ -268,8 +261,7 @@ void Editor::paste() {
     QVector<bool> arrayOfStyle = {actionBold->isChecked(),
                                   actionItalic->isChecked(),
                                   actionUnderlined->isChecked()};
-
-    emit symbolInserted(getCursorPos(), selectedText, arrayOfStyle);
+    emit symbolInserted(textEdit->textCursor().selectionStart(), selectedText, arrayOfStyle);
   }
 }
 

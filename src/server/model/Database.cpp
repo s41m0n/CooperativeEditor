@@ -195,19 +195,6 @@ int Database::callbackCount(void *data, int colNum, char **dataRow,
   return 1;
 }
 
-QImage Database::convertIntoQImage(QByteArray buffer) {
-  QDataStream ds(&buffer, QIODevice::ReadOnly);
-  QImage ret;
-  ds >> ret;
-  return ret;
-}
-
-QByteArray Database::convertFromQImage(const QImage &userPic) {
-  QByteArray bytes;
-  QDataStream ds(&bytes, QIODevice::WriteOnly);
-  ds << userPic;
-  return bytes;
-}
 bool Database::checkInvite(const QString& link) {
   bool isValid = false;
   if (openConnection()) {
@@ -274,4 +261,19 @@ bool Database::deleteInvite(const QString &link) {
     }
   }
   return false;
+}
+
+
+QImage Database::convertIntoQImage(QByteArray buffer) {
+  QDataStream ds(&buffer, QIODevice::ReadOnly);
+  QImage ret;
+  ds >> ret;
+  return ret;
+}
+
+QByteArray Database::convertFromQImage(const QImage &userPic) {
+  QByteArray bytes;
+  QDataStream ds(&bytes, QIODevice::WriteOnly);
+  ds << userPic;
+  return bytes;
 }

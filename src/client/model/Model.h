@@ -46,12 +46,12 @@ public:
     localUpdate(int index, int size, Attribute attribute, bool set);
 
     ///Method to update the list of symbol after a remote insertion
-    int remoteInsert(QVector<Symbol> symbol);
+    QVector<int> remoteInsert(QVector<Symbol>& symbols);
 
     ///Method to update the list of symbol after a remote deletion
-    int remoteErase(QVector<Symbol> symbol);
+    QVector<int> remoteErase(QVector<Symbol>& symbols);
 
-    int remoteUpdate(QVector<Symbol> symbol);
+    QVector<int> remoteUpdate(QVector<Symbol>& symbols);
 
     void setEditorId(unsigned newEditorId);
 
@@ -65,13 +65,10 @@ public:
 
     File getFile();
 
-    FileText getFileText();
+    FileText &getFileText();
 
     ///Return the file content
-    QString textify();
-
-    ///Return the file content as a std::string
-    std::string textifyToStdString();
+    std::string toStdString();
 
 };
 

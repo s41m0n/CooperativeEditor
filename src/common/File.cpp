@@ -4,7 +4,7 @@ File::File(QString name, FileText text) : fileName(std::move(name)),
                                           fileText(std::move(text)) {}
 
 
-QString File::getFileName() {
+QString &File::getFileName() {
   return this->fileName;
 }
 
