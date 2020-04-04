@@ -91,7 +91,7 @@ void View::init() {
 
   /// Un utente remoto ha cancellato un carattere dal file
   QObject::connect(controller, &Controller::remoteUserDelete, editor,
-                   &Editor::onRemoteDelete);
+                   &Editor::onRemoteErase);
 
   /// Un utente remoto ha modificato lo stile di un carattere nel file
   QObject::connect(controller, &Controller::remoteUserUpdate, editor,
@@ -104,11 +104,6 @@ void View::init() {
   /// Segnale dall'editor al controller in seguito ad una cancellazione
   QObject::connect(editor, &Editor::symbolDeleted, controller,
                    &Controller::onCharErased);
-
-  /// Segnale dall'editor al controller in seguito all'update di stile di un
-  /// carattere
-  QObject::connect(editor, &Editor::symbolUpdated, controller,
-                   &Controller::onCharUpdated);
 
   /// Segnale dal controller all'editor per informarlo della presenza di un
   /// nuovo client collegato al file

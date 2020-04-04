@@ -20,12 +20,23 @@
 #include <QTextStream>
 #include <QToolBar>
 #include <QVBoxLayout>
+#include <QTextDocumentFragment>
 #include <QtPrintSupport/QPrinter>
 #include <QtWidgets/QInputDialog>
 #include <QtWidgets/QListWidget>
+#include <QtWidgets/QFileDialog>
+#include <QtWidgets/QFontComboBox>
+#include <QtWidgets/QSpinBox>
+#include <src/include/lib/spdlog/spdlog.h>
+
 #include <src/common/File.h>
 #include <src/common/User.h>
 #include <src/components/Symbol.h>
+
+#define DEFAULT_FONT_SIZE 12
+#define MAX_FONT_SIZE 80
+#define MIN_FONT_SIZE 1
+#define DEFAULT_FONT_FAMILY "Noto Mono"
 
 /**
  * Editor application window
@@ -37,45 +48,36 @@ class Editor : public QMainWindow {
 private:
   QWidget *mainWidget;
   QTextEdit *textEdit;
-  QMenuBar *topBar;
-  QToolBar *toolBar;
   QListWidget *usersOnline;
   QAction *actionBold;
   QAction *actionItalic;
   QAction *actionUnderlined;
   QLabel *usersOnlineDisplayer;
-  QLabel *linkLabel;
-  QLineEdit *linkDisplayer;
   QString fileName;
   QMap<qint32, QString> usersOnlineList;
-  qint32 clientId; // local clientID, useful to manage connections and
-                   // deconnections of the same user
+  QFontComboBox *font;
+  QSpinBox *fontSize;
+  bool isHandlingRemote;
+  bool isSelecting;
 
   void createTopBar(QGridLayout *layout);
 
   void createToolBar(QGridLayout *layout);
 
-  int getCursorPos();
-
-  void paste();
-
-  bool deleteSelection(); // true = deleted, false = nothing to delete
-  void simulateBackspacePression();
-
   void fileToPDF();
 
-  void textBold();
+  void refreshActionToggle();
 
-  void textItalic();
-
-  void textUnderlined();
-
-  void refreshUserView();
+  void refresOnlineUsersView();
 
 public:
   explicit Editor(QWidget *parent = nullptr);
 
-  bool eventFilter(QObject *editor, QEvent *event) override;
+private slots:
+  void onContentChanged(int pos, int del, int add);
+  void onActionClicked();
+  void onFontFamilyChanged(const QFont& font);
+  void onFontSizeChanged(int newSize);
 
 public slots:
 
@@ -83,19 +85,14 @@ public slots:
   void onFileTextLoad(FileText &text, QString &fileName, QString &username,
                       unsigned int editorId);
 
-  /// Slot to notify the editor that a remote user has inserted a character
-  void onRemoteInsert(QVector<int> indexes, FileText &symbols);
-
-  /// Slot to notify the editor that a remote user has deleted a character
-  void onRemoteDelete(const QVector<int>& indexes);
-
-  /// Slot to notify the editor that a remote user has updated a character
-  void onRemoteUpdate(QVector<int> indexes, FileText &symbols);
+  /// Slot to notify the editor that a remote user has performed an operation on the content
+  void onRemoteInsert(int index, Symbol &s);
+  void onRemoteUpdate(int index, Symbol &s);
+  void onRemoteErase(int index);
 
   void onRemoteUserConnected(qint32 clientId, const QString& username);
 
   void onRemoteUserDisconnected(qint32 clientId);
-
   void onComeBackFromEditProfileNoChanges();
 
 signals:
@@ -107,14 +104,11 @@ signals:
   void openVisualizerFromEditor();
 
   /// Signal emitted when the user inserts a symbol in the editor
-  void symbolInserted(int position, QString character,
-                      QVector<bool> &attributes);
+  void symbolInserted(int position, QChar character,
+                      QTextCharFormat format);
 
   /// Signal emitted when the user deletes a symbol in the editor
-  void symbolDeleted(int position, int size);
-
-  /// Signal emitted when the user updates a symbol in the editor
-  void symbolUpdated(int position, int size, Attribute attribute, bool set);
+  void symbolDeleted(int position);
 
   /// Signal emitted to inform the server the client has closed the file
   void fileClosed();

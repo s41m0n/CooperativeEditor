@@ -1,16 +1,15 @@
 #ifndef COOPERATIVEEDITOR_MODEL_H
 #define COOPERATIVEEDITOR_MODEL_H
 
-#include <QVector>
 #include <QString>
-#include <string>
+#include <QVector>
 #include <memory>
 #include <src/common/File.h>
-#include <memory>
+#include <string>
 
-#include "src/include/lib/crdt/CrdtAlgorithm.h"
 #include "common/User.h"
 #include "components/Symbol.h"
+#include "src/include/lib/crdt/CrdtAlgorithm.h"
 
 /**Model class for the client
  *
@@ -18,59 +17,49 @@
 class Model {
 
 private:
+  unsigned editorId;
 
-    unsigned editorId;
+  File file;
 
-    File file;
+  User user;
 
-    User user;
+  unsigned digitGenerator;
 
-    unsigned digitGenerator;
-
-    Symbol generateSymbol(int index, QChar value);
+  Symbol generateSymbol(int index, QChar value);
 
 public:
+  Model();
 
-    Model();
+  User getUser();
 
-    User getUser();
+  /// Crdt local method to insert a symbol
+  Symbol localInsert(int index, QChar value, QTextCharFormat &format);
 
-    ///Crdt local method to insert a symbol
-    QVector<Symbol>
-    localInsert(int index, QString value, const QVector<bool> &attributes);
+  /// Crdt local method to erase a symbol
+  Symbol localErase(int index);
 
-    ///Crdt local method to erase a symbol
-    QVector<Symbol> localErase(int index, int size);
+  /// Method to update the list of symbol after a remote insertion
+  int remoteInsert(Symbol &symbols);
 
-    QVector<Symbol>
-    localUpdate(int index, int size, Attribute attribute, bool set);
+  /// Method to update the list of symbol after a remote deletion
+  int remoteErase(Symbol &symbols);
 
-    ///Method to update the list of symbol after a remote insertion
-    QVector<int> remoteInsert(QVector<Symbol>& symbols);
+  void setEditorId(unsigned newEditorId);
 
-    ///Method to update the list of symbol after a remote deletion
-    QVector<int> remoteErase(QVector<Symbol>& symbols);
+  unsigned getEditorId();
 
-    QVector<int> remoteUpdate(QVector<Symbol>& symbols);
+  /// Method to set the current opened file name
+  void setCurrentFile(File &fileToSet);
 
-    void setEditorId(unsigned newEditorId);
+  /// Method to set the current user data
+  void setCurrentUser(User &userToSet);
 
-    unsigned getEditorId();
+  File &getFile();
 
-    ///Method to set the current opened file name
-    void setCurrentFile(File &fileToSet);
+  FileText &getFileText();
 
-    ///Method to set the current user data
-    void setCurrentUser(User &userToSet);
-
-    File getFile();
-
-    FileText &getFileText();
-
-    ///Return the file content
-    std::string toStdString();
-
+  /// Return the file content
+  std::string toStdString();
 };
 
-
-#endif //COOPERATIVEEDITOR_MODEL_H
+#endif // COOPERATIVEEDITOR_MODEL_H

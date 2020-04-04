@@ -1,58 +1,19 @@
 #include "Editor.h"
 
-#include <QtConcurrent/QtConcurrentRun>
-
-Editor::Editor(QWidget *parent) : QMainWindow(parent), usersOnlineList() {
-
-  this->resize(1000, 500);
+Editor::Editor(QWidget *parent)
+    : QMainWindow(parent), mainWidget(new QWidget(this)),
+      textEdit(new QTextEdit(mainWidget)),
+      usersOnlineDisplayer(new QLabel("Users online: ")), usersOnlineList() {
   // TODO:fai finestra readonly per vedere info utente con vettore
-
+  this->resize(1000, 500);
   this->setMinimumWidth(500);
 
-  mainWidget = new QWidget(this);
   auto layout = new QGridLayout(mainWidget);
-
-  setCentralWidget(mainWidget);
-  mainWidget->setLayout(layout);
 
   createTopBar(layout);
   createToolBar(layout);
 
-  textEdit = new QTextEdit(mainWidget);
-  textEdit->installEventFilter(this);
-  layout->addWidget(textEdit, 2, 0, 5, 2);
-
-  QObject::connect(
-      textEdit, &QTextEdit::selectionChanged, this,
-      [this]() { // adapt the buttons to the style of the current selected text
-        auto cursor = textEdit->textCursor();
-        cursor.setPosition(
-            textEdit->textCursor()
-                .selectionEnd()); // I consider the char at the end of selection
-        actionBold->setChecked(cursor.charFormat().fontWeight() == QFont::Bold);
-
-        actionItalic->setChecked(cursor.charFormat().fontItalic());
-
-        actionUnderlined->setChecked(cursor.charFormat().fontUnderline());
-      });
-
-  QObject::connect(textEdit, &QTextEdit::cursorPositionChanged, this,
-                   [this]() { // adapt the buttons to the style of the current
-                              // position of the cursor
-                     actionBold->setChecked(
-                         textEdit->textCursor().charFormat().fontWeight() ==
-                         QFont::Bold);
-
-                     actionItalic->setChecked(
-                         textEdit->textCursor().charFormat().fontItalic());
-
-                     actionUnderlined->setChecked(
-                         textEdit->textCursor().charFormat().fontUnderline());
-                   });
-
-  usersOnlineDisplayer = new QLabel("Users online: ");
   usersOnlineDisplayer->setFixedHeight(30); // 1 user is present
-  layout->addWidget(usersOnlineDisplayer, 2, 2, 1, 1);
 
   usersOnline = new QListWidget(mainWidget);
   usersOnline->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
@@ -62,78 +23,43 @@ Editor::Editor(QWidget *parent) : QMainWindow(parent), usersOnlineList() {
   usersOnline->setFixedWidth(250);
 
   layout->addWidget(usersOnline, 3, 2, 1, 1);
+  layout->addWidget(textEdit, 2, 0, 5, 2);
+  layout->addWidget(usersOnlineDisplayer, 2, 2, 1, 1);
 
-  linkLabel = new QLabel("Share this link to add contributors:");
-  linkLabel->setFixedHeight(30);
-  linkLabel->hide();
-  layout->addWidget(linkLabel, 4, 2, 1, 1);
+  mainWidget->setLayout(layout);
+  setCentralWidget(mainWidget);
 
-  linkDisplayer = new QLineEdit(mainWidget);
-  linkDisplayer->setText("----- link -----");
-  linkDisplayer->setReadOnly(true);
-  linkDisplayer->setFixedWidth(250);
-  linkDisplayer->hide();
-  layout->addWidget(linkDisplayer, 5, 2, 1, 1);
+  QObject::connect(textEdit->document(), &QTextDocument::contentsChange, this,
+                   &Editor::onContentChanged);
 
+  connect(textEdit, &QTextEdit::cursorPositionChanged, this, [&]() {
+    isSelecting = textEdit->textCursor().hasSelection();
+    refreshActionToggle();
+  });
+
+  textEdit->setCurrentFont(QFont(DEFAULT_FONT_FAMILY));
+  textEdit->setFontPointSize(DEFAULT_FONT_SIZE);
   textEdit->setFocus();
 }
 
-void Editor::onFileTextLoad(FileText &text, QString &fName,
-                            QString &username, unsigned int editorId) {
-  fileName = fName;
-  this->setWindowTitle(fileName);
-  clientId = editorId;
+void Editor::onFileTextLoad(FileText &text, QString &fName, QString &username,
+                            unsigned int editorId) {
+  this->setWindowTitle(fName);
   usersOnlineList.insert(editorId, username);
-  refreshUserView();
+  refresOnlineUsersView();
 
+  textEdit->document()->blockSignals(true);
+  textEdit->blockSignals(true);
   for (Symbol &s : text) {
-    QTextCharFormat fmt;
-    fmt.setFontWeight(s.isAttributeSet(BOLD) ? QFont::Bold : QFont::Normal);
-    fmt.setFontItalic(s.isAttributeSet(ITALIC));
-    fmt.setFontUnderline(s.isAttributeSet(UNDERLINED));
-    textEdit->mergeCurrentCharFormat(fmt);
+    textEdit->setCurrentCharFormat(s.getFormat());
     textEdit->insertPlainText(s.getChar());
   }
+  textEdit->document()->blockSignals(false);
+  textEdit->blockSignals(false);
   textEdit->setFocus();
 }
 
-void Editor::onRemoteInsert(QVector<int> indexes, FileText &symbols) {
-  auto cursor = textEdit->textCursor();
-  for(int i=0; i< indexes.size(); i++){
-    cursor.setPosition(indexes[i]);
-    auto &s = symbols[i];
-    QTextCharFormat fmt;
-    fmt.setFontWeight(s.isAttributeSet(BOLD) ? QFont::Bold : QFont::Normal);
-    fmt.setFontItalic(s.isAttributeSet(ITALIC));
-    fmt.setFontUnderline(s.isAttributeSet(UNDERLINED));
-    cursor.insertText(s.getChar(), fmt);
-  }
-}
-
-void Editor::onRemoteDelete(const QVector<int>& indexes) {
-  auto cursor = textEdit->textCursor();
-  for (auto &i: indexes) {
-    cursor.setPosition(i);
-    cursor.deleteChar();
-  }
-}
-
-void Editor::onRemoteUpdate(QVector<int> indexes, FileText &symbols) {
-  auto cursor = textEdit->textCursor();
-  for (int i=0; i<indexes.size(); i++) {
-    cursor.setPosition(indexes[i]);
-    cursor.movePosition(QTextCursor::Right, QTextCursor::KeepAnchor, 1);
-    auto &s = symbols[i];
-    QTextCharFormat fmt;
-    fmt.setFontWeight(s.isAttributeSet(BOLD) ? QFont::Bold : QFont::Normal);
-    fmt.setFontItalic(s.isAttributeSet(ITALIC));
-    fmt.setFontUnderline(s.isAttributeSet(UNDERLINED));
-    cursor.setCharFormat(fmt);
-  }
-}
-
-void Editor::onRemoteUserConnected(qint32 cId, const QString& username) {
-
+void Editor::onRemoteUserConnected(qint32 cId, const QString &username) {
   usersOnlineList.insert(cId, username);
 
   if (usersOnlineList.size() <= 5) {
@@ -142,258 +68,72 @@ void Editor::onRemoteUserConnected(qint32 cId, const QString& username) {
     usersOnline->setFixedHeight(150);
   }
 
-  refreshUserView();
+  refresOnlineUsersView();
   textEdit->setFocus();
 }
 
 void Editor::onRemoteUserDisconnected(qint32 cId) {
   usersOnlineList.remove(cId);
-  refreshUserView(); // it is not so easy to remove an element from the list,
-                     // it's better to refresh
+  refresOnlineUsersView(); // it is not so easy to remove an element from the
+                           // list, it's better to refresh
   textEdit->setFocus();
 }
 
-bool Editor::eventFilter(QObject *object,
-                         QEvent *event) { // key pression manager
-
-  if (object == textEdit && event->type() == QEvent::KeyPress) {
-
-    auto keyEvent = dynamic_cast<QKeyEvent *>(event);
-    Qt::KeyboardModifiers modifiers = keyEvent->modifiers();
-
-    if (modifiers & Qt::ControlModifier) { // ctrl is clicked
-
-      switch (keyEvent->key()) {
-      case Qt::Key_V: { // paste
-        deleteSelection();
-        paste();
-        break;
-      }
-      case Qt::Key_X: { // cut
-        deleteSelection();
-        break;
-      }
-      case Qt::Key_Delete: // delete next word
-      case Qt::Key_Z: {    // undo
-        // ignored
-        return true;
-      }
-      case Qt::Key_Backspace: { // delete last word
-        QTextCursor cursor = textEdit->textCursor();
-        cursor.select(QTextCursor::WordUnderCursor);
-        auto selection = cursor.selectedText();
-
-        if (selection ==
-            "") { // If the cursor is after one or more space I delete 1 space
-          if (getCursorPos() != 0) {
-            emit symbolDeleted(getCursorPos() - 1, 1);
-            cursor.deletePreviousChar();
-            return true;
-          }
-        } else {
-          emit symbolDeleted(cursor.selectionStart(), selection.size());
-        }
-        break;
-      }
-        // add desired shortcut here
-      default: {
-        // all the other shortcuts are handled by the default handler
-        return false;
-      }
-      }
-    } else { // ctrl is not clicked
-
-      auto characterInserted = keyEvent->text();
-
-      switch (keyEvent->key()) {
-      case Qt::Key_Escape: {
-        break;
-      }
-      case Qt::Key_Delete: {
-        if (!deleteSelection()) { // If I have already deleted the selection I
-                                  // don't delete it again
-          if (getCursorPos() != textEdit->toPlainText().size()) {
-            emit symbolDeleted(getCursorPos(), 1);
-          }
-        }
-        break;
-      }
-      case Qt::Key_Backspace: {
-        if (!deleteSelection()) { // If I have already deleted the selection I
-                                  // don't delete it again
-          if (getCursorPos() != 0) {
-            emit symbolDeleted(getCursorPos() - 1, 1);
-          }
-        }
-        break;
-      }
-      default: {
-        if (!characterInserted.isEmpty()) {
-
-          simulateBackspacePression();
-
-          QVector<bool> arrayOfStyle = {actionBold->isChecked(),
-                                        actionItalic->isChecked(),
-                                        actionUnderlined->isChecked()};
-
-          emit symbolInserted(getCursorPos(), {characterInserted.at(0)},
-                              arrayOfStyle);
-        }
-        break;
-      }
-      }
-    }
-  }
-
-  return false;
-}
-
-int Editor::getCursorPos() {
-  QTextCursor cursorPos = textEdit->textCursor();
-  return cursorPos.position();
-}
-
-void Editor::paste() {
-  auto clipboard = QApplication::clipboard();
-  QString selectedText = clipboard->text();
-
-  if (!selectedText.isEmpty()) {
-    QVector<bool> arrayOfStyle = {actionBold->isChecked(),
-                                  actionItalic->isChecked(),
-                                  actionUnderlined->isChecked()};
-    emit symbolInserted(textEdit->textCursor().selectionStart(), selectedText, arrayOfStyle);
-  }
-}
-
-bool Editor::deleteSelection() {
-
-  QTextCursor textCursor = textEdit->textCursor();
-  auto selection = textCursor.selectedText();
-
-  if (!selection.isEmpty()) {
-    emit symbolDeleted(textCursor.selectionStart(), selection.size());
-    selection.clear();
-    return true;
-  }
-
-  return false;
-}
-
-void Editor::simulateBackspacePression() {
-  QTextCursor textCursor = textEdit->textCursor();
-  auto selection = textCursor.selectedText();
-
-  if (!selection.isEmpty()) { // I need this trick because the delete selection
-                              // function does not keep the right position of
-                              // the cursor
-    QKeyEvent pressEvent =
-        QKeyEvent(QEvent::KeyPress, Qt::Key_Backspace, Qt::NoModifier);
-    QKeyEvent releaseEvent =
-        QKeyEvent(QEvent::KeyRelease, Qt::Key_Backspace, Qt::NoModifier);
-    QCoreApplication::sendEvent(textEdit, &pressEvent);
-    QCoreApplication::sendEvent(textEdit, &releaseEvent);
-  }
-}
-
 void Editor::createTopBar(QGridLayout *layout) {
-
-  topBar = new QMenuBar(mainWidget);
-
+  auto topBar = new QMenuBar(mainWidget);
+  /*File menu*/
   auto file = new QMenu("File", topBar);
-  topBar->addMenu(file);
-
   auto actionSave = new QAction("Save As PDF", file);
-  QObject::connect(actionSave, &QAction::triggered, this, [this]() {
-    fileToPDF();
-    QMessageBox::information(this, "CooperativeEditor",
-                             "File was correctly saved in your home directory");
-  });
-  file->addAction(actionSave);
-
-  file->addSeparator();
-
   auto actionClose = new QAction("Select another file", file);
-  QObject::connect(actionClose, &QAction::triggered, this, [this]() {
-    emit openVisualizerFromEditor();
-    emit fileClosed(); // to inform the server the user has closed the file
-    this->textEdit->clear(); // otherwise if I open again the same file the text
-                             // is inserted 2 times
-    usersOnlineList.clear();
-    refreshUserView();
-    this->close();
-  });
-  file->addAction(actionClose);
-
   auto actionQuit = new QAction("Quit", file);
-  QObject::connect(actionQuit, &QAction::triggered, this, &QMainWindow::close);
-  file->addAction(actionQuit);
-
-  topBar->addSeparator();
-
+  /*Edit menu*/
   auto edit = new QMenu("Edit", topBar);
-  topBar->addMenu(edit);
-
   auto actionCopy = new QAction("Copy", edit);
-  actionCopy->setShortcuts(QKeySequence::Copy);
-  QObject::connect(actionCopy, &QAction::triggered, this, [this]() {
-    auto event =
-        new QKeyEvent(QEvent::KeyPress, Qt::Key_C, Qt::ControlModifier);
-    QCoreApplication::postEvent(textEdit, event);
-  });
-  edit->addAction(actionCopy);
-
   auto actionPaste = new QAction("Paste", edit);
-  actionPaste->setShortcuts(QKeySequence::Paste);
-  QObject::connect(actionPaste, &QAction::triggered, this, [this]() {
-    auto event =
-        new QKeyEvent(QEvent::KeyPress, Qt::Key_V, Qt::ControlModifier);
-    QCoreApplication::postEvent(textEdit, event);
-  });
-  edit->addAction(actionPaste);
-
   auto actionCut = new QAction("Cut", edit);
-  actionCut->setShortcuts(QKeySequence::Cut);
-  QObject::connect(actionCut, &QAction::triggered, this, [this]() {
-    auto event =
-        new QKeyEvent(QEvent::KeyPress, Qt::Key_X, Qt::ControlModifier);
-    QCoreApplication::postEvent(textEdit, event);
-  });
-  edit->addAction(actionCut);
-
-  edit->addSeparator();
-
   auto actionGenerateLink = new QAction("Invite a contributor", edit);
+  auto actionEditProfile = new QAction("Edit your profile", edit);
+  /*Help Menu*/
+  auto help = new QMenu("Help", topBar);
+  auto actionAboutEditor = new QAction("About the Editor", help);
+  auto actionAboutAuthors = new QAction("About Us", help);
+
+  QObject::connect(actionCopy, &QAction::triggered, this, [this]() {
+    QCoreApplication::postEvent(
+        textEdit,
+        new QKeyEvent(QEvent::KeyPress, Qt::Key_C, Qt::ControlModifier));
+  });
+
+  QObject::connect(actionPaste, &QAction::triggered, this, [this]() {
+    QCoreApplication::postEvent(
+        textEdit,
+        new QKeyEvent(QEvent::KeyPress, Qt::Key_V, Qt::ControlModifier));
+  });
+
+  QObject::connect(actionCut, &QAction::triggered, this, [this]() {
+    QCoreApplication::postEvent(
+        textEdit,
+        new QKeyEvent(QEvent::KeyPress, Qt::Key_X, Qt::ControlModifier));
+  });
+
   QObject::connect(actionGenerateLink, &QAction::triggered, this, [this]() {
     // TODO: genera link + setta text di linkDisplayer
-    linkLabel->show();
-    linkDisplayer->show();
+    QMessageBox::information(mainWidget, "CooperativeEditor",
+                             "-------link-----");
   });
-  edit->addAction(actionGenerateLink);
 
-  edit->addSeparator();
-
-  auto actionEditProfile = new QAction("Edit your profile", edit);
   QObject::connect(actionEditProfile, &QAction::triggered, this, [this]() {
     emit openEditProfileFromEditor();
     this->setDisabled(true);
   });
-  edit->addAction(actionEditProfile);
-  topBar->addSeparator();
 
-  auto help = new QMenu("Help", topBar);
-  topBar->addMenu(help);
+  QObject::connect(actionQuit, &QAction::triggered, this, &QMainWindow::close);
 
-  auto actionAboutEditor = new QAction("About the Editor", help);
-  QObject::connect(actionAboutEditor, &QAction::triggered, this, [this]() {
-    QMessageBox::information(
-        this, "CooperativeEditor",
-        "Editor totally developed in C++\n\n Copyright fastidioso");
+  QObject::connect(actionClose, &QAction::triggered, this, [this]() {
+    emit openVisualizerFromEditor();
+    emit fileClosed();
   });
-  help->addAction(actionAboutEditor);
 
-  help->addSeparator();
-
-  auto actionAboutAuthors = new QAction("About Us", help);
   QObject::connect(actionAboutAuthors, &QAction::triggered, this, [this]() {
     QMessageBox::information(
         this, "CooperativeEditor",
@@ -403,71 +143,117 @@ void Editor::createTopBar(QGridLayout *layout) {
         "- Riccardo Marchi: sa solo tagliare e cucinare cipolle;\n  "
         "- Francesco Palmieri: PETARDO.");
   });
+  QObject::connect(actionAboutEditor, &QAction::triggered, this, [this]() {
+    QMessageBox::information(
+        this, "CooperativeEditor",
+        "Editor totally developed in C++\n\n Copyright fastidioso");
+  });
+  QObject::connect(actionSave, &QAction::triggered, this, &Editor::fileToPDF);
+
+  actionPaste->setShortcuts(QKeySequence::Paste);
+  actionCopy->setShortcuts(QKeySequence::Copy);
+  actionCut->setShortcuts(QKeySequence::Cut);
+  edit->addAction(actionPaste);
+  edit->addAction(actionCopy);
+  edit->addAction(actionCut);
+  edit->addSeparator();
+  edit->addAction(actionGenerateLink);
+  edit->addSeparator();
+  edit->addAction(actionEditProfile);
+
+  help->addAction(actionAboutEditor);
+  help->addSeparator();
   help->addAction(actionAboutAuthors);
 
+  file->addAction(actionSave);
+  file->addSeparator();
+  file->addAction(actionClose);
+  file->addAction(actionQuit);
+
+  topBar->addMenu(file);
+  topBar->addSeparator();
+  topBar->addMenu(edit);
+  topBar->addSeparator();
+  topBar->addMenu(help);
   topBar->setFixedHeight(34);
 
   layout->addWidget(topBar, 0, 0, 1, 2);
 }
 
 void Editor::createToolBar(QGridLayout *layout) {
-
-  toolBar = new QToolBar(mainWidget);
-
+  auto toolBar = new QToolBar(mainWidget);
   const QIcon boldIcon =
       QIcon::fromTheme("format-text-bold", QIcon(":/images/mac/textbold.png"));
-  actionBold =
-      toolBar->addAction(boldIcon, tr("&Bold"), this, &Editor::textBold);
-  QFont bold;
-  bold.setBold(true);
-  actionBold->setFont(bold);
-  actionBold->setCheckable(true);
-
-  toolBar->addSeparator();
-
   const QIcon italicIcon = QIcon::fromTheme(
       "format-text-italic", QIcon(":/images/mac/textitalic.png"));
-  actionItalic =
-      toolBar->addAction(italicIcon, tr("&Italic"), this, &Editor::textItalic);
-  QFont italic;
-  italic.setItalic(true);
-  actionItalic->setFont(italic);
-  actionItalic->setCheckable(true);
-
-  toolBar->addSeparator();
-
   const QIcon underlineIcon = QIcon::fromTheme(
       "format-text-underline", QIcon(":images/mac/textunder.png"));
-  actionUnderlined = toolBar->addAction(underlineIcon, tr("&Underline"), this,
-                                        &Editor::textUnderlined);
-  actionUnderlined->setShortcut(Qt::CTRL + Qt::Key_U);
-  QFont underline;
+  font = new QFontComboBox(toolBar);
+  fontSize = new QSpinBox(toolBar);
+  font->setCurrentFont(QFont(DEFAULT_FONT_FAMILY));
+  fontSize->setValue(DEFAULT_FONT_SIZE);
+  fontSize->setRange(MIN_FONT_SIZE, MAX_FONT_SIZE);
+
+  QFont bold, italic, underline;
+  bold.setBold(true);
+  italic.setItalic(true);
   underline.setUnderline(true);
+
+  actionBold =
+      toolBar->addAction(boldIcon, tr("&Bold"), this, &Editor::onActionClicked);
+  toolBar->addSeparator();
+  actionItalic = toolBar->addAction(italicIcon, tr("&Italic"), this,
+                                    &Editor::onActionClicked);
+  toolBar->addSeparator();
+  actionUnderlined = toolBar->addAction(underlineIcon, tr("&Underline"), this,
+                                        &Editor::onActionClicked);
+
+  toolBar->addSeparator();
+  toolBar->addWidget(font);
+  toolBar->addSeparator();
+  toolBar->addWidget(fontSize);
+  connect(font, &QFontComboBox::currentFontChanged, this,
+          &Editor::onFontFamilyChanged);
+
+  connect(fontSize,
+          static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this,
+          &Editor::onFontSizeChanged);
+
+  actionBold->setFont(bold);
+  actionBold->setCheckable(true);
+  actionItalic->setCheckable(true);
+  actionItalic->setFont(italic);
   actionUnderlined->setFont(underline);
   actionUnderlined->setCheckable(true);
+  actionUnderlined->setShortcut(Qt::CTRL + Qt::Key_U);
 
   toolBar->setFixedHeight(20);
-
   layout->addWidget(toolBar, 1, 0, 1, 2);
 }
 
 void Editor::fileToPDF() {
 
-  QString name = this->fileName.append(".pdf");
+  QString name = QFileDialog::getSaveFileName(mainWidget, "Export to PDF",
+                                              fileName, tr("*.pdf"));
+  if (name.isEmpty())
+    return;
+
+  if (QFileInfo(name).suffix().isEmpty()) {
+    fileName.append(".pdf");
+  }
 
   QPrinter printer(QPrinter::PrinterResolution);
   printer.setOutputFormat(QPrinter::PdfFormat);
   printer.setPaperSize(QPrinter::A4);
   printer.setOutputFileName(name);
 
-  QTextDocument doc;
-  doc.setPlainText(textEdit->toPlainText());
-  doc.setPageSize(printer.pageRect().size());
-  doc.print(&printer);
+  auto doc = textEdit->document();
+  doc->setPageSize(printer.pageRect().size());
+  doc->print(&printer);
+  QMessageBox::information(this, "CooperativeEditor", "File correctly saved");
 }
 
-void Editor::refreshUserView() {
-
+void Editor::refresOnlineUsersView() {
   auto usernames = usersOnlineList.values();
   usernames.removeDuplicates(); // remove duplicates
 
@@ -486,46 +272,84 @@ void Editor::refreshUserView() {
   }
 }
 
-void Editor::textBold() {
-  QTextCharFormat fmt;
-  fmt.setFontWeight(actionBold->isChecked() ? QFont::Bold : QFont::Normal);
-  textEdit->mergeCurrentCharFormat(fmt);
-
-  QTextCursor textCursor = textEdit->textCursor();
-  auto selection = textCursor.selectedText();
-
-  if (!selection.isEmpty()) {
-    emit symbolUpdated(textCursor.selectionStart(), selection.size(),
-                       Attribute::BOLD, actionBold->isChecked());
-  }
+void Editor::onRemoteErase(int index) {
+  isHandlingRemote = true;
+  auto cursor = textEdit->textCursor();
+  cursor.setPosition(index);
+  cursor.deleteChar();
+  isHandlingRemote = false;
 }
 
-void Editor::textItalic() {
+void Editor::onRemoteUpdate(int index, Symbol &symbol) {
+  isHandlingRemote = true;
+  auto cursor = textEdit->textCursor();
+  cursor.setPosition(index);
+  cursor.movePosition(QTextCursor::Right, QTextCursor::KeepAnchor, 1);
+  cursor.setCharFormat(symbol.getFormat());
+  isHandlingRemote = false;
+}
+
+void Editor::onRemoteInsert(int index, Symbol &symbol) {
+  auto cursor = textEdit->textCursor();
+  isHandlingRemote = true;
+  cursor.setPosition(index);
+  cursor.setCharFormat(symbol.getFormat());
+  cursor.insertText(symbol.getChar());
+  isHandlingRemote = false;
+}
+
+void Editor::onActionClicked() {
   QTextCharFormat fmt;
   fmt.setFontItalic(actionItalic->isChecked());
-  textEdit->mergeCurrentCharFormat(fmt);
-
-  QTextCursor textCursor = textEdit->textCursor();
-  auto selection = textCursor.selectedText();
-
-  if (!selection.isEmpty()) {
-    emit symbolUpdated(textCursor.selectionStart(), selection.size(),
-                       Attribute::ITALIC, actionItalic->isChecked());
-  }
-}
-
-void Editor::textUnderlined() {
-  QTextCharFormat fmt;
+  fmt.setFontWeight(actionBold->isChecked() ? QFont::Bold : QFont::Normal);
   fmt.setFontUnderline(actionUnderlined->isChecked());
+  textEdit->textCursor().mergeCharFormat(fmt);
   textEdit->mergeCurrentCharFormat(fmt);
-
-  QTextCursor textCursor = textEdit->textCursor();
-  auto selection = textCursor.selectedText();
-
-  if (!selection.isEmpty()) {
-    emit symbolUpdated(textCursor.selectionStart(), selection.size(),
-                       Attribute::UNDERLINED, actionUnderlined->isChecked());
-  }
 }
 
 void Editor::onComeBackFromEditProfileNoChanges() { this->setDisabled(false); }
+
+void Editor::refreshActionToggle() {
+  if (!isSelecting) {
+    actionBold->setChecked(textEdit->textCursor().charFormat().fontWeight() ==
+                           QFont::Bold);
+
+    actionItalic->setChecked(textEdit->textCursor().charFormat().fontItalic());
+
+    actionUnderlined->setChecked(
+        textEdit->textCursor().charFormat().fontUnderline());
+    font->setCurrentFont(textEdit->currentFont());
+    fontSize->blockSignals(true);
+    fontSize->setValue(textEdit->currentFont().pointSize());
+    fontSize->blockSignals(false);
+  }
+}
+
+void Editor::onContentChanged(int pos, int del, int add) {
+  /*Checking if this event is due to remote op*/
+  if (!isHandlingRemote) {
+    QTextCursor cursor(textEdit->document());
+    for (int i = 0; i < del; i++)
+      emit symbolDeleted(pos);
+
+    for (int i = 0; i < add; i++) {
+      cursor.setPosition(pos + i + 1);
+      emit symbolInserted(pos + i, textEdit->document()->characterAt(pos + i),
+                          cursor.charFormat());
+    }
+  }
+}
+
+void Editor::onFontFamilyChanged(const QFont &newFont) {
+  QTextCharFormat fmt;
+  fmt.setFontFamily(newFont.family());
+  textEdit->mergeCurrentCharFormat(fmt);
+  textEdit->setFocus();
+}
+
+void Editor::onFontSizeChanged(int newSize) {
+  QTextCharFormat fmt;
+  fmt.setFontPointSize(newSize);
+  textEdit->mergeCurrentCharFormat(fmt);
+  textEdit->setFocus();
+}
