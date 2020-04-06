@@ -38,7 +38,7 @@ void Model::loadFileSymbols(const std::shared_ptr<ServerFile> &serverFile) {
   ds >> serverFile->getFileText();
 }
 
-void Model::userInsert(TcpSocket *socket, QVector<Symbol> &symbols) {
+void Model::userInsert(TcpSocket *socket, Symbol &symbol) {
 
   auto serverFile =
       std::find_if(usersFile.begin(), usersFile.end(), [socket](auto &pair) {
@@ -47,14 +47,12 @@ void Model::userInsert(TcpSocket *socket, QVector<Symbol> &symbols) {
 
   std::lock_guard<std::mutex> guard(serverFile->mutex);
 
-  for (auto &s : symbols) {
-    CrdtAlgorithm::remoteInsert(s, serverFile->getFileText());
-  }
+  CrdtAlgorithm::remoteInsert(symbol, serverFile->getFileText());
 
   storeFileSymbols(serverFile);
 }
 
-void Model::userErase(TcpSocket *socket, QVector<Symbol> &symbols) {
+void Model::userErase(TcpSocket *socket, Symbol &symbol) {
 
   auto serverFile =
       std::find_if(usersFile.begin(), usersFile.end(), [socket](auto &pair) {
@@ -63,24 +61,7 @@ void Model::userErase(TcpSocket *socket, QVector<Symbol> &symbols) {
 
   std::lock_guard<std::mutex> guard(serverFile->mutex);
 
-  for (auto &s : symbols) {
-    CrdtAlgorithm::remoteErase(s, serverFile->getFileText());
-  }
-
-  storeFileSymbols(serverFile);
-}
-
-void Model::userReplace(TcpSocket *socket, QVector<Symbol> &symbols) {
-  auto serverFile =
-      std::find_if(usersFile.begin(), usersFile.end(), [socket](auto &pair) {
-        return socket == pair.second;
-      })->first;
-
-  std::lock_guard<std::mutex> guard(serverFile->mutex);
-
-  for (auto &s : symbols) {
-    CrdtAlgorithm::replaceSymbol(s, serverFile->getFileText());
-  }
+  CrdtAlgorithm::remoteErase(symbol, serverFile->getFileText());
 
   storeFileSymbols(serverFile);
 }

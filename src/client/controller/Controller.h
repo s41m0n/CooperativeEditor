@@ -52,12 +52,10 @@ public slots:
   void onSignUpRequest(User user);
 
   /// Slot to wake up when user insert a char locally
-  void onCharInserted(int index, QString value, QVector<bool> &attributes);
+  void onCharInserted(int index, QChar value, QTextCharFormat format);
 
   /// Slot to wake up when user erase a char locally
-  void onCharErased(int index, int size);
-
-  void onCharUpdated(int index, int size, Attribute attribute, bool set);
+  void onCharErased(int index);
 
   void onFileRequest(const QString &filename, bool exists);
 
@@ -85,13 +83,13 @@ signals:
                     unsigned int editorId);
 
   /// Method to notify the view a character has been inserted by a remote user
-  void remoteUserInsert(QVector<int> indexes, FileText &symbols);
+  void remoteUserInsert(int index, Symbol &symbols);
 
   /// Method to notify the view a character has been deleted by a remote user
-  void remoteUserDelete(QVector<int> indexes);
+  void remoteUserDelete(int index);
 
   /// Method to notify the view a character has been updated by a remote user
-  void remoteUserUpdate(QVector<int> indexes, FileText &symbols);
+  void remoteUserUpdate(int index, Symbol &symbols);
 
   /// Method to send to the view the information about the user
   void userProfileInfo(QImage &image, QString &name, QString &surname,

@@ -2,6 +2,7 @@
 #define COOPERATIVEEDITOR_SYMBOL_H
 
 #include <QVector>
+#include <QTextCharFormat>
 
 #include "Identifier.h"
 #include "src/include/lib/serialization/Serializable.h"
@@ -30,6 +31,8 @@ public:
 
   int compareTo(const Symbol &s);
 
+  QTextCharFormat format;
+
   QChar &getChar();
 
   QVector<Identifier> &getPos();
@@ -40,13 +43,9 @@ public:
 
   QDataStream &deserialize(QDataStream &stream) override;
 
-  void setAttributes(QVector<bool> attributes);
+  void setFormat(QTextCharFormat format);
 
-  void setAttribute(Attribute attribute, bool set);
-
-  bool isAttributeSet(Attribute attribute);
-
-  QVector<bool> &getAttributes();
+  QTextCharFormat &getFormat();
 };
 
 typedef QVector<Symbol> FileText;

@@ -74,9 +74,11 @@ void Controller::onMessageReceived(Header &header, QByteArray &buf) {
   case Type::S_ERASE: {
     auto msg = CrdtMessage::fromQByteArray(buf);
     try {
-      header.getType() == Type::S_INSERT
-          ? model->userInsert(sender, msg.getSymbols())
-          : model->userErase(sender, msg.getSymbols());
+      if (header.getType() == Type::S_INSERT) {
+        model->userInsert(sender, msg.getSymbol());
+      } else{
+        model->userErase(sender, msg.getSymbol());
+      }
       dispatch(sender, header.getType(), header, msg);
     } catch (std::exception &e) {
       spdlog::error("Error on remote operation:\nMsg -> {}", e.what());
@@ -128,12 +130,6 @@ void Controller::onMessageReceived(Header &header, QByteArray &buf) {
 
     UserMessage newMsg2(clientId, model->getUserActivity(sender));
     dispatch(sender, Type::U_CONNECTED, Header(), newMsg2);
-    break;
-  }
-  case Type::S_UPDATE_ATTRIBUTE: {
-    auto msg = CrdtMessage::fromQByteArray(buf);
-    model->userReplace(sender, msg.getSymbols());
-    dispatch(sender, header.getType(), header, msg);
     break;
   }
   case Type::U_DISCONNECTED: {

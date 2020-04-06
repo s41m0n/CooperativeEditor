@@ -1,5 +1,4 @@
 #include "CrdtAlgorithm.h"
-#include <src/include/lib/spdlog/spdlog.h>
 
 unsigned int CrdtAlgorithm::generateIdBetween(unsigned int id1,
                                               unsigned int id2,
@@ -22,7 +21,6 @@ unsigned int CrdtAlgorithm::generateIdBetween(unsigned int id1,
   return distribution(gen);
 }
 
-// TODO : check if <= 0 is ok
 int CrdtAlgorithm::findPositionErase(Symbol &s, FileText &symbols) {
   int left = 0, mid;
   auto right = symbols.size() - 1;
@@ -191,18 +189,6 @@ int CrdtAlgorithm::remoteInsert(Symbol &toInsert, FileText &symbols) {
   }
 
   symbols.insert(index, toInsert);
-
-  return index;
-}
-
-int CrdtAlgorithm::replaceSymbol(Symbol &toUpdate, FileText &symbols) {
-  int index = CrdtAlgorithm::findPositionErase(toUpdate, symbols);
-
-  if (index < 0) {
-    throw std::runtime_error("Remote update bad index" + std::to_string(index));
-  }
-
-  symbols[index].setAttributes(toUpdate.getAttributes());
 
   return index;
 }

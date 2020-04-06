@@ -3,7 +3,7 @@
 Symbol::Symbol(QChar character, unsigned siteId,
                QVector<Identifier> &position) : position(std::move(position)),
                                                 siteId(siteId),
-                                                character(character) {
+                                                character(character), format() {
   for (int i = 0; i < Attribute::ATTRIBUTE_SIZE; i++) {
     attributes.push_back(false);
   }
@@ -71,29 +71,19 @@ std::string Symbol::toStdString(int level) {
 }
 
 QDataStream &Symbol::serialize(QDataStream &stream) const {
-  stream << character << siteId << position << attributes;
+  stream << character << format << siteId << position << attributes;
 
   return stream;
 }
 
 QDataStream &Symbol::deserialize(QDataStream &stream) {
-  stream >> character >> siteId >> position >> attributes;
+  stream >> character >> format >> siteId >> position >> attributes;
 
   return stream;
 }
 
-void Symbol::setAttributes(QVector<bool> attr) {
-  for (int i = 0; i < Attribute::ATTRIBUTE_SIZE; i++) {
-    attributes[i] = attr[i];
-  }
+void Symbol::setFormat(QTextCharFormat format) {
+  this->format = format;
 }
 
-void Symbol::setAttribute(Attribute attribute, bool set) {
-  attributes[attribute] = set;
-}
-
-bool Symbol::isAttributeSet(Attribute attribute) {
-  return attributes[attribute];
-}
-
-QVector<bool> &Symbol::getAttributes() { return attributes; }
+QTextCharFormat &Symbol::getFormat() { return format; }
