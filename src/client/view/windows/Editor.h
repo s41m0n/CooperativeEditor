@@ -27,16 +27,19 @@
 #include <QtWidgets/QFileDialog>
 #include <QtWidgets/QFontComboBox>
 #include <QtWidgets/QSpinBox>
+#include <QtWidgets/QColorDialog>
 #include <src/include/lib/spdlog/spdlog.h>
 
 #include <src/common/File.h>
 #include <src/common/User.h>
 #include <src/components/Symbol.h>
 
-#define DEFAULT_FONT_SIZE 12
-#define MAX_FONT_SIZE 80
-#define MIN_FONT_SIZE 1
+#define DEFAULT_FONT_SIZE 12.0
+#define MAX_FONT_SIZE 80.0
+#define MIN_FONT_SIZE 1.0
 #define DEFAULT_FONT_FAMILY "Noto Mono"
+#define DEFAULT_TEXT_COLOR "white"
+#define DEFAULT_BACKGROUND_COLOR "transparent"
 
 /**
  * Editor application window
@@ -52,13 +55,14 @@ private:
   QAction *actionBold;
   QAction *actionItalic;
   QAction *actionUnderlined;
+  QPushButton *actionColorText;
+  QPushButton *actionColorBackground;
   QLabel *usersOnlineDisplayer;
   QString fileName;
   QMap<qint32, QString> usersOnlineList;
   QFontComboBox *font;
   QSpinBox *fontSize;
   bool isHandlingRemote;
-  bool isSelecting;
 
   void createTopBar(QGridLayout *layout);
 
@@ -66,9 +70,7 @@ private:
 
   void fileToPDF();
 
-  void refreshActionToggle();
-
-  void refresOnlineUsersView();
+  void refreshOnlineUsersView();
 
 public:
   explicit Editor(QWidget *parent = nullptr);
@@ -78,6 +80,9 @@ private slots:
   void onActionClicked();
   void onFontFamilyChanged(const QFont& font);
   void onFontSizeChanged(int newSize);
+  void onColorForegroundChanged(const QColor& color);
+  void onColorBackgroundChanged(const QColor& color);
+  void onCharFormatChanged(const QTextCharFormat &f);
 
 public slots:
 

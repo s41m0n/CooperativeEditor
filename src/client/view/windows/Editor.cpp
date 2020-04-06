@@ -32,13 +32,8 @@ Editor::Editor(QWidget *parent)
   QObject::connect(textEdit->document(), &QTextDocument::contentsChange, this,
                    &Editor::onContentChanged);
 
-  connect(textEdit, &QTextEdit::cursorPositionChanged, this, [&]() {
-    isSelecting = textEdit->textCursor().hasSelection();
-    refreshActionToggle();
-  });
-
-  textEdit->setCurrentFont(QFont(DEFAULT_FONT_FAMILY));
-  textEdit->setFontPointSize(DEFAULT_FONT_SIZE);
+  QObject::connect(textEdit, &QTextEdit::currentCharFormatChanged, this,
+                   &Editor::onCharFormatChanged);
   textEdit->setFocus();
 }
 
@@ -46,8 +41,9 @@ void Editor::onFileTextLoad(FileText &text, QString &fName, QString &username,
                             unsigned int editorId) {
   this->setWindowTitle(fName);
   usersOnlineList.insert(editorId, username);
-  refresOnlineUsersView();
+  refreshOnlineUsersView();
 
+  isHandlingRemote = true;
   textEdit->document()->blockSignals(true);
   textEdit->blockSignals(true);
   for (Symbol &s : text) {
@@ -56,6 +52,7 @@ void Editor::onFileTextLoad(FileText &text, QString &fName, QString &username,
   }
   textEdit->document()->blockSignals(false);
   textEdit->blockSignals(false);
+  isHandlingRemote = false;
   textEdit->setFocus();
 }
 
@@ -68,13 +65,13 @@ void Editor::onRemoteUserConnected(qint32 cId, const QString &username) {
     usersOnline->setFixedHeight(150);
   }
 
-  refresOnlineUsersView();
+  refreshOnlineUsersView();
   textEdit->setFocus();
 }
 
 void Editor::onRemoteUserDisconnected(qint32 cId) {
   usersOnlineList.remove(cId);
-  refresOnlineUsersView(); // it is not so easy to remove an element from the
+  refreshOnlineUsersView(); // it is not so easy to remove an element from the
                            // list, it's better to refresh
   textEdit->setFocus();
 }
@@ -189,10 +186,23 @@ void Editor::createToolBar(QGridLayout *layout) {
   const QIcon underlineIcon = QIcon::fromTheme(
       "format-text-underline", QIcon(":images/mac/textunder.png"));
   font = new QFontComboBox(toolBar);
+  font->setWritingSystem(QFontDatabase::Latin);
   fontSize = new QSpinBox(toolBar);
-  font->setCurrentFont(QFont(DEFAULT_FONT_FAMILY));
-  fontSize->setValue(DEFAULT_FONT_SIZE);
+
+  actionColorText = new QPushButton(toolBar);
+  actionColorText->setText("A");
+  actionColorBackground = new QPushButton(toolBar);
+  actionColorBackground->setStyleSheet(
+      "QPushButton {background-color: transparent;}");
+  textEdit->setTextBackgroundColor(DEFAULT_BACKGROUND_COLOR);
+  textEdit->setTextColor(DEFAULT_TEXT_COLOR);
+
+  textEdit->setFont(QFont(DEFAULT_FONT_FAMILY));
+  font->setFont(textEdit->currentFont());
+  textEdit->setFontPointSize(DEFAULT_FONT_SIZE);
+  fontSize->setValue(textEdit->fontPointSize());
   fontSize->setRange(MIN_FONT_SIZE, MAX_FONT_SIZE);
+  textEdit->document()->setDefaultFont(textEdit->currentFont());
 
   QFont bold, italic, underline;
   bold.setBold(true);
@@ -212,6 +222,25 @@ void Editor::createToolBar(QGridLayout *layout) {
   toolBar->addWidget(font);
   toolBar->addSeparator();
   toolBar->addWidget(fontSize);
+  toolBar->addSeparator();
+  toolBar->addWidget(actionColorText);
+  toolBar->addSeparator();
+  toolBar->addWidget(actionColorBackground);
+
+  QObject::connect(actionColorText, &QPushButton::clicked, [&]() {
+    auto picked = QColorDialog::getColor(Qt::white, this, "Pick a color");
+    if (picked != nullptr) {
+      onColorForegroundChanged(picked);
+    }
+  });
+  QObject::connect(actionColorBackground, &QPushButton::clicked, [&]() {
+    auto picked = QColorDialog::getColor(Qt::transparent, this, "Pick a color",
+                                         QColorDialog::ShowAlphaChannel);
+    if (picked != nullptr) {
+      onColorBackgroundChanged(picked);
+    }
+  });
+
   connect(font, &QFontComboBox::currentFontChanged, this,
           &Editor::onFontFamilyChanged);
 
@@ -253,7 +282,7 @@ void Editor::fileToPDF() {
   QMessageBox::information(this, "CooperativeEditor", "File correctly saved");
 }
 
-void Editor::refresOnlineUsersView() {
+void Editor::refreshOnlineUsersView() {
   auto usernames = usersOnlineList.values();
   usernames.removeDuplicates(); // remove duplicates
 
@@ -303,37 +332,21 @@ void Editor::onActionClicked() {
   fmt.setFontItalic(actionItalic->isChecked());
   fmt.setFontWeight(actionBold->isChecked() ? QFont::Bold : QFont::Normal);
   fmt.setFontUnderline(actionUnderlined->isChecked());
-  textEdit->textCursor().mergeCharFormat(fmt);
   textEdit->mergeCurrentCharFormat(fmt);
 }
 
 void Editor::onComeBackFromEditProfileNoChanges() { this->setDisabled(false); }
 
-void Editor::refreshActionToggle() {
-  if (!isSelecting) {
-    actionBold->setChecked(textEdit->textCursor().charFormat().fontWeight() ==
-                           QFont::Bold);
-
-    actionItalic->setChecked(textEdit->textCursor().charFormat().fontItalic());
-
-    actionUnderlined->setChecked(
-        textEdit->textCursor().charFormat().fontUnderline());
-    font->setCurrentFont(textEdit->currentFont());
-    fontSize->blockSignals(true);
-    fontSize->setValue(textEdit->currentFont().pointSize());
-    fontSize->blockSignals(false);
-  }
-}
-
 void Editor::onContentChanged(int pos, int del, int add) {
+  spdlog::error("YEAH {} {} {}", pos, del, add);
   /*Checking if this event is due to remote op*/
   if (!isHandlingRemote) {
-    QTextCursor cursor(textEdit->document());
+    auto cursor = textEdit->textCursor();
     for (int i = 0; i < del; i++)
       emit symbolDeleted(pos);
 
     for (int i = 0; i < add; i++) {
-      cursor.setPosition(pos + i + 1);
+      cursor.setPosition(pos + i);
       emit symbolInserted(pos + i, textEdit->document()->characterAt(pos + i),
                           cursor.charFormat());
     }
@@ -343,6 +356,7 @@ void Editor::onContentChanged(int pos, int del, int add) {
 void Editor::onFontFamilyChanged(const QFont &newFont) {
   QTextCharFormat fmt;
   fmt.setFontFamily(newFont.family());
+  textEdit->textCursor().mergeCharFormat(fmt);
   textEdit->mergeCurrentCharFormat(fmt);
   textEdit->setFocus();
 }
@@ -350,6 +364,47 @@ void Editor::onFontFamilyChanged(const QFont &newFont) {
 void Editor::onFontSizeChanged(int newSize) {
   QTextCharFormat fmt;
   fmt.setFontPointSize(newSize);
+  textEdit->textCursor().mergeCharFormat(fmt);
+  textEdit->mergeCurrentCharFormat(fmt);
+}
+
+void Editor::onColorForegroundChanged(const QColor &color) {
+  QTextCharFormat fmt;
+  fmt.setForeground(color);
+  textEdit->textCursor().mergeCharFormat(fmt);
   textEdit->mergeCurrentCharFormat(fmt);
   textEdit->setFocus();
+}
+
+void Editor::onColorBackgroundChanged(const QColor &color) {
+  auto toAdd =
+      (color.alpha() == 0 ? QColor("transparent") : QColor(color.name()));
+  QTextCharFormat fmt;
+  fmt.setBackground(toAdd);
+  textEdit->textCursor().mergeCharFormat(fmt);
+  textEdit->mergeCurrentCharFormat(fmt);
+  textEdit->setFocus();
+}
+
+void Editor::onCharFormatChanged(const QTextCharFormat &f) {
+
+  auto frontColor = f.foreground().color();
+  auto backColor = f.background().color();
+
+  actionBold->setChecked(f.fontWeight() == QFont::Bold);
+  actionItalic->setChecked(f.fontItalic());
+  actionUnderlined->setChecked(f.fontUnderline());
+
+  font->setCurrentIndex(font->findText(QFontInfo(f.font()).family()));
+  fontSize->blockSignals(true);
+  fontSize->setValue((f.fontPointSize() >= MIN_FONT_SIZE ? f.fontPointSize()
+                                                         : DEFAULT_FONT_SIZE));
+  fontSize->blockSignals(false);
+
+  actionColorText->setStyleSheet("QPushButton {color: " + frontColor.name() +
+                                 ";}");
+
+  actionColorBackground->setStyleSheet(
+      "QPushButton {background-color: " +
+      (backColor.alpha() == 0 ? "transparent" : backColor.name()) + ";}");
 }
