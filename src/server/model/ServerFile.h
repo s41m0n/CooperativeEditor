@@ -7,10 +7,14 @@
 #include <mutex>
 
 class ServerFile : public File {
+private:
+  int fileID;
 public:
-    explicit ServerFile(QString name, FileText text = {});
+    explicit ServerFile(int fileID, QString name, FileText text = {});
 
     std::mutex mutex;
+
+    int getFileID();
 };
 
 #endif //COOPERATIVEEDITOR_SERVERFILE_H

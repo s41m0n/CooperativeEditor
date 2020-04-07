@@ -53,13 +53,13 @@ void Controller::onMessageReceived(Header &header, QByteArray &buf) {
     bool result = header.getType() == Type::U_LOGIN ? Model::logInUser(user)
                                                     : Model::registerUser(user);
     if (result) {
+      model->insertUserActivity(sender, user);
       UserMessage newMsg(clientId, user);
-      FileListingMessage newMsg2(clientId, model->getAvailableFiles());
+      FileListingMessage newMsg2(clientId, Model::getAvailableUserFiles(user));
       prepareToSend(sender,
                     header.getType() == Type::U_LOGIN ? Type::U_LOGIN_OK
                                                       : Type::U_REGISTER_OK,
                     newMsg);
-      model->insertUserActivity(sender, user);
       prepareToSend(sender, Type::F_LISTING, newMsg2);
     } else {
       BasicMessage newMsg(clientId);
@@ -138,6 +138,11 @@ void Controller::onMessageReceived(Header &header, QByteArray &buf) {
     model->removeConnection(sender);
     break;
   }
+  case Type::U_GENERATE_INVITE: {
+    auto msg = RequestMessage::fromQByteArray(buf);
+    auto invite = model->generateInvite(sender, msg.getFilename());
+    break;
+  }
   default:
     throw std::runtime_error("Must never read different types of Message!!!");
   }
@@ -155,7 +160,7 @@ void Controller::dispatch(TcpSocket *sender, Type headerType, Header header,
   auto serverFile = model->getFileBySocket(sender);
   if (serverFile == nullptr)
     return;
-  auto fileConnections = model->getFileConnections(serverFile->getFileName());
+  auto fileConnections = model->getFileConnections(serverFile->getFileID());
   if (!fileConnections.empty()) {
     // Serializing only once the message to forward and directly call
     // socket->sendMsg instead of this->preparingMsg

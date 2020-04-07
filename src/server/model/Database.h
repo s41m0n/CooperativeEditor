@@ -1,9 +1,11 @@
 #ifndef COOPERATIVEEDITOR_DATABASE_H
 #define COOPERATIVEEDITOR_DATABASE_H
 
-#include <sqlite3.h>
-#include <src/common/User.h>
+#include "ServerFile.h"
 #include <spdlog/spdlog.h>
+#include <sqlite3.h>
+#include <src/common/File.h>
+#include <src/common/User.h>
 #include <string>
 
 class Database {
@@ -28,9 +30,15 @@ private:
   //Method to recreate a QImage given a QByteArray
   static QImage convertIntoQImage(QByteArray buffer);
 
+  static QByteArray convertFromFileText(FileText &text);
+
+  static FileText convertIntoFileText(QByteArray buffer);
+
   // Callback method used to check if the User table exists
   static int callbackCount(void *data, int colNum, char **dataRow,
                            char **colName);
+
+  static void printErrorAndExit(const std::string& error = "Unable to connect to DB");
 
 public:
   Database(const Database &) = delete;
@@ -51,11 +59,19 @@ public:
 
   bool deleteUser(User user);
 
-  bool checkInvite(const QString& link);
+  bool checkInvite(const QString& link, QString &userInviting, QString &filename, QString &userInvited);
 
   bool insertInvite(const QString& link);
 
-  bool deleteInvite(const QString& link);
+  QVector<QString> getUserFiles(User &user);
+
+  int getUserFileID(const QString& filename, User &user);
+
+  bool insertFile(User &user, const QString &file, std::shared_ptr<ServerFile> &serverFile);
+
+  bool openFile(int fileID, const QString &name, std::shared_ptr<ServerFile> &serverFile);
+
+  bool updateFile(ServerFile &file);
 };
 
 #endif // COOPERATIVEEDITOR_DATABASE_H

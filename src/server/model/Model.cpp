@@ -1,41 +1,6 @@
 #include "Model.h"
 
 Model::Model() : idGenerator(1) {
-
-  // Loading all files name in the directory
-  for (auto &p :
-       std::filesystem::directory_iterator(std::filesystem::current_path())) {
-    auto filename = p.path().string();
-    auto pos = filename.find(".crdt");
-    auto pos2 = filename.rfind(std::filesystem::path::preferred_separator);
-
-    if (pos != std::string::npos) {
-      filename.erase(0, pos2 + 1);
-      availableFiles.push_back(QString::fromStdString(filename));
-    }
-  }
-}
-
-void Model::storeFileSymbols(const std::shared_ptr<ServerFile> &serverFile) {
-  QFile file((serverFile->getFileName()));
-
-  if (!file.open(QIODevice::WriteOnly)) {
-    throw std::runtime_error("Unable to open file");
-  }
-
-  QDataStream ds(&file);
-  ds << serverFile->getFileText();
-}
-
-void Model::loadFileSymbols(const std::shared_ptr<ServerFile> &serverFile) {
-  QFile file((serverFile->getFileName()));
-
-  if (!file.open(QIODevice::ReadOnly)) {
-    throw std::runtime_error("Unable to load file");
-  }
-
-  QDataStream ds(&file);
-  ds >> serverFile->getFileText();
 }
 
 void Model::userInsert(TcpSocket *socket, Symbol &symbol) {
@@ -49,7 +14,7 @@ void Model::userInsert(TcpSocket *socket, Symbol &symbol) {
 
   CrdtAlgorithm::remoteInsert(symbol, serverFile->getFileText());
 
-  storeFileSymbols(serverFile);
+  Database::getInstance().updateFile(*serverFile);
 }
 
 void Model::userErase(TcpSocket *socket, Symbol &symbol) {
@@ -63,49 +28,46 @@ void Model::userErase(TcpSocket *socket, Symbol &symbol) {
 
   CrdtAlgorithm::remoteErase(symbol, serverFile->getFileText());
 
-  storeFileSymbols(serverFile);
+  Database::getInstance().updateFile(*serverFile);
 }
 
 bool Model::createFileByUser(TcpSocket *socket, const QString &filename) {
 
-  auto newFile = std::make_shared<ServerFile>(filename + ".crdt");
-
-  if (std::find(availableFiles.begin(), availableFiles.end(),
-                newFile->getFileName()) != availableFiles.end()) {
+  auto fileID = Database::getInstance().getUserFileID(filename, socketToUser[socket]);
+  if(fileID > 0)
     return false;
-  } else {
-    storeFileSymbols(newFile);
+  std::shared_ptr<ServerFile> newFile;
+  if(Database::getInstance().insertFile(socketToUser[socket], filename, newFile)) {
     std::lock_guard<std::mutex> guard(usersFileMutex);
-    availableFiles.push_back(newFile->getFileName());
     usersFile.emplace(newFile, socket);
     return true;
   }
+  return false;
 }
 
-bool Model::openFileByUser(TcpSocket *socket, QString filename) {
+bool Model::openFileByUser(TcpSocket *socket, const QString& filename) {
 
-  if (availableFiles.empty() ||
-      std::find(availableFiles.begin(), availableFiles.end(), filename) ==
-          availableFiles.end()) {
-    return false;
-  } else {
-    auto file = std::find_if(usersFile.begin(), usersFile.end(),
-                             [&filename](auto &srvFile) {
-                               return srvFile.first->getFileName() == filename;
-                             });
+  auto fileID = Database::getInstance().getUserFileID(filename, socketToUser[socket]);
+  auto file = std::find_if(usersFile.begin(), usersFile.end(),
+                           [&fileID](auto &srvFile) {
+                             return srvFile.first->getFileID() == fileID;
+                           });
+
+  if (file != usersFile.end()) {
     std::lock_guard<std::mutex> guard(usersFileMutex);
-    if (file == usersFile.end()) {
-      auto newFile = std::make_shared<ServerFile>(filename);
-      loadFileSymbols(newFile);
-      usersFile.emplace(newFile, socket);
-    } else {
-      usersFile.emplace(file->first, socket);
+    usersFile.emplace(file->first, socket);
+  } else {
+    std::shared_ptr<ServerFile> newFile;
+    if(!Database::getInstance().openFile(fileID, filename, newFile)) {
+      return false;
     }
-    return true;
+    std::lock_guard<std::mutex> guard(usersFileMutex);
+    usersFile.emplace(newFile, socket);
   }
+  return true;
 }
 
-QVector<QString> &Model::getAvailableFiles() { return availableFiles; }
+QVector<QString> Model::getAvailableUserFiles(User &user) { return Database::getInstance().getUserFiles(user); }
 
 std::shared_ptr<ServerFile> Model::getFileBySocket(TcpSocket *socket) {
   auto fileToSocket =
@@ -126,10 +88,10 @@ void Model::removeConnection(TcpSocket *socket) {
   }
 }
 
-std::vector<TcpSocket *> Model::getFileConnections(const QString &fileName) {
+std::vector<TcpSocket *> Model::getFileConnections(int fileID) {
   std::vector<TcpSocket *> fileConnections;
   std::for_each(usersFile.begin(), usersFile.end(), [&](auto &pair) {
-    if (pair.first->getFileName() == fileName) {
+    if (pair.first->getFileID() == fileID) {
       fileConnections.push_back(pair.second);
     }
   });
@@ -163,16 +125,16 @@ bool Model::updateUser(User &user) {
 bool Model::deleteUser(User &user) {
   return Database::getInstance().deleteUser(user);
 }
-bool Model::checkInvite(const QString &link) {
-  return Database::getInstance().checkInvite(link);
+
+bool Model::generateInvite(TcpSocket *sender, const QString &filename) {
+  QString code = QString(socketToUser[sender].getUsername() + "/" + filename).toUtf8().toBase64();
+  return Database::getInstance().insertInvite(code);
 }
-bool Model::insertInvite(const QString &username, const QString &filename) {
-  QString hashedLink =
-      QString(QCryptographicHash::hash(QString(username + filename).toUtf8(),
-                                       QCryptographicHash::Sha512)
-                  .toHex());
-  return Database::getInstance().insertInvite(hashedLink);
-}
-bool Model::deleteInvite(const QString &link) {
-  return Database::getInstance().deleteInvite(link);
+bool Model::insertInviteCode(TcpSocket *sender, const QString &code) {
+  auto decoded = QString(QByteArray::fromBase64(code.toUtf8())).split("/");
+  if(Database::getInstance().checkInvite(code, decoded[0], decoded[1], socketToUser[sender].getUsername())) {
+    // TODO: invite accettato
+    return true;
+  }
+  return false;
 }

@@ -20,7 +20,7 @@ private:
   QDataStream &deserialize(QDataStream &stream) override;
 
 public:
-  FileListingMessage(unsigned editorId, QVector<QString> &files);
+  FileListingMessage(unsigned editorId, QVector<QString> files);
 
   FileListingMessage() = default;
 

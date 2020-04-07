@@ -1,8 +1,10 @@
 #include "FileListingMessage.h"
 
+#include <utility>
+
 FileListingMessage::FileListingMessage(unsigned editorId,
-                                       QVector<QString> &files)
-        : BasicMessage(editorId), files(files) {
+                                       QVector<QString> files)
+        : BasicMessage(editorId), files(std::move(files)) {
 }
 
 QVector<QString> &FileListingMessage::getFiles() {

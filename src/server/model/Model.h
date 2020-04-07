@@ -25,8 +25,6 @@
 class Model {
 
 private:
-  /// Set of all available files
-  QVector<QString> availableFiles;
 
   /// The map of the current file for each user
   std::multimap<std::shared_ptr<ServerFile>, TcpSocket *> usersFile;
@@ -38,12 +36,6 @@ private:
 
   /// Editor Id unique generator
   std::atomic<unsigned> idGenerator;
-
-  /// Method to write on file the respective sequence of symbols
-  static void storeFileSymbols(const std::shared_ptr<ServerFile> &serverFile);
-
-  /// Method to restore from file the respective sequence of symbols
-  static void loadFileSymbols(const std::shared_ptr<ServerFile> &serverFile);
 
 public:
   /// Classic constructor
@@ -61,10 +53,10 @@ public:
   bool createFileByUser(TcpSocket *socket, const QString &filename);
 
   /// Method called when a user requests to open a file
-  bool openFileByUser(TcpSocket *socket, QString filename);
+  bool openFileByUser(TcpSocket *socket, const QString& filename);
 
-  /// Returns the list (string) of all available files
-  QVector<QString> &getAvailableFiles();
+  /// Returns the list (string) of all user available files
+  static QVector<QString> getAvailableUserFiles(User &user);
 
   /// Returns the list of symbols for the file the user connId has requested
   std::shared_ptr<ServerFile> getFileBySocket(TcpSocket *socket);
@@ -88,16 +80,12 @@ public:
   /// Returns a bool to indicate if the update was successful
   static bool deleteUser(User &user);
 
-  /// Return a bool to indicate if the invite is valid
-  static bool checkInvite(const QString &link);
-
   /// Return a bool to indicate if the invite has been correctly inserted
-  static bool insertInvite(const QString &username, const QString &filename);
+  bool generateInvite(TcpSocket *sender, const QString &filename);
 
-  /// Return a bool to indicate if the invite has been correctly deleted
-  static bool deleteInvite(const QString &link);
+  bool insertInviteCode(TcpSocket *sender, const QString &filename);
 
-  std::vector<TcpSocket *> getFileConnections(const QString &fileName);
+  std::vector<TcpSocket *> getFileConnections(int fileID);
 };
 
 #endif // COOPERATIVEEDITOR_MODEL_H
