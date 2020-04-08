@@ -182,30 +182,6 @@ bool Database::updateUser(User &user) {
   return true;
 }
 
-bool Database::deleteUser(User user) {
-  if (!openConnection()) {
-    printErrorAndExit();
-  }
-  std::string sql = "DELETE FROM User WHERE Username=?;";
-  sqlite3_stmt *statement = nullptr;
-
-  if (sqlite3_prepare_v2(this->DBConnection, sql.c_str(), -1, &statement,
-                         nullptr) != SQLITE_OK) {
-    printErrorAndExit("Failed to prepare statement");
-  }
-
-  sqlite3_bind_text(statement, 1, user.getUsername().toStdString().c_str(), -1,
-                    SQLITE_TRANSIENT);
-
-  bool ret = true;
-  if (sqlite3_step(statement) != SQLITE_DONE) {
-    ret = false;
-  }
-  sqlite3_finalize(statement);
-  sqlite3_close(this->DBConnection);
-  return ret;
-}
-
 int Database::callbackCount(void *data, int colNum, char **dataRow,
                             char **colName) {
   if (colNum == 1 && dataRow) {

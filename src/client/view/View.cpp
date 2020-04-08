@@ -110,6 +110,10 @@ void View::init() {
   QObject::connect(editor, &Editor::symbolDeleted, controller,
                    &Controller::onCharErased);
 
+  QObject::connect(editor, &Editor::cursorChanged, controller, &Controller::onCursorChanged);
+
+  QObject::connect(controller, &Controller::userCursorChanged, editor, &Editor::onUserCursorChanged);
+
   /// Segnale dal controller all'editor per informarlo della presenza di un
   /// nuovo client collegato al file
   QObject::connect(controller, &Controller::remoteUserConnected, editor,

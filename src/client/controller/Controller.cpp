@@ -1,7 +1,5 @@
 #include "Controller.h"
 
-#include <utility>
-
 Controller::Controller(Model *model, const std::string &host, int port)
     : model(model), socket(new TcpSocket(this)) {
   socket->connectToHost(QHostAddress(host.c_str()), port);
@@ -84,6 +82,11 @@ void Controller::onMessageReceived(Header &header, QByteArray &buf) {
     emit generateLinkAnswer(msg.getFilename());
     break;
   }
+  case Type::U_CURSOR : {
+    auto msg = CursorMessage::fromQByteArray(buf);
+    emit userCursorChanged(msg.getEditorId(), msg.getPos());
+    break;
+  }
   default:
     emit error();
   }
@@ -160,4 +163,9 @@ void Controller::onInsertInviteCode(QString code) {
 void Controller::onGenerateLink() {
   RequestMessage msg(model->getEditorId(), model->getFile().getFileName());
   prepareToSend(Type::U_GENERATE_INVITE, msg);
+}
+
+void Controller::onCursorChanged(int position) {
+  CursorMessage msg(model->getEditorId(), position);
+  prepareToSend(Type::U_CURSOR, msg);
 }

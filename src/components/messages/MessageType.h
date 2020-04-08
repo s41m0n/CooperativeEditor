@@ -11,7 +11,6 @@ enum class Type : qint32 {
   F_OPEN = 3,
   U_LOGIN = 4,
   U_REGISTER = 5,
-  U_UNREGISTER = 6,
   U_UPDATE = 7,
   F_FILE_OK = 8,
   U_LOGIN_OK = 9,
@@ -21,8 +20,6 @@ enum class Type : qint32 {
   F_FILE_KO = 13,
   U_LOGIN_KO = 14,
   U_REGISTER_KO = 15,
-  U_UNREGISTER_OK = 16,
-  U_UNREGISTER_KO = 17,
   U_UPDATE_OK = 18,
   U_UPDATE_KO = 19,
   U_CONNECTED = 20,
@@ -31,6 +28,7 @@ enum class Type : qint32 {
   U_INSERT_INVITE = 23,
   U_INSERT_INVITE_OK = 24,
   U_INSERT_INVITE_KO = 25,
+  U_CURSOR = 26,
   UNKNOWN = -1
 };
 

@@ -18,6 +18,7 @@
 #include "src/components/messages/FileMessage.h"
 #include "src/components/messages/RequestMessage.h"
 #include "src/components/messages/UserMessage.h"
+#include "src/components/messages/CursorMessage.h"
 
 /**
  * Controller server class

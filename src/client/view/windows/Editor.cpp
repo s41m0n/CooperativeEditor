@@ -5,8 +5,8 @@ Editor::Editor(QWidget *parent)
       textEdit(new QTextEdit(mainWidget)),
       usersOnlineDisplayer(new QLabel("Users online: ")), usersOnlineList() {
   // TODO:fai finestra readonly per vedere info utente con vettore
-  this->resize(1000, 500);
-  this->setMinimumWidth(500);
+  this->resize(1280, 760);
+  this->setMinimumWidth(1000);
 
   auto layout = new QGridLayout(mainWidget);
 
@@ -22,9 +22,9 @@ Editor::Editor(QWidget *parent)
   usersOnline->setFixedHeight(30);
   usersOnline->setFixedWidth(250);
 
-  layout->addWidget(usersOnline, 3, 2, 1, 1);
-  layout->addWidget(textEdit, 2, 0, 5, 2);
-  layout->addWidget(usersOnlineDisplayer, 2, 2, 1, 1);
+  layout->addWidget(textEdit, 2, 0, 5, 3);
+  layout->addWidget(usersOnline, 3, 3, 1, 1);
+  layout->addWidget(usersOnlineDisplayer, 2, 3, 1, 1);
 
   mainWidget->setLayout(layout);
   setCentralWidget(mainWidget);
@@ -34,18 +34,25 @@ Editor::Editor(QWidget *parent)
 
   QObject::connect(textEdit, &QTextEdit::currentCharFormatChanged, this,
                    &Editor::onCharFormatChanged);
+
+  QObject::connect(textEdit, &QTextEdit::cursorPositionChanged, this, [&]() {
+    emit cursorChanged(textEdit->textCursor().position());
+  });
+
   textEdit->setFocus();
 }
 
 void Editor::onFileTextLoad(FileText &text, QString &fName, QString &username,
                             unsigned int editorId) {
-  this->setWindowTitle(fName);
+  this->setWindowTitle("CooperativeEditor - " + fName);
+  usersOnlineList.clear();
   usersOnlineList.insert(editorId, username);
   refreshOnlineUsersView();
 
   isHandlingRemote = true;
   textEdit->document()->blockSignals(true);
   textEdit->blockSignals(true);
+  textEdit->clear();
   for (Symbol &s : text) {
     textEdit->setCurrentCharFormat(s.getFormat());
     textEdit->insertPlainText(s.getChar());
@@ -184,6 +191,13 @@ void Editor::createToolBar(QGridLayout *layout) {
       "format-text-italic", QIcon(":/images/mac/textitalic.png"));
   const QIcon underlineIcon = QIcon::fromTheme(
       "format-text-underline", QIcon(":images/mac/textunder.png"));
+  const QIcon save = QIcon::fromTheme("document-save-as", QIcon(":images/mac/document-save-as"));
+  const QIcon copy = QIcon::fromTheme("edit-copy", QIcon(":images/mac/edit-copy"));
+  const QIcon cut = QIcon::fromTheme("edit-cut", QIcon(":images/mac/edit-cut"));
+  const QIcon paste = QIcon::fromTheme("edit-paste", QIcon(":images/mac/edit-paste"));
+  const QIcon undo = QIcon::fromTheme("edit-undo", QIcon(":images/mac/edit-undo"));
+  const QIcon redo = QIcon::fromTheme("edit-redo", QIcon(":images/mac/edit-redo"));
+
   font = new QFontComboBox(toolBar);
   font->setWritingSystem(QFontDatabase::Latin);
   fontSize = new QSpinBox(toolBar);
@@ -203,10 +217,19 @@ void Editor::createToolBar(QGridLayout *layout) {
   fontSize->setRange(MIN_FONT_SIZE, MAX_FONT_SIZE);
   textEdit->document()->setDefaultFont(textEdit->currentFont());
 
-  QFont bold, italic, underline;
-  bold.setBold(true);
-  italic.setItalic(true);
-  underline.setUnderline(true);
+  toolBar->addAction(save, tr("&SaveAs"), this, &Editor::fileToPDF);
+  toolBar->addSeparator();
+  toolBar->addAction(copy, tr("&Copy"), textEdit, &QTextEdit::copy);
+  toolBar->addSeparator();
+  toolBar->addAction(paste, tr("&Paste"), textEdit, &QTextEdit::paste);
+  toolBar->addSeparator();
+  toolBar->addAction(cut, tr("&Cut"), textEdit, &QTextEdit::cut);
+  toolBar->addSeparator();
+  toolBar->addAction(redo, tr("&Redo"), textEdit, &QTextEdit::redo);
+  toolBar->addSeparator();
+  toolBar->addAction(undo, tr("&Undo"), textEdit, &QTextEdit::undo);
+  toolBar->addSeparator();
+
 
   actionBold =
       toolBar->addAction(boldIcon, tr("&Bold"), this, &Editor::onActionClicked);
@@ -247,13 +270,9 @@ void Editor::createToolBar(QGridLayout *layout) {
           static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this,
           &Editor::onFontSizeChanged);
 
-  actionBold->setFont(bold);
   actionBold->setCheckable(true);
   actionItalic->setCheckable(true);
-  actionItalic->setFont(italic);
-  actionUnderlined->setFont(underline);
   actionUnderlined->setCheckable(true);
-  actionUnderlined->setShortcut(Qt::CTRL + Qt::Key_U);
 
   toolBar->setFixedHeight(20);
   layout->addWidget(toolBar, 1, 0, 1, 2);
@@ -337,7 +356,6 @@ void Editor::onActionClicked() {
 void Editor::onComeBackFromEditProfileNoChanges() { this->setDisabled(false); }
 
 void Editor::onContentChanged(int pos, int del, int add) {
-  spdlog::error("YEAH {} {} {}", pos, del, add);
   /*Checking if this event is due to remote op*/
   if (!isHandlingRemote) {
     auto cursor = textEdit->textCursor();
@@ -410,5 +428,9 @@ void Editor::onCharFormatChanged(const QTextCharFormat &f) {
 
 void Editor::onGenerateLinkAnswer(const QString& code) {
   QMessageBox::information(mainWidget, "CooperativeEditor",
-                           code);
+                           "Share this code to invite contributors!\n" + code);
+}
+void Editor::onUserCursorChanged(quint32 clientId, int position) {
+  // TODO: aggiunger mappa con clientId -> {colore_scelto - cursore_remoto}
+  spdlog::debug("Update remote cursor {} {}", clientId, position);
 }

@@ -100,6 +100,7 @@ public slots:
   void onRemoteUserDisconnected(qint32 clientId);
   void onComeBackFromEditProfileNoChanges();
   void onGenerateLinkAnswer(const QString& code);
+  void onUserCursorChanged(quint32 clientId, int position);
 
 signals:
 
@@ -120,6 +121,8 @@ signals:
   void fileClosed();
 
   void generateLink();
+
+  void cursorChanged(int position);
 };
 
 #endif // COOPERATIVEEDITOR_EDITOR_H

@@ -97,18 +97,6 @@ void Controller::onMessageReceived(Header &header, QByteArray &buf) {
     }
     break;
   }
-  case Type::U_UNREGISTER: {
-    auto msg = UserMessage::fromQByteArray(buf);
-    auto user = msg.getUser();
-    if (Model::deleteUser(user)) {
-      UserMessage newMsg(clientId, user);
-      prepareToSend(sender, Type::U_UNREGISTER_OK, newMsg);
-    } else {
-      BasicMessage newMsg(clientId);
-      prepareToSend(sender, Type::U_UNREGISTER_KO, newMsg);
-    }
-    break;
-  }
   case Type::F_CREATE:
   case Type::F_OPEN: {
     auto msg = RequestMessage::fromQByteArray(buf);
@@ -157,6 +145,11 @@ void Controller::onMessageReceived(Header &header, QByteArray &buf) {
       BasicMessage  newMsg(clientId);
       prepareToSend(sender, Type::U_INSERT_INVITE_KO, newMsg);
     }
+    break;
+  }
+  case Type::U_CURSOR : {
+    auto msg = CursorMessage::fromQByteArray(buf);
+    dispatch(sender, header.getType(), header, msg);
     break;
   }
   default:

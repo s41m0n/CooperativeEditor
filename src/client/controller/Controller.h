@@ -20,6 +20,7 @@
 #include "src/components/messages/FileListingMessage.h"
 #include "src/components/messages/FileMessage.h"
 #include "src/components/messages/UserMessage.h"
+#include "src/components/messages/CursorMessage.h"
 
 /**
  * Controller class for the client
@@ -67,6 +68,8 @@ public slots:
 
   void onGenerateLink();
 
+  void onCursorChanged(int position);
+
 signals:
 
   void connected();
@@ -104,6 +107,8 @@ signals:
   void remoteUserDisconnected(quint32 clientId);
 
   void generateLinkAnswer(QString code);
+
+  void userCursorChanged(quint32 editorId, int position);
 
 };
 

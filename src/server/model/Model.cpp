@@ -126,9 +126,6 @@ bool Model::registerUser(User &user) {
 bool Model::updateUser(User &user) {
   return Database::getInstance().updateUser(user);
 }
-bool Model::deleteUser(User &user) {
-  return Database::getInstance().deleteUser(user);
-}
 
 QString Model::generateInvite(TcpSocket *sender, const QString &filename) {
   QString code = QString(socketToUser[sender].getUsername() + "/" + filename)
