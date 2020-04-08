@@ -45,6 +45,8 @@ signals:
     ///True = file exists, False = file does not exist
     void fileRequest(const QString &filename, bool exists);
 
+    void insertInviteLink(const QString &code);
+
 };
 
 #endif //COOPERATIVEEDITOR_FILEVISUALIZER_H

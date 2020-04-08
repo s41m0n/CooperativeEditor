@@ -55,6 +55,11 @@ void View::init() {
   QObject::connect(editor, &Editor::fileClosed, controller,
                    &Controller::onFileClosed);
 
+  QObject::connect(editor, &Editor::generateLink, controller, &Controller::onGenerateLink);
+  QObject::connect(controller, &Controller::generateLinkAnswer, editor, &Editor::onGenerateLinkAnswer);
+
+  QObject::connect(fileVisualizer, &FileVisualizer::insertInviteLink, controller, &Controller::onInsertInviteCode);
+
   /// Segnale dal fileVisualizer per chiedere al server di aprire un file
   QObject::connect(fileVisualizer, &FileVisualizer::fileRequest, controller,
                    &Controller::onFileRequest);
@@ -104,6 +109,10 @@ void View::init() {
   /// Segnale dall'editor al controller in seguito ad una cancellazione
   QObject::connect(editor, &Editor::symbolDeleted, controller,
                    &Controller::onCharErased);
+
+  QObject::connect(editor, &Editor::cursorChanged, controller, &Controller::onCursorChanged);
+
+  QObject::connect(controller, &Controller::userCursorChanged, editor, &Editor::onUserCursorChanged);
 
   /// Segnale dal controller all'editor per informarlo della presenza di un
   /// nuovo client collegato al file

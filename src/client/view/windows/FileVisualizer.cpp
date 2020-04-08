@@ -40,6 +40,10 @@ FileVisualizer::FileVisualizer(QWidget *parent) : QMainWindow(parent) {
     buttonOpenLink->setAutoDefault(true);
     boxLink->layout()->addWidget(buttonOpenLink);
 
+    QObject::connect(buttonOpenLink, &QAbstractButton::clicked, this, [&](){
+      emit insertInviteLink(lineLink->text());
+    });
+
     buttonExit = new QPushButton("Exit", mainWidget);
     buttonExit->setAutoDefault(true);
     layout->addWidget(buttonExit, 3, 0, 1, 2);

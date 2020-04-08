@@ -40,7 +40,7 @@ add_executable(CooperativeClient src/mainclient.cpp src/client/controller/Contro
         src/include/lib/crdt/CrdtAlgorithm.cpp src/client/view/View.cpp src/client/view/windows/Login.cpp
         src/client/view/windows/FileVisualizer.cpp src/client/view/windows/Editor.cpp
         src/common/TcpSocket.cpp src/client/view/windows/EditUserProfile.cpp src/client/view/windows/SignUp.cpp
-        src/common/User.cpp src/common/File.cpp src/include/lib/serialization/Serializable.cpp src/components/messages/Header.cpp)
+        src/common/User.cpp src/common/File.cpp src/include/lib/serialization/Serializable.cpp src/components/messages/Header.cpp src/components/messages/CursorMessage.cpp)
 
 #Set the server executable
 add_executable(CooperativeServer src/mainserver.cpp src/server/controller/Controller.cpp src/server/model/Model.cpp
@@ -48,7 +48,7 @@ add_executable(CooperativeServer src/mainserver.cpp src/server/controller/Contro
         src/components/messages/FileMessage.cpp src/components/messages/RequestMessage.cpp src/components/messages/UserMessage.cpp
         src/components/messages/CrdtMessage.cpp src/components/messages/FileListingMessage.cpp src/include/lib/crdt/CrdtAlgorithm.cpp
         src/common/TcpSocket.cpp src/common/User.cpp src/common/TcpSocket.cpp src/common/File.cpp src/server/model/ServerFile.cpp
-        src/include/lib/serialization/Serializable.cpp src/components/messages/Header.cpp
+        src/include/lib/serialization/Serializable.cpp src/components/messages/Header.cpp src/components/messages/CursorMessage.cpp
         src/server/model/Database.cpp)
 
 #Add libraries to compile the client

@@ -20,6 +20,7 @@
 #include "src/components/messages/FileListingMessage.h"
 #include "src/components/messages/FileMessage.h"
 #include "src/components/messages/UserMessage.h"
+#include "src/components/messages/CursorMessage.h"
 
 /**
  * Controller class for the client
@@ -63,6 +64,12 @@ public slots:
 
   void onFileClosed();
 
+  void onInsertInviteCode(QString code);
+
+  void onGenerateLink();
+
+  void onCursorChanged(int position);
+
 signals:
 
   void connected();
@@ -98,6 +105,11 @@ signals:
   void remoteUserConnected(qint32 clientId, QString &name);
 
   void remoteUserDisconnected(quint32 clientId);
+
+  void generateLinkAnswer(QString code);
+
+  void userCursorChanged(quint32 editorId, int position);
+
 };
 
 #endif // COOPERATIVEEDITOR_CONTROLLER_H
