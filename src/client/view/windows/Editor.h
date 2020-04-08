@@ -99,6 +99,7 @@ public slots:
 
   void onRemoteUserDisconnected(qint32 clientId);
   void onComeBackFromEditProfileNoChanges();
+  void onGenerateLinkAnswer(const QString& code);
 
 signals:
 
@@ -117,6 +118,8 @@ signals:
 
   /// Signal emitted to inform the server the client has closed the file
   void fileClosed();
+
+  void generateLink();
 };
 
 #endif // COOPERATIVEEDITOR_EDITOR_H

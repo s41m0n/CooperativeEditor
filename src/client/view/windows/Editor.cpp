@@ -115,8 +115,7 @@ void Editor::createTopBar(QGridLayout *layout) {
 
   QObject::connect(actionGenerateLink, &QAction::triggered, this, [this]() {
     // TODO: genera link + setta text di linkDisplayer
-    QMessageBox::information(mainWidget, "CooperativeEditor",
-                             "-------link-----");
+    emit generateLink();
   });
 
   QObject::connect(actionEditProfile, &QAction::triggered, this, [this]() {
@@ -407,4 +406,9 @@ void Editor::onCharFormatChanged(const QTextCharFormat &f) {
   actionColorBackground->setStyleSheet(
       "QPushButton {background-color: " +
       (backColor.alpha() == 0 ? "transparent" : backColor.name()) + ";}");
+}
+
+void Editor::onGenerateLinkAnswer(const QString& code) {
+  QMessageBox::information(mainWidget, "CooperativeEditor",
+                           code);
 }

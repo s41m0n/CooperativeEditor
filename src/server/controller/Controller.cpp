@@ -141,6 +141,22 @@ void Controller::onMessageReceived(Header &header, QByteArray &buf) {
   case Type::U_GENERATE_INVITE: {
     auto msg = RequestMessage::fromQByteArray(buf);
     auto invite = model->generateInvite(sender, msg.getFilename());
+    RequestMessage newMsg(clientId, invite);
+    prepareToSend(sender, Type::U_GENERATE_INVITE, newMsg);
+    break;
+  }
+  case Type::U_INSERT_INVITE: {
+    auto msg = RequestMessage::fromQByteArray(buf);
+    File file;
+    if(model->insertInviteCode(sender, msg.getFilename(), file)) {
+      FileMessage newMsg(clientId, file);
+      prepareToSend(sender, Type::U_INSERT_INVITE_OK, newMsg);
+      UserMessage newMsg2(clientId, model->getUserActivity(sender));
+      dispatch(sender, Type::U_CONNECTED, Header(), newMsg2);
+    } else {
+      BasicMessage  newMsg(clientId);
+      prepareToSend(sender, Type::U_INSERT_INVITE_KO, newMsg);
+    }
     break;
   }
   default:

@@ -29,6 +29,8 @@ enum class Type : qint32 {
   U_DISCONNECTED = 21,
   U_GENERATE_INVITE = 22,
   U_INSERT_INVITE = 23,
+  U_INSERT_INVITE_OK = 24,
+  U_INSERT_INVITE_KO = 25,
   UNKNOWN = -1
 };
 

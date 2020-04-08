@@ -63,6 +63,10 @@ public slots:
 
   void onFileClosed();
 
+  void onInsertInviteCode(QString code);
+
+  void onGenerateLink();
+
 signals:
 
   void connected();
@@ -98,6 +102,9 @@ signals:
   void remoteUserConnected(qint32 clientId, QString &name);
 
   void remoteUserDisconnected(quint32 clientId);
+
+  void generateLinkAnswer(QString code);
+
 };
 
 #endif // COOPERATIVEEDITOR_CONTROLLER_H

@@ -1,7 +1,6 @@
 #include "Model.h"
 
-Model::Model() : idGenerator(1) {
-}
+Model::Model() : idGenerator(1) {}
 
 void Model::userInsert(TcpSocket *socket, Symbol &symbol) {
 
@@ -33,11 +32,13 @@ void Model::userErase(TcpSocket *socket, Symbol &symbol) {
 
 bool Model::createFileByUser(TcpSocket *socket, const QString &filename) {
 
-  auto fileID = Database::getInstance().getUserFileID(filename, socketToUser[socket]);
-  if(fileID > 0)
+  auto fileID =
+      Database::getInstance().getUserFileID(filename, socketToUser[socket]);
+  if (fileID > 0)
     return false;
   std::shared_ptr<ServerFile> newFile;
-  if(Database::getInstance().insertFile(socketToUser[socket], filename, newFile)) {
+  if (Database::getInstance().insertFile(socketToUser[socket], filename,
+                                         newFile)) {
     std::lock_guard<std::mutex> guard(usersFileMutex);
     usersFile.emplace(newFile, socket);
     return true;
@@ -45,9 +46,10 @@ bool Model::createFileByUser(TcpSocket *socket, const QString &filename) {
   return false;
 }
 
-bool Model::openFileByUser(TcpSocket *socket, const QString& filename) {
+bool Model::openFileByUser(TcpSocket *socket, const QString &filename) {
 
-  auto fileID = Database::getInstance().getUserFileID(filename, socketToUser[socket]);
+  auto fileID =
+      Database::getInstance().getUserFileID(filename, socketToUser[socket]);
   auto file = std::find_if(usersFile.begin(), usersFile.end(),
                            [&fileID](auto &srvFile) {
                              return srvFile.first->getFileID() == fileID;
@@ -58,7 +60,7 @@ bool Model::openFileByUser(TcpSocket *socket, const QString& filename) {
     usersFile.emplace(file->first, socket);
   } else {
     std::shared_ptr<ServerFile> newFile;
-    if(!Database::getInstance().openFile(fileID, filename, newFile)) {
+    if (!Database::getInstance().openFile(fileID, filename, newFile)) {
       return false;
     }
     std::lock_guard<std::mutex> guard(usersFileMutex);
@@ -67,7 +69,9 @@ bool Model::openFileByUser(TcpSocket *socket, const QString& filename) {
   return true;
 }
 
-QVector<QString> Model::getAvailableUserFiles(User &user) { return Database::getInstance().getUserFiles(user); }
+QVector<QString> Model::getAvailableUserFiles(User &user) {
+  return Database::getInstance().getUserFiles(user);
+}
 
 std::shared_ptr<ServerFile> Model::getFileBySocket(TcpSocket *socket) {
   auto fileToSocket =
@@ -126,14 +130,22 @@ bool Model::deleteUser(User &user) {
   return Database::getInstance().deleteUser(user);
 }
 
-bool Model::generateInvite(TcpSocket *sender, const QString &filename) {
-  QString code = QString(socketToUser[sender].getUsername() + "/" + filename).toUtf8().toBase64();
-  return Database::getInstance().insertInvite(code);
+QString Model::generateInvite(TcpSocket *sender, const QString &filename) {
+  QString code = QString(socketToUser[sender].getUsername() + "/" + filename)
+                     .toUtf8()
+                     .toBase64();
+  Database::getInstance().insertInvite(code);
+  return code;
 }
-bool Model::insertInviteCode(TcpSocket *sender, const QString &code) {
+bool Model::insertInviteCode(TcpSocket *sender, const QString &code,
+                             File &file) {
   auto decoded = QString(QByteArray::fromBase64(code.toUtf8())).split("/");
-  if(Database::getInstance().checkInvite(code, decoded[0], decoded[1], socketToUser[sender].getUsername())) {
-    // TODO: invite accettato
+  if (decoded.size() == 2 &&
+      Database::getInstance().checkInvite(code, decoded[0], decoded[1],
+                                          socketToUser[sender].getUsername()) &&
+      openFileByUser(sender, decoded[1])) {
+    file.getFileName() = decoded[1];
+    file.getFileText() = getFileBySocket(sender)->getFileText();
     return true;
   }
   return false;

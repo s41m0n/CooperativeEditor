@@ -81,9 +81,9 @@ public:
   static bool deleteUser(User &user);
 
   /// Return a bool to indicate if the invite has been correctly inserted
-  bool generateInvite(TcpSocket *sender, const QString &filename);
+  QString generateInvite(TcpSocket *sender, const QString &filename);
 
-  bool insertInviteCode(TcpSocket *sender, const QString &filename);
+  bool insertInviteCode(TcpSocket *sender, const QString &code, File &content);
 
   std::vector<TcpSocket *> getFileConnections(int fileID);
 };

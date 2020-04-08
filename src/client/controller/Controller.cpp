@@ -39,10 +39,12 @@ void Controller::onMessageReceived(Header &header, QByteArray &buf) {
     emit fileListing(msg.getFiles());
     break;
   }
+  case Type::U_INSERT_INVITE_KO:
   case Type::F_FILE_KO: {
     emit fileResult(false);
     break;
   }
+  case Type::U_INSERT_INVITE_OK:
   case Type::F_FILE_OK: {
     emit fileResult(true);
     auto msg = FileMessage::fromQByteArray(buf);
@@ -75,6 +77,11 @@ void Controller::onMessageReceived(Header &header, QByteArray &buf) {
   case Type::U_DISCONNECTED: {
     auto msg = BasicMessage::fromQByteArray(buf);
     emit remoteUserDisconnected(msg.getEditorId());
+    break;
+  }
+  case Type::U_GENERATE_INVITE: {
+    auto msg = RequestMessage::fromQByteArray(buf);
+    emit generateLinkAnswer(msg.getFilename());
     break;
   }
   default:
@@ -143,4 +150,14 @@ void Controller::onShowEditProfile() {
 void Controller::onFileClosed() {
   BasicMessage msg(model->getEditorId());
   prepareToSend(Type::U_DISCONNECTED, msg);
+}
+
+void Controller::onInsertInviteCode(QString code) {
+  RequestMessage msg(model->getEditorId(), std::move(code));
+  prepareToSend(Type::U_INSERT_INVITE, msg);
+}
+
+void Controller::onGenerateLink() {
+  RequestMessage msg(model->getEditorId(), model->getFile().getFileName());
+  prepareToSend(Type::U_GENERATE_INVITE, msg);
 }
