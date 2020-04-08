@@ -55,12 +55,10 @@ void Controller::onMessageReceived(Header &header, QByteArray &buf) {
     if (result) {
       model->insertUserActivity(sender, user);
       UserMessage newMsg(clientId, user);
-      FileListingMessage newMsg2(clientId, Model::getAvailableUserFiles(user));
       prepareToSend(sender,
                     header.getType() == Type::U_LOGIN ? Type::U_LOGIN_OK
                                                       : Type::U_REGISTER_OK,
                     newMsg);
-      prepareToSend(sender, Type::F_LISTING, newMsg2);
     } else {
       BasicMessage newMsg(clientId);
       prepareToSend(sender,
@@ -70,13 +68,18 @@ void Controller::onMessageReceived(Header &header, QByteArray &buf) {
     }
     break;
   }
+  case Type::F_LISTING: {
+    FileListingMessage newMsg2(clientId, model->getAvailableUserFiles(sender));
+    prepareToSend(sender, Type::F_LISTING, newMsg2);
+    break;
+  }
   case Type::S_INSERT:
   case Type::S_ERASE: {
     auto msg = CrdtMessage::fromQByteArray(buf);
     try {
       if (header.getType() == Type::S_INSERT) {
         model->userInsert(sender, msg.getSymbol());
-      } else{
+      } else {
         model->userErase(sender, msg.getSymbol());
       }
       dispatch(sender, header.getType(), header, msg);
@@ -100,7 +103,7 @@ void Controller::onMessageReceived(Header &header, QByteArray &buf) {
   case Type::F_CREATE:
   case Type::F_OPEN: {
     auto msg = RequestMessage::fromQByteArray(buf);
-    auto filename = msg.getFilename();
+    auto filename = msg.getResource();
     FileText symbolList;
 
     if (header.getType() == Type::F_OPEN &&
@@ -128,7 +131,7 @@ void Controller::onMessageReceived(Header &header, QByteArray &buf) {
   }
   case Type::U_GENERATE_INVITE: {
     auto msg = RequestMessage::fromQByteArray(buf);
-    auto invite = model->generateInvite(sender, msg.getFilename());
+    auto invite = model->generateInvite(sender, msg.getResource());
     RequestMessage newMsg(clientId, invite);
     prepareToSend(sender, Type::U_GENERATE_INVITE, newMsg);
     break;
@@ -136,18 +139,18 @@ void Controller::onMessageReceived(Header &header, QByteArray &buf) {
   case Type::U_INSERT_INVITE: {
     auto msg = RequestMessage::fromQByteArray(buf);
     File file;
-    if(model->insertInviteCode(sender, msg.getFilename(), file)) {
+    if (model->insertInviteCode(sender, msg.getResource(), file)) {
       FileMessage newMsg(clientId, file);
       prepareToSend(sender, Type::U_INSERT_INVITE_OK, newMsg);
       UserMessage newMsg2(clientId, model->getUserActivity(sender));
       dispatch(sender, Type::U_CONNECTED, Header(), newMsg2);
     } else {
-      BasicMessage  newMsg(clientId);
+      BasicMessage newMsg(clientId);
       prepareToSend(sender, Type::U_INSERT_INVITE_KO, newMsg);
     }
     break;
   }
-  case Type::U_CURSOR : {
+  case Type::U_CURSOR: {
     auto msg = CursorMessage::fromQByteArray(buf);
     dispatch(sender, header.getType(), header, msg);
     break;

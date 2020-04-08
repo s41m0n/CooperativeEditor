@@ -17,49 +17,35 @@
  */
 class SignUp : public QMainWindow {
 
-Q_OBJECT
+  Q_OBJECT
 
 private:
-    QWidget *mainWidget;
-    QLabel *title;
-    QGroupBox *registerBox;
-    QLabel *imageLabel;
-    QGroupBox *imageBorder;
-    QLabel *displayImage;
-    QLabel *nameLabel;
-    QLineEdit *nameTextField;
-    QLabel *surnameLabel;
-    QLineEdit *surnameTextField;
-    QLabel *usernameLabel;
-    QLineEdit *usernameTextField;
-    QLabel *emailLabel;
-    QLineEdit *emailTextField;
-    QLabel *passwordLabel;
-    QLineEdit *passwordTextField;
-    QLabel *passwordLabelConfirm;
-    QLineEdit *passwordTextFieldConfirm;
-    QPushButton *buttonSelectImage;
-    QPushButton *buttonSignUp;
-    QPushButton *buttonExit;
-    QGroupBox *alreadyRegisteredBox;
-    QImage userImage;
-
-protected:
-
-    QPushButton *buttonBackToLogin;
+  QLineEdit *nameTextField;
+  QLineEdit *surnameTextField;
+  QLineEdit *usernameTextField;
+  QLineEdit *emailTextField;
+  QLineEdit *passwordTextField;
+  QLineEdit *passwordTextFieldConfirm;
+  QLabel *displayImage;
+  QPushButton *buttonSelectImage;
+  QGroupBox *imageBorder;
+  QImage userImage;
 
 public:
-    explicit SignUp(QWidget *parent = nullptr);
+  explicit SignUp(QWidget *parent = nullptr);
 
 signals:
 
-    ///Signal to notify the server an user wants to sign up
-    void signUpRequest(User user);
+  /**
+   * Signal to notify signup attempt
+   * @param user  the user structure wiht all parameters
+   */
+  void signUpRequest(User user);
 
-    ///Signal to go back to the login page
-    void backToLogin();
-
-
+  /**
+   * Signal to notify to go back to login view
+   */
+  void backToLogin();
 };
 
-#endif //COOPERATIVEEDITOR_SIGNUP_H
+#endif // COOPERATIVEEDITOR_SIGNUP_H

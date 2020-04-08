@@ -8,19 +8,19 @@
 #include <QString>
 #include <QTcpSocket>
 #include <memory>
+#include <spdlog/spdlog.h>
 #include <string>
 #include <utility>
-#include <spdlog/spdlog.h>
 
 #include "client/model/Model.h"
 #include "common/TcpSocket.h"
-#include <src/components/messages/RequestMessage.h>
 #include "src/components/messages/BasicMessage.h"
 #include "src/components/messages/CrdtMessage.h"
+#include "src/components/messages/CursorMessage.h"
 #include "src/components/messages/FileListingMessage.h"
 #include "src/components/messages/FileMessage.h"
 #include "src/components/messages/UserMessage.h"
-#include "src/components/messages/CursorMessage.h"
+#include <src/components/messages/RequestMessage.h>
 
 /**
  * Controller class for the client
@@ -33,8 +33,14 @@ class Controller : public QObject {
 
 private:
   Model *model;
+
   TcpSocket *socket;
 
+  /**
+   * Function to send a message through the socket
+   * @param type  the message type to be sent
+   * @param msg  the message to be sent
+   */
   void prepareToSend(Type type, BasicMessage &msg);
 
 public:
@@ -42,74 +48,172 @@ public:
 
 public slots:
 
-  /// Slot to wake up when data ready on the socket
+  /**
+   * Slot called when a message is available
+   * @param header  the message header
+   * @param buf the message as raw bytes
+   */
   void onMessageReceived(Header &header, QByteArray &buf);
 
-  /// Slot to wake up when LoginRequest arrived from View
+  /**
+   * Slot to handle a login request
+   * @param username  the username inserted
+   * @param password  the password inserted (will be hashed)
+   */
   void onLoginRequest(const QString &username, const QString &password);
 
-  // TODO: Refactor using class USER
-  /// Slot to wake up when SignUpRequest arrived from View
+  /**
+   * Slot to handle a signup request
+   * @param user  the structure containing all the user parameters
+   */
   void onSignUpRequest(User user);
 
-  /// Slot to wake up when user insert a char locally
+  /**
+   * Slot to handle a local symbol insertion
+   * @param index the index of the symbol inserted
+   * @param value the character
+   * @param format  the current character format
+   */
   void onCharInserted(int index, QChar value, QTextCharFormat format);
 
-  /// Slot to wake up when user erase a char locally
+  /**
+   * Slot to handle a local symbol deletion
+   * @param index  the index of the symbol
+   */
   void onCharErased(int index);
 
+  /**
+   * Slot to handle a file request
+   * @param filename  the requested filename
+   * @param exists true if open, false if create
+   */
   void onFileRequest(const QString &filename, bool exists);
 
+  /**
+   * Slot to handle the show profile view opening
+   */
   void onShowEditProfile();
 
+  /**
+   * Slot to handle the file view closure
+   */
   void onFileClosed();
 
+  /**
+   * Slot to handle the invite code insertion
+   * @param code  the invite code
+   */
   void onInsertInviteCode(QString code);
 
+  /**
+   * Slot to handle a generate link request
+   */
   void onGenerateLink();
 
+  /**
+   * Slot to handle a local cursor position changed
+   * @param position the new position
+   */
   void onCursorChanged(int position);
+
+  /**
+   * Slot to handle file list request
+   */
+  void onRequestFileList();
 
 signals:
 
+  /**
+   * Connected signal
+   */
   void connected();
+
+  /**
+   * Disconnected signal
+   */
   void disconnected();
+
+  /**
+   * Error signal
+   */
   void error();
 
-  /// Signal to notify the view about the login
+  /**
+   * Signal to notify the view of a login answer
+   * @param response true if ok, false otherwise
+   */
   void loginResponse(bool response);
 
-  /// Signal to notify the view that the server has sent the list of files
+  /**
+   * Signal to notify the view of the list of the current user files
+   * @param files the file list
+   */
   void fileListing(QVector<QString> &files);
 
-  /// Signal to notify the view about the possibility to open/create a file
+  /**
+   * Signal to notify the view about a file opening/creation operation
+   * @param result  true if ok, false otherwise
+   */
   void fileResult(bool result);
 
-  /// Method to notify the view that a file has to be opened for the first time
+  /**
+   * Signal to notify the view of the current file content
+   * @param text the file content
+   * @param fileName the file name
+   * @param username the username of the current user
+   * @param editorId the current user editor ID
+   */
   void loadFileText(FileText &text, QString &fileName, QString &username,
-                    unsigned int editorId);
+                    quint32 editorId);
 
-  /// Method to notify the view a character has been inserted by a remote user
+  /**
+   * Signal to notify the view of a remote user insertion
+   * @param index  the index of the symbol to be inserted
+   * @param symbols  the symbol to be inserted
+   */
   void remoteUserInsert(int index, Symbol &symbols);
 
-  /// Method to notify the view a character has been deleted by a remote user
+  /**
+   * Signal to notify the view of a remote deletion
+   * @param index  the index of the remote deletion
+   */
   void remoteUserDelete(int index);
 
-  /// Method to notify the view a character has been updated by a remote user
-  void remoteUserUpdate(int index, Symbol &symbols);
+  /**
+   * Signal to notify the view about all the current user info
+   * @param image
+   * @param name
+   * @param surname
+   * @param email
+   * @param username
+   */
+  void userProfileInfo(User &user);
 
-  /// Method to send to the view the information about the user
-  void userProfileInfo(QImage &image, QString &name, QString &surname,
-                       QString &email, QString &username);
-
+  /**
+   * Signal to notify the view of a remote user connected
+   * @param clientId  the remote clientId
+   * @param name  the remote user name
+   */
   void remoteUserConnected(qint32 clientId, QString &name);
 
+  /**
+   * Signal to notify the view of a remote user disconnect
+   * @param clientId the remote clientId
+   */
   void remoteUserDisconnected(quint32 clientId);
 
+  /**
+   * Signal to notify the view about a invite link generation answer from server
+   * @param code  the generated invite link
+   */
   void generateLinkAnswer(QString code);
 
+  /**
+   * Function to generate the view about a remote user cursor changed
+   * @param editorId  the remote user editorID
+   * @param position  the new position
+   */
   void userCursorChanged(quint32 editorId, int position);
-
 };
 
 #endif // COOPERATIVEEDITOR_CONTROLLER_H

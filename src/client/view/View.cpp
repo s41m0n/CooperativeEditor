@@ -19,113 +19,115 @@ void View::init() {
   signUp = new SignUp();
   editProfile = new EditUserProfile();
 
-  /// Bottone semplice da Login a SignUp se non ho un account e voglio
-  /// registrarmi
+  /*From login to signup*/
   QObject::connect(login, &Login::signUp, signUp, &QMainWindow::show);
 
-  /// Bottone semplice da SignUp a Login se non voglio registrarmi e tornare al
-  /// login
+  /*From signup to login*/
   QObject::connect(signUp, &SignUp::backToLogin, login, &QMainWindow::show);
 
-  /// Bottone semplice (azione da menu dropdown) da Editor e EditUserProfile per
-  /// modificare il mio profilo
+  /*From editor to user profile*/
   QObject::connect(editor, &Editor::openEditProfileFromEditor, editProfile,
                    &QMainWindow::show);
 
-  /// Segnale intermedio per farsi passare dati utente
+  /*Notify controller to get user data*/
   QObject::connect(editProfile, &EditUserProfile::requestUserProfile,
                    controller, &Controller::onShowEditProfile);
 
-  /// Ottengo i dati utente
+  /*Controller answers with user data*/
   QObject::connect(controller, &Controller::userProfileInfo, editProfile,
                    &EditUserProfile::onUserProfileInfo);
 
-  /// Da EditUserProfile a Editor ma senza effettuare modifiche
+  /*From user profile to editor*/
   QObject::connect(editProfile,
                    &EditUserProfile::openEditorFromEditProfileNoChanges, editor,
                    &Editor::onComeBackFromEditProfileNoChanges);
 
-  /// Bottone semplice (azione da menu dropdown) da Editor a FileVisualizer per
-  /// aprire un nuovo file
+  /*From editor to file visualizer*/
   QObject::connect(editor, &Editor::openVisualizerFromEditor, fileVisualizer,
                    &QMainWindow::show);
 
-  /// Oltre a tornare a FileVisualizer devo informare il server della chiusura
-  /// del file
+  /*Editor closes file*/
   QObject::connect(editor, &Editor::fileClosed, controller,
                    &Controller::onFileClosed);
 
-  QObject::connect(editor, &Editor::generateLink, controller, &Controller::onGenerateLink);
-  QObject::connect(controller, &Controller::generateLinkAnswer, editor, &Editor::onGenerateLinkAnswer);
+  /*Editor notify controller to generate link*/
+  QObject::connect(editor, &Editor::generateLink, controller,
+                   &Controller::onGenerateLink);
 
-  QObject::connect(fileVisualizer, &FileVisualizer::insertInviteLink, controller, &Controller::onInsertInviteCode);
+  /*Controller notify editor of generate link answer*/
+  QObject::connect(controller, &Controller::generateLinkAnswer, editor,
+                   &Editor::onGenerateLinkAnswer);
 
-  /// Segnale dal fileVisualizer per chiedere al server di aprire un file
+  /*File visualizer notify controller of invite link insertion*/
+  QObject::connect(fileVisualizer, &FileVisualizer::insertInviteLink,
+                   controller, &Controller::onInsertInviteCode);
+
+  /*From file visualizer to require file list*/
+  QObject::connect(fileVisualizer, &FileVisualizer::requestFileList, controller, &Controller::onRequestFileList);
+
+  /*File visualizer request a file to controller*/
   QObject::connect(fileVisualizer, &FileVisualizer::fileRequest, controller,
                    &Controller::onFileRequest);
 
-  /// Segnale dal login al controller per inviare al server la login request
+  /*Login notify login attempt*/
   QObject::connect(login, &Login::loginRequest, controller,
                    &Controller::onLoginRequest);
 
-  /// Segnale dal register al controller per inviare al server la register
-  /// request
+  /*Signup notify signup attempt*/
   QObject::connect(signUp, &SignUp::signUpRequest, controller,
                    &Controller::onSignUpRequest);
 
-  /// Risposta di login
+  /*Controller notify login response*/
   QObject::connect(controller, &Controller::loginResponse, this,
                    &View::onLoginResponse);
 
-  /// Risposta con la lista di file ricevuti
+  /*Controller notify file listing*/
   QObject::connect(controller, &Controller::fileListing, fileVisualizer,
                    &FileVisualizer::onFileListing);
 
-  /// Risposta con risultato di apertura/creazione file
+  /*Controller notify file opening/closure result*/
   QObject::connect(controller, &Controller::fileResult, this,
                    &View::onFileResult);
 
-  /// Prima apertura del file nell'editor, setto il testo con i vari stili dei
-  /// caratteri
+  /*Controller notify file text load*/
   QObject::connect(controller, &Controller::loadFileText, editor,
                    &Editor::onFileTextLoad);
 
-  /// Un utente remoto ha inserito un carattere nel file
+  /*Controller notify remote user insert*/
   QObject::connect(controller, &Controller::remoteUserInsert, editor,
                    &Editor::onRemoteInsert);
 
-  /// Un utente remoto ha cancellato un carattere dal file
+  /*Controller notify remote user delete*/
   QObject::connect(controller, &Controller::remoteUserDelete, editor,
                    &Editor::onRemoteErase);
 
-  /// Un utente remoto ha modificato lo stile di un carattere nel file
-  QObject::connect(controller, &Controller::remoteUserUpdate, editor,
-                   &Editor::onRemoteUpdate);
-
-  /// Segnale dall'editor al controller in seguito ad un inserimento
+  /*Editor notify local insert*/
   QObject::connect(editor, &Editor::symbolInserted, controller,
                    &Controller::onCharInserted);
 
-  /// Segnale dall'editor al controller in seguito ad una cancellazione
+  /*Editor notify local erase*/
   QObject::connect(editor, &Editor::symbolDeleted, controller,
                    &Controller::onCharErased);
 
-  QObject::connect(editor, &Editor::cursorChanged, controller, &Controller::onCursorChanged);
+  /*Editor notify local cursor position changed*/
+  QObject::connect(editor, &Editor::cursorChanged, controller,
+                   &Controller::onCursorChanged);
 
-  QObject::connect(controller, &Controller::userCursorChanged, editor, &Editor::onUserCursorChanged);
+  /*Controller notify remote cursor position changed*/
+  QObject::connect(controller, &Controller::userCursorChanged, editor,
+                   &Editor::onUserCursorChanged);
 
-  /// Segnale dal controller all'editor per informarlo della presenza di un
-  /// nuovo client collegato al file
+  /*Controller notify remote user connected*/
   QObject::connect(controller, &Controller::remoteUserConnected, editor,
                    &Editor::onRemoteUserConnected);
 
-  /// Segnale dal controller all'editor per informarlo che un client si è
-  /// scollegato
+  /*Controller notify remote user disconnected*/
   QObject::connect(controller, &Controller::remoteUserDisconnected, editor,
                    &Editor::onRemoteUserDisconnected);
 
   login->show();
 }
+
 void View::onLoginResponse(bool result) {
   if (result) {
     fileVisualizer->show();

@@ -47,7 +47,8 @@ void Controller::onMessageReceived(Header &header, QByteArray &buf) {
     emit fileResult(true);
     auto msg = FileMessage::fromQByteArray(buf);
     model->setCurrentFile(msg.getFile());
-    emit loadFileText(model->getFileText(), model->getFile().getFileName(),
+    auto file = model->getFile();
+    emit loadFileText(file.getFileText(), file.getFileName(),
                       model->getUser().getUsername(), model->getEditorId());
     break;
   }
@@ -58,7 +59,7 @@ void Controller::onMessageReceived(Header &header, QByteArray &buf) {
       auto symbol = msg.getSymbol();
       if (header.getType() == Type::S_INSERT) {
         emit remoteUserInsert(model->remoteInsert(symbol), symbol);
-      } else{
+      } else {
         emit remoteUserDelete(model->remoteErase(symbol));
       }
     } catch (std::exception &e) {
@@ -79,10 +80,10 @@ void Controller::onMessageReceived(Header &header, QByteArray &buf) {
   }
   case Type::U_GENERATE_INVITE: {
     auto msg = RequestMessage::fromQByteArray(buf);
-    emit generateLinkAnswer(msg.getFilename());
+    emit generateLinkAnswer(msg.getResource());
     break;
   }
-  case Type::U_CURSOR : {
+  case Type::U_CURSOR: {
     auto msg = CursorMessage::fromQByteArray(buf);
     emit userCursorChanged(msg.getEditorId(), msg.getPos());
     break;
@@ -122,7 +123,8 @@ void Controller::onCharErased(int index) {
   }
 }
 
-void Controller::onLoginRequest(const QString &username, const QString &password) {
+void Controller::onLoginRequest(const QString &username,
+                                const QString &password) {
 
   QByteArray hashedPassword =
       QCryptographicHash::hash(password.toUtf8(), QCryptographicHash::Sha512);
@@ -134,7 +136,7 @@ void Controller::onLoginRequest(const QString &username, const QString &password
 
 void Controller::onSignUpRequest(User user) {
 
-  UserMessage msg(model->getEditorId(),std::move(user));
+  UserMessage msg(model->getEditorId(), std::move(user));
   prepareToSend(Type::U_REGISTER, msg);
 }
 
@@ -144,11 +146,7 @@ void Controller::onFileRequest(const QString &filename, bool exists) {
   prepareToSend(exists ? Type::F_OPEN : Type::F_CREATE, msg);
 }
 
-void Controller::onShowEditProfile() {
-  User user = model->getUser();
-  emit userProfileInfo(user.getPicture(), user.getName(), user.getSurname(),
-                       user.getEmail(), user.getUsername());
-}
+void Controller::onShowEditProfile() { emit userProfileInfo(model->getUser()); }
 
 void Controller::onFileClosed() {
   BasicMessage msg(model->getEditorId());
@@ -168,4 +166,9 @@ void Controller::onGenerateLink() {
 void Controller::onCursorChanged(int position) {
   CursorMessage msg(model->getEditorId(), position);
   prepareToSend(Type::U_CURSOR, msg);
+}
+
+void Controller::onRequestFileList() {
+  BasicMessage msg(model->getEditorId());
+  prepareToSend(Type::F_LISTING, msg);
 }

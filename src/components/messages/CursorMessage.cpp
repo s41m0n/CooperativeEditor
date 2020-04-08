@@ -1,8 +1,9 @@
 #include "CursorMessage.h"
-CursorMessage::CursorMessage(unsigned editorId, int position)
+
+CursorMessage::CursorMessage(quint32 editorId, quint32 position)
     : BasicMessage(editorId), position(position) {}
 
-int CursorMessage::getPos() { return position; }
+quint32 CursorMessage::getPos() { return position; }
 
 CursorMessage CursorMessage::fromQByteArray(QByteArray &buf) {
   CursorMessage msg;

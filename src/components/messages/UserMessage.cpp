@@ -1,19 +1,15 @@
 #include "UserMessage.h"
 
-User &UserMessage::getUser() {
-  return user;
-}
+UserMessage::UserMessage(quint32 editorId, User user)
+    : BasicMessage(editorId), user(std::move(user)) {}
 
-UserMessage::UserMessage(unsigned editorId, User user) : BasicMessage(editorId),
-                                                         user(std::move(user)) {
-}
+User &UserMessage::getUser() { return user; }
 
 std::string UserMessage::toStdString(int level) {
   return std::string(level, '\t') + "UserMessage{\n" +
-         std::string(level + 1, '\t') + "editorId: " +
-         std::to_string(editorId) + "\n" +
-         user.toStdString(level + 1) + "\n" +
-         std::string(level, '\t') + "}";
+         std::string(level + 1, '\t') +
+         "editorId: " + std::to_string(editorId) + "\n" +
+         user.toStdString(level + 1) + "\n" + std::string(level, '\t') + "}";
 }
 
 QDataStream &UserMessage::serialize(QDataStream &stream) const {

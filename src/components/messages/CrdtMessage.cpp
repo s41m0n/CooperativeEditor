@@ -1,6 +1,6 @@
 #include "CrdtMessage.h"
 
-CrdtMessage::CrdtMessage(Symbol symbol, unsigned editorId)
+CrdtMessage::CrdtMessage(Symbol symbol, quint32 editorId)
         : BasicMessage(editorId),
           symbol(std::move(symbol)) {
 }

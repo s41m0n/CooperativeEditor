@@ -1,15 +1,13 @@
 #include "BasicMessage.h"
 
-BasicMessage::BasicMessage(unsigned editorId) : editorId(editorId) {}
+BasicMessage::BasicMessage(quint32 editorId) : editorId(editorId) {}
 
-unsigned int BasicMessage::getEditorId() {
-  return editorId;
-}
+quint32 BasicMessage::getEditorId() { return editorId; }
 
 std::string BasicMessage::toStdString(int level) {
   return std::string(level, '\t') + "BasicMessage{\n" +
-         std::string(level + 1, '\t') + "editorId: " +
-         std::to_string(editorId) + "\n" +
+         std::string(level + 1, '\t') +
+         "editorId: " + std::to_string(editorId) + "\n" +
          std::string(level, '\t') + "}";
 }
 

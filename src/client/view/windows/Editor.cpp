@@ -327,15 +327,6 @@ void Editor::onRemoteErase(int index) {
   isHandlingRemote = false;
 }
 
-void Editor::onRemoteUpdate(int index, Symbol &symbol) {
-  isHandlingRemote = true;
-  auto cursor = textEdit->textCursor();
-  cursor.setPosition(index);
-  cursor.movePosition(QTextCursor::Right, QTextCursor::KeepAnchor, 1);
-  cursor.setCharFormat(symbol.getFormat());
-  isHandlingRemote = false;
-}
-
 void Editor::onRemoteInsert(int index, Symbol &symbol) {
   auto cursor = textEdit->textCursor();
   isHandlingRemote = true;

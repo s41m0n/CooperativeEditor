@@ -2,11 +2,9 @@
 
 #include <utility>
 
-Model::Model() : editorId(0), digitGenerator(0), file(), user() {}
+Model::Model() : editorId(0), file(), user() {}
 
-User Model::getUser() { return this->user; }
-
-FileText &Model::getFileText() { return this->file.getFileText(); }
+User &Model::getUser() { return this->user; }
 
 std::string Model::toStdString() {
   std::string str;

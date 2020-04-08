@@ -1,14 +1,14 @@
 #ifndef COOPERATIVEEDITOR_FILEVISUALIZER_H
 #define COOPERATIVEEDITOR_FILEVISUALIZER_H
 
-#include <QMainWindow>
-#include <QLabel>
-#include <QPushButton>
-#include <QMessageBox>
 #include <QGroupBox>
-#include <QListWidget>
-#include <QString>
 #include <QInputDialog>
+#include <QLabel>
+#include <QListWidget>
+#include <QMainWindow>
+#include <QMessageBox>
+#include <QPushButton>
+#include <QString>
 #include <QVBoxLayout>
 
 /**
@@ -16,37 +16,49 @@
  */
 class FileVisualizer : public QMainWindow {
 
-Q_OBJECT
+  Q_OBJECT
 
 private:
+  QLineEdit *lineLink{};
+  QListWidget *list;
 
-    QWidget *mainWidget{};
-    QLabel *titleOpen{};
-    QPushButton *buttonExit{};
-    QPushButton *buttonCreate{};
-    QGroupBox *boxCreate{};
-    QGroupBox *boxFileList{};
-    QGroupBox *boxLink{};
-    QLineEdit *lineLink{};
-    QPushButton *buttonOpenLink{};
-    QListWidget *list;
+protected:
+  /**
+   * Function to be called when SHOW
+   * @param ev
+   */
+  void showEvent(QShowEvent *ev) override;
 
 public:
-
-    explicit FileVisualizer(QWidget *parent = nullptr);
+  explicit FileVisualizer(QWidget *parent = nullptr);
 
 public slots:
 
-    ///Slot to notify the editor that the list of files has been received
-    void onFileListing(const QVector<QString> &filesArray);
+  /**
+   * Slot to handle file listing message
+   * @param filesArray  the list of available user files
+   */
+  void onFileListing(const QVector<QString> &filesArray);
 
 signals:
 
-    ///True = file exists, False = file does not exist
-    void fileRequest(const QString &filename, bool exists);
+  /**
+   * Signal to require file list
+   */
+  void requestFileList();
 
-    void insertInviteLink(const QString &code);
+  /**
+   * Signal to notify file opening/creating
+   * @param filename the desired file name
+   * @param exists  true if opening, false if creating
+   */
+  void fileRequest(const QString &filename, bool exists);
 
+  /**
+   * Signal to notify invite link insertion
+   * @param code  the invite link
+   */
+  void insertInviteLink(const QString &code);
 };
 
-#endif //COOPERATIVEEDITOR_FILEVISUALIZER_H
+#endif // COOPERATIVEEDITOR_FILEVISUALIZER_H

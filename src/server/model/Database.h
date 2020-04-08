@@ -80,7 +80,8 @@ private:
    * Function to print errors and exit due to a relevant problem
    * @param error the string to be printed
    */
-  static void printErrorAndExit(const std::string& error = "Unable to connect to DB");
+  static void
+  printErrorAndExit(const std::string &error = "Unable to connect to DB");
 
 public:
   Database(const Database &) = delete;
@@ -118,25 +119,66 @@ public:
   bool updateUser(User &user);
 
   /**
-   * Function to check if an invite code is valid and give the invited user the right permission
+   * Function to check if an invite code is valid and give the invited user the
+   * right permission
    * @param link the invite code
    * @param userInviting the user who created the invite code
    * @param filename  the file of interest
    * @param userInvited the invited user who is attempting to get privileges
    * @return true if ok, false otherwise
    */
-  bool checkInvite(const QString& link, QString &userInviting, QString &filename, QString &userInvited);
+  bool checkInvite(const QString &link, QString &userInviting,
+                   QString &filename, QString &userInvited);
 
-  bool insertInvite(const QString& link);
+  /**
+   * Function to insert an invite code into the DB
+   * @param link  the code to be inserted
+   * @return true if successfully inserted, false otherwise
+   */
+  bool insertInvite(const QString &link);
 
+  /**
+   * Function to retrieve all files belonging to a specific user
+   * @param user  the user in interest
+   * @return  the list of files
+   */
   QVector<QString> getUserFiles(User &user);
 
-  int getUserFileID(const QString& filename, User &user);
+  /**
+   * Function to return the file Identifier
+   * @param filename the filename of interest
+   * @param user the owner of the file
+   * @return  the retrieved file ID
+   */
+  qint32 getUserFileID(const QString &filename, User &user);
 
-  bool insertFile(User &user, const QString &file, std::shared_ptr<ServerFile> &serverFile);
+  /**
+   * Function to insert a File for user
+   * @param user the user owner
+   * @param file  the filename to be inserted
+   * @param serverFile the shared pointer to the structure which will be
+   * initialized if successfully created
+   * @return true if created, false otherwise
+   */
+  bool insertFile(User &user, const QString &file,
+                  std::shared_ptr<ServerFile> &serverFile);
 
-  bool openFile(int fileID, const QString &name, std::shared_ptr<ServerFile> &serverFile);
+  /**
+   * Function to open a specific file
+   * @param fileID  the file identifier
+   * @param name  the filename
+   * @param serverFile  the server file structure to be filled if correctl
+   * opened
+   * @return true if opened, false otherwise
+   */
+  bool openFile(qint32 fileID, const QString &name,
+                std::shared_ptr<ServerFile> &serverFile);
 
+  /**
+   * Function to update a file
+   * @param file  the server file structure to be updated
+   * @return  true if correctl updated, false otherwise
+   */
   bool updateFile(ServerFile &file);
 };
 
