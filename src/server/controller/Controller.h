@@ -14,11 +14,11 @@
 #include "server/model/Model.h"
 #include "src/components/messages/BasicMessage.h"
 #include "src/components/messages/CrdtMessage.h"
+#include "src/components/messages/CursorMessage.h"
 #include "src/components/messages/FileListingMessage.h"
 #include "src/components/messages/FileMessage.h"
 #include "src/components/messages/RequestMessage.h"
 #include "src/components/messages/UserMessage.h"
-#include "src/components/messages/CursorMessage.h"
 
 /**
  * Controller server class
@@ -31,24 +31,48 @@ class Controller : public QTcpServer {
 private:
   Model *model;
 
+  /**
+   * Private function to dipatch a message to all the other users connected to
+   * that file
+   * @param sender the user who created the message
+   * @param headerType the type of the message which will be sent
+   * @param header the header of the message received
+   * @param message  the message to be dispatched
+   */
   void dispatch(TcpSocket *sender, Type headerType, Header header,
                 BasicMessage &message);
 
+  /**
+   * Function to handle the message conversion to QByteArray before sending
+   * @param sender the user sender
+   * @param type  the message type
+   * @param msg  the message to be sent
+   */
   static void prepareToSend(TcpSocket *sender, Type type, BasicMessage &msg);
 
 public:
   Controller(Model *model, unsigned short port, QWidget *parent = nullptr);
 
 protected:
-  /// Method called on new connection available in the Tcp server
+  /**
+   * Function called every time there is an incoming connection
+   * @param handle the future socket identifier
+   */
   void incomingConnection(qintptr handle) override;
 
 private slots:
 
-  /// Method called when the state of the socket changes (disconnected, etc.)
+  /**
+   * Function called when a socket is changing its state (error,...)
+   * @param socketState the new state
+   */
   void onSocketStateChanged(QAbstractSocket::SocketState socketState);
 
-  /// Method called when there is data available to read
+  /**
+   * Function called to compute the received message
+   * @param header  the message header
+   * @param buf  the message raw buffer still to be converted
+   */
   void onMessageReceived(Header &header, QByteArray &buf);
 };
 

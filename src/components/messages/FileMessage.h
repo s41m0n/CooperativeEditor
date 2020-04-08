@@ -19,14 +19,23 @@ private:
   QDataStream &deserialize(QDataStream &stream) override;
 
 public:
-  FileMessage(unsigned editorId, File &file);
+  FileMessage(quint32 editorId, File &file);
 
   FileMessage() = default;
 
-  File &getFile();
-
   std::string toStdString(int level = 0) override;
 
+  /**
+   * Function to get the file in this message
+   * @return  the file carried
+   */
+  File &getFile();
+
+  /**
+   * Function to create a FileMessage from raw bytes
+   * @param buf  the raw bytes
+   * @return the parsed message
+   */
   static FileMessage fromQByteArray(QByteArray &buf);
 };
 

@@ -1,9 +1,9 @@
 #ifndef COOPERATIVEEDITOR_USER_H
 #define COOPERATIVEEDITOR_USER_H
 
+#include <QCryptographicHash>
 #include <QString>
 #include <QtGui/QImage>
-#include <QCryptographicHash>
 #include <utility>
 
 #include "src/include/lib/serialization/Serializable.h"
@@ -14,51 +14,48 @@
 class User : public Serializable {
 
 private:
+  QString username;
 
-    QString username;
+  QString password;
 
-    QString password;
+  QString name;
 
-    QString name;
+  QString surname;
 
-    QString surname;
+  QString email;
 
-    QString email;
-
-    QImage picture;
-
+  QImage picture;
 
 public:
-    User(QString username, QString name, QString surname,
-         QString email, const QString& password, QImage picture);
+  User(QString username, QString name, QString surname, QString email,
+       const QString &password, QImage picture);
 
-    User(QString username, QString name, QString surname,
-         QString email, QImage picture);
+  User(QString username, QString name, QString surname, QString email,
+       QImage picture);
 
-    User(QString username, QString password);
+  User(QString username, QString password);
 
-    User() = default;
+  User() = default;
 
-    QString &getUsername();
+  std::string toStdString(int level = 0) override;
 
-    QString &getPassword();
+  QDataStream &serialize(QDataStream &stream) const override;
 
-    QString &getName();
+  QDataStream &deserialize(QDataStream &stream) override;
 
-    QString &getSurname();
+  QString &getUsername();
 
-    QString &getEmail();
+  QString &getPassword();
 
-    QImage &getPicture();
+  QString &getName();
 
-    std::string toStdString(int level = 0) override;
+  QString &getSurname();
 
-    QDataStream &serialize(QDataStream &stream) const override;
+  QString &getEmail();
 
-    QDataStream &deserialize(QDataStream &stream) override;
-
+  QImage &getPicture();
 };
 
 Q_DECLARE_METATYPE(User);
 
-#endif //COOPERATIVEEDITOR_USER_H
+#endif // COOPERATIVEEDITOR_USER_H

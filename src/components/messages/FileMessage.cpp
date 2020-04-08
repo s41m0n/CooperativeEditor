@@ -1,6 +1,6 @@
 #include "FileMessage.h"
 
-FileMessage::FileMessage(unsigned editorId, File &file)
+FileMessage::FileMessage(quint32 editorId, File &file)
         : BasicMessage(editorId), file(file) {
 }
 

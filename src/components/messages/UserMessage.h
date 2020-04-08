@@ -4,6 +4,10 @@
 #include "BasicMessage.h"
 #include "common/User.h"
 
+/**
+ * UserMessage class, describing all interactiong with the user structure
+ * (login, logout, etc)
+ */
 class UserMessage : public BasicMessage {
 
 private:
@@ -14,14 +18,23 @@ private:
   QDataStream &deserialize(QDataStream &stream) override;
 
 public:
-  explicit UserMessage(unsigned editorId, User user);
+  explicit UserMessage(quint32 editorId, User user);
 
   UserMessage() = default;
 
-  User &getUser();
-
   std::string toStdString(int level = 0) override;
 
+  /**
+   * Function to get the user structure
+   * @return the user structure
+   */
+  User &getUser();
+
+  /**
+   * Function to create a UserMessage from raw bytes
+   * @param buf  the raw bytes
+   * @return the parsed message
+   */
   static UserMessage fromQByteArray(QByteArray &buf);
 };
 

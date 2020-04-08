@@ -6,7 +6,7 @@ QDataStream &operator<<(QDataStream &stream, const Type &val) {
 }
 
 QDataStream &operator>>(QDataStream &stream, Type &val) {
-  stream >> reinterpret_cast<std::underlying_type_t<Type>&>(val);
+  stream >> reinterpret_cast<std::underlying_type_t<Type> &>(val);
   return stream;
 }
 

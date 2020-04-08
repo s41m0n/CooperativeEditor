@@ -13,21 +13,30 @@
 class RequestMessage : public BasicMessage {
 
 private:
-  QString filename;
+  QString resource;
 
   QDataStream &serialize(QDataStream &stream) const override;
 
   QDataStream &deserialize(QDataStream &stream) override;
 
 public:
-  RequestMessage(unsigned editorId, QString filename);
+  RequestMessage(quint32 editorId, QString filename);
 
   RequestMessage() = default;
 
-  QString &getFilename();
-
   std::string toStdString(int level = 0) override;
 
+  /**
+   * Function to get the resource name
+   * @return the resource name
+   */
+  QString &getResource();
+
+  /**
+   * Function to create a RequestMessage from raw bytes
+   * @param buf  the raw bytes
+   * @return the parsed message
+   */
   static RequestMessage fromQByteArray(QByteArray &buf);
 };
 

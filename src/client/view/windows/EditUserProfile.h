@@ -1,67 +1,76 @@
 #ifndef COOPERATIVEEDITOR_EDITUSERPROFILE_H
 #define COOPERATIVEEDITOR_EDITUSERPROFILE_H
 
-#include <QMainWindow>
-#include <QLabel>
+#include <QFileDialog>
+#include <QGridLayout>
 #include <QGroupBox>
+#include <QLabel>
 #include <QLineEdit>
+#include <QMainWindow>
+#include <QMessageBox>
 #include <QPushButton>
 #include <QString>
-#include <QMessageBox>
-#include <QGridLayout>
-#include <QFileDialog>
+#include <src/common/User.h>
 
 /**
  * Editor of user profile window
  */
 class EditUserProfile : public QMainWindow {
 
-Q_OBJECT
+  Q_OBJECT
 
 private:
-    QWidget *mainWidget;
-    QGroupBox *registerBox;
-    QLabel *imageLabel;
-    QGroupBox *imageBorder;
-    QLabel *displayImage;
-    QLabel *nameLabel;
-    QLineEdit *nameTextField;
-    QLabel *surnameLabel;
-    QLineEdit *surnameTextField;
-    QLabel *usernameLabel;
-    QLineEdit *usernameTextField;
-    QLabel *emailLabel;
-    QLineEdit *emailTextField;
-    QLabel *oldPasswordLabel;
-    QLineEdit *oldPasswordTextField;
-    QLabel *newPasswordLabel;
-    QLineEdit *newPasswordTextField;
-    QLabel *newPasswordLabelConfirm;
-    QLineEdit *newPasswordTextFieldConfirm;
-    QPushButton *buttonSelectImage;
-    QPushButton *buttonExit;
-    QPushButton *buttonSaveAndBackToEditor;
-    QPushButton *buttonDeleteProfile;
-    QImage userImage;
+  QGroupBox *imageBorder;
+  QLabel *displayImage;
+  QLineEdit *nameTextField;
+  QLineEdit *surnameTextField;
+  QLineEdit *usernameTextField;
+  QLineEdit *emailTextField;
+  QLineEdit *oldPasswordTextField;
+  QLineEdit *newPasswordTextField;
+  QLineEdit *newPasswordTextFieldConfirm;
+  QPushButton *buttonSelectImage;
+  QImage userImage;
 
 protected:
-    void showEvent(QShowEvent *ev) override;
+  /**
+   * Function to be called when SHOW
+   * @param ev
+   */
+  void showEvent(QShowEvent *ev) override;
+
+  /**
+   * Function to be called when CLOSED
+   * @param event
+   */
+  void closeEvent(QCloseEvent *event) override;
 
 public:
-    explicit EditUserProfile(QWidget *parent = nullptr);
-    void closeEvent(QCloseEvent *event) override;
+  explicit EditUserProfile(QWidget *parent = nullptr);
 
 public slots:
 
-    void onUserProfileInfo(const QImage &image, const QString &name,
-                           const QString &surname, const QString &email,
-                           const QString &username);
+  /**
+   * Slot to handle user profile info loaded
+   * @param image
+   * @param name
+   * @param surname
+   * @param email
+   * @param username
+   */
+  void onUserProfileInfo(User &user);
 
 signals:
 
-    void requestUserProfile();
-    void openEditorFromEditProfileNoChanges();
+  /**
+   * Signal to require user info
+   */
+  void requestUserProfile();
 
+  /**
+   * Signal to go back to editor
+   */
+  void openEditorFromEditProfileNoChanges();
 };
 
-#endif //COOPERATIVEEDITOR_EDITUSERPROFILE_H
+#endif // COOPERATIVEEDITOR_EDITUSERPROFILE_H

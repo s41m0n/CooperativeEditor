@@ -21,7 +21,6 @@ int main(int argc, char **argv) {
   }
 
   qRegisterMetaType<FileText>();
-  qRegisterMetaType<Attribute>();
 
   QApplication app(argc, argv);
 

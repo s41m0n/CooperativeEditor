@@ -1,7 +1,7 @@
 #include "CrdtAlgorithm.h"
 
-unsigned int CrdtAlgorithm::generateIdBetween(unsigned int id1,
-                                              unsigned int id2,
+quint32 CrdtAlgorithm::generateIdBetween(quint32 id1,
+                                              quint32 id2,
                                               bool boundaryStrategy) {
   if ((id2 - id1) < CrdtAlgorithm::boundary) {
     id1++;

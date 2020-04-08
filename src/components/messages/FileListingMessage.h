@@ -20,14 +20,23 @@ private:
   QDataStream &deserialize(QDataStream &stream) override;
 
 public:
-  FileListingMessage(unsigned editorId, QVector<QString> files);
+  FileListingMessage(quint32 editorId, QVector<QString> files);
 
   FileListingMessage() = default;
 
-  QVector<QString> &getFiles();
-
   std::string toStdString(int level = 0) override;
 
+  /**
+   * Function to get the list of files
+   * @return the list of files
+   */
+  QVector<QString> &getFiles();
+
+  /**
+   * Function to create a FileListingMessage from raw bytes
+   * @param buf  the raw bytes
+   * @return the parsed message
+   */
   static FileListingMessage fromQByteArray(QByteArray &buf);
 };
 
