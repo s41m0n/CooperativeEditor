@@ -2,6 +2,7 @@
 
 TcpSocket::TcpSocket(QObject *parent) : QTcpSocket(parent), ds(this), clientID(-1) {
   connect(this, SIGNAL(readyRead()), this, SLOT(onReadyRead()));
+  ds.setVersion(QDataStream::Qt_5_12);
 }
 
 qint32 TcpSocket::getClientID() {

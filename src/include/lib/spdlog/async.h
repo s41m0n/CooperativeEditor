@@ -1,5 +1,8 @@
-// Copyright(c) 2015-present, Gabi Melman & spdlog contributors.
+
+//
+// Copyright(c) 2018 Gabi Melman.
 // Distributed under the MIT License (http://opensource.org/licenses/MIT)
+//
 
 #pragma once
 
@@ -20,7 +23,6 @@
 
 #include <memory>
 #include <mutex>
-#include <functional>
 
 namespace spdlog {
 
@@ -40,9 +42,7 @@ struct async_factory_impl
         auto &registry_inst = details::registry::instance();
 
         // create global thread pool if not already exists..
-
-        auto &mutex = registry_inst.tp_mutex();
-        std::lock_guard<std::recursive_mutex> tp_lock(mutex);
+        std::lock_guard<std::recursive_mutex> tp_lock(registry_inst.tp_mutex());
         auto tp = registry_inst.get_tp();
         if (tp == nullptr)
         {
@@ -73,16 +73,10 @@ inline std::shared_ptr<spdlog::logger> create_async_nb(std::string logger_name, 
 }
 
 // set global thread pool.
-inline void init_thread_pool(size_t q_size, size_t thread_count, std::function<void()> on_thread_start)
-{
-    auto tp = std::make_shared<details::thread_pool>(q_size, thread_count, on_thread_start);
-    details::registry::instance().set_tp(std::move(tp));
-}
-
-// set global thread pool.
 inline void init_thread_pool(size_t q_size, size_t thread_count)
 {
-    init_thread_pool(q_size, thread_count, [] {});
+    auto tp = std::make_shared<details::thread_pool>(q_size, thread_count);
+    details::registry::instance().set_tp(std::move(tp));
 }
 
 // get the global thread pool.
