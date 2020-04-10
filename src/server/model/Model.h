@@ -78,10 +78,10 @@ public:
 
   /**
    * Function to get all available files for a user
-   * @param user the user of interest
+   * @param sender the socket of interest
    * @return the list of its files if any
    */
-  static QVector<QString> getAvailableUserFiles(User &user);
+  QVector<QString> getAvailableUserFiles(TcpSocket *sender);
 
   /**
    * Function to retrieve the file a target socket is currently using

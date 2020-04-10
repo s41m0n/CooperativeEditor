@@ -18,16 +18,8 @@ class Login : public QMainWindow {
 Q_OBJECT
 
 private:
-    QWidget *mainWidget;
-    QGroupBox *loginBox;
-    QLabel *usernameLabel;
     QLineEdit *usernameTextField;
-    QLabel *passwordLabel;
     QLineEdit *passwordTextField;
-    QGroupBox *registerBox;
-    QPushButton *buttonRegister;
-    QPushButton *buttonEnter;
-    QPushButton *buttonExit;
 
 public:
 
@@ -35,10 +27,16 @@ public:
 
 signals:
 
-    ///Signal to notify the controller that user wants log in
+    /**
+     * Signal to notify login attempt
+     * @param username
+     * @param password
+     */
     void loginRequest(QString username, QString password);
 
-    ///Signal to notify the view that a user wants to register himself
+    /**
+     * Signal to notify to open signup view
+     */
     void signUp();
 };
 

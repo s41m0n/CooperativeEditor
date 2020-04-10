@@ -5,29 +5,39 @@
 #ifndef COOPERATIVEEDITOR_CURSORMESSAGE_H
 #define COOPERATIVEEDITOR_CURSORMESSAGE_H
 
-#include <string>
 #include "BasicMessage.h"
+#include <string>
 
-class CursorMessage : public BasicMessage{
+/**
+ * CursorMessage class, to represent a message containing a cursor movement
+ */
+class CursorMessage : public BasicMessage {
 private:
-  int position = -1;
+  quint32 position = 0;
 
   QDataStream &serialize(QDataStream &stream) const override;
 
   QDataStream &deserialize(QDataStream &stream) override;
 
-
 public:
-  CursorMessage(unsigned editorId, int position);
+  CursorMessage(quint32 editorId, quint32 position);
 
   CursorMessage() = default;
 
-  int getPos();
-
   std::string toStdString(int level = 0) override;
 
-  static CursorMessage fromQByteArray(QByteArray &buf);
+  /**
+   * Function to get the position of the cursor
+   * @return  the position
+   */
+  quint32 getPos();
 
+  /**
+   * Function to create a CursorMessage from raw bytes
+   * @param buf  the raw bytes
+   * @return the parsed message
+   */
+  static CursorMessage fromQByteArray(QByteArray &buf);
 };
 
 #endif // COOPERATIVEEDITOR_CURSORMESSAGE_H

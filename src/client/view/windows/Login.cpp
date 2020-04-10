@@ -5,23 +5,23 @@ Login::Login(QWidget *parent) : QMainWindow(parent) {
   this->setWindowTitle("Login Form");
   this->setFixedSize(this->minimumSize());
 
-  mainWidget = new QWidget(this);
+  auto mainWidget = new QWidget(this);
   auto layout = new QGridLayout(mainWidget);
 
   setCentralWidget(mainWidget);
   mainWidget->setLayout(layout);
 
-  loginBox = new QGroupBox("Insert your Personal Data:", mainWidget);
+  auto loginBox = new QGroupBox("Insert your Personal Data:", mainWidget);
   loginBox->setLayout(new QVBoxLayout());
   layout->addWidget(loginBox, 1, 0, 1, 2);
 
-  usernameLabel = new QLabel("Username:", loginBox);
+  auto usernameLabel = new QLabel("Username:", loginBox);
   loginBox->layout()->addWidget(usernameLabel);
 
   usernameTextField = new QLineEdit(loginBox);
   loginBox->layout()->addWidget(usernameTextField);
 
-  passwordLabel = new QLabel("Password:", loginBox);
+  auto passwordLabel = new QLabel("Password:", loginBox);
   loginBox->layout()->addWidget(passwordLabel);
 
   passwordTextField = new QLineEdit(loginBox);
@@ -29,20 +29,20 @@ Login::Login(QWidget *parent) : QMainWindow(parent) {
   passwordTextField->setStyleSheet("lineedit-password-character: 42");
   loginBox->layout()->addWidget(passwordTextField);
 
-  buttonEnter = new QPushButton("Log In", loginBox);
+  auto buttonEnter = new QPushButton("Log In", loginBox);
   buttonEnter->setAutoDefault(true);
   loginBox->layout()->addWidget(buttonEnter);
 
-  registerBox = new QGroupBox("Sign up if you do not have credentials:",
+  auto registerBox = new QGroupBox("Sign up if you do not have credentials:",
                               mainWidget);
   registerBox->setLayout(new QVBoxLayout());
   layout->addWidget(registerBox, 4, 0, 1, 2);
 
-  buttonRegister = new QPushButton("Sign Up", registerBox);
+  auto buttonRegister = new QPushButton("Sign Up", registerBox);
   buttonRegister->setAutoDefault(true);
   registerBox->layout()->addWidget(buttonRegister);
 
-  buttonExit = new QPushButton("Exit", mainWidget);
+  auto buttonExit = new QPushButton("Exit", mainWidget);
   buttonExit->setAutoDefault(true);
   layout->addWidget(buttonExit, 5, 0, 1, 2);
 

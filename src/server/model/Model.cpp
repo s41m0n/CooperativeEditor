@@ -69,8 +69,8 @@ bool Model::openFileByUser(TcpSocket *socket, const QString &filename) {
   return true;
 }
 
-QVector<QString> Model::getAvailableUserFiles(User &user) {
-  return Database::getInstance().getUserFiles(user);
+QVector<QString> Model::getAvailableUserFiles(TcpSocket *sender) {
+  return Database::getInstance().getUserFiles(socketToUser[sender]);
 }
 
 std::shared_ptr<ServerFile> Model::getFileBySocket(TcpSocket *socket) {
@@ -134,6 +134,7 @@ QString Model::generateInvite(TcpSocket *sender, const QString &filename) {
   Database::getInstance().insertInvite(code);
   return code;
 }
+
 bool Model::insertInviteCode(TcpSocket *sender, const QString &code,
                              File &file) {
   auto decoded = QString(QByteArray::fromBase64(code.toUtf8())).split("/");

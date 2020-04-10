@@ -5,22 +5,22 @@ SignUp::SignUp(QWidget *parent) : QMainWindow(parent) {
   this->setWindowTitle("Sign Up Form");
   this->setFixedSize(this->minimumSize());
 
-  mainWidget = new QWidget(this);
+  auto mainWidget = new QWidget(this);
   auto layout = new QGridLayout(mainWidget);
 
   setCentralWidget(mainWidget);
   mainWidget->setLayout(layout);
 
-  title = new QLabel(this);
+  auto title = new QLabel(this);
   title->setText("Welcome to Our Cooperative Editor!");
   layout->addWidget(title, 0, 0);
 
-  registerBox = new QGroupBox(
+  auto registerBox = new QGroupBox(
       "Fill the following fields to sign up to the system:", mainWidget);
   registerBox->setLayout(new QVBoxLayout());
   layout->addWidget(registerBox, 1, 0, 1, 2);
 
-  imageLabel = new QLabel("Icon (MaxSize 1 MB):", registerBox);
+  auto imageLabel = new QLabel("Icon (MaxSize 1 MB):", registerBox);
   registerBox->layout()->addWidget(imageLabel);
 
   imageBorder = new QGroupBox(registerBox);
@@ -38,31 +38,31 @@ SignUp::SignUp(QWidget *parent) : QMainWindow(parent) {
   buttonSelectImage->setAutoDefault(true);
   registerBox->layout()->addWidget(buttonSelectImage);
 
-  nameLabel = new QLabel("Name:", registerBox);
+  auto nameLabel = new QLabel("Name:", registerBox);
   registerBox->layout()->addWidget(nameLabel);
 
   nameTextField = new QLineEdit();
   registerBox->layout()->addWidget(nameTextField);
 
-  surnameLabel = new QLabel("Surname:", registerBox);
+  auto surnameLabel = new QLabel("Surname:", registerBox);
   registerBox->layout()->addWidget(surnameLabel);
 
   surnameTextField = new QLineEdit();
   registerBox->layout()->addWidget(surnameTextField);
 
-  emailLabel = new QLabel("E-mail:", registerBox);
+  auto emailLabel = new QLabel("E-mail:", registerBox);
   registerBox->layout()->addWidget(emailLabel);
 
   emailTextField = new QLineEdit();
   registerBox->layout()->addWidget(emailTextField);
 
-  usernameLabel = new QLabel("Username:", registerBox);
+  auto usernameLabel = new QLabel("Username:", registerBox);
   registerBox->layout()->addWidget(usernameLabel);
 
   usernameTextField = new QLineEdit();
   registerBox->layout()->addWidget(usernameTextField);
 
-  passwordLabel = new QLabel("Password:", registerBox);
+  auto passwordLabel = new QLabel("Password:", registerBox);
   registerBox->layout()->addWidget(passwordLabel);
 
   passwordTextField = new QLineEdit(registerBox);
@@ -70,7 +70,7 @@ SignUp::SignUp(QWidget *parent) : QMainWindow(parent) {
   passwordTextField->setStyleSheet("lineedit-password-character: 42");
   registerBox->layout()->addWidget(passwordTextField);
 
-  passwordLabelConfirm = new QLabel("Repeat Password:", registerBox);
+  auto passwordLabelConfirm = new QLabel("Repeat Password:", registerBox);
   registerBox->layout()->addWidget(passwordLabelConfirm);
 
   passwordTextFieldConfirm = new QLineEdit(registerBox);
@@ -78,21 +78,21 @@ SignUp::SignUp(QWidget *parent) : QMainWindow(parent) {
   passwordTextFieldConfirm->setStyleSheet("lineedit-password-character: 42");
   registerBox->layout()->addWidget(passwordTextFieldConfirm);
 
-  buttonSignUp = new QPushButton("Sign Up", registerBox);
+  auto buttonSignUp = new QPushButton("Sign Up", registerBox);
   buttonSignUp->setAutoDefault(true);
   registerBox->layout()->addWidget(buttonSignUp);
 
-  alreadyRegisteredBox =
+  auto alreadyRegisteredBox =
       new QGroupBox("Are you already registered?", mainWidget);
   alreadyRegisteredBox->setLayout(new QVBoxLayout());
   alreadyRegisteredBox->setWindowTitle("Error");
   layout->addWidget(alreadyRegisteredBox, 2, 0, 1, 2);
 
-  buttonBackToLogin = new QPushButton("Log In", alreadyRegisteredBox);
+  auto buttonBackToLogin = new QPushButton("Log In", alreadyRegisteredBox);
   buttonBackToLogin->setAutoDefault(true);
   alreadyRegisteredBox->layout()->addWidget(buttonBackToLogin);
 
-  buttonExit = new QPushButton("Exit", mainWidget);
+  auto buttonExit = new QPushButton("Exit", mainWidget);
   buttonExit->setAutoDefault(true);
   layout->addWidget(buttonExit, 3, 0, 1, 2);
 

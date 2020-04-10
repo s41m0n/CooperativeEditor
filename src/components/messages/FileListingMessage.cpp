@@ -2,22 +2,18 @@
 
 #include <utility>
 
-FileListingMessage::FileListingMessage(unsigned editorId,
-                                       QVector<QString> files)
-        : BasicMessage(editorId), files(std::move(files)) {
-}
+FileListingMessage::FileListingMessage(quint32 editorId, QVector<QString> files)
+    : BasicMessage(editorId), files(std::move(files)) {}
 
-QVector<QString> &FileListingMessage::getFiles() {
-  return files;
-}
+QVector<QString> &FileListingMessage::getFiles() { return files; }
 
 std::string FileListingMessage::toStdString(int level) {
   std::string tmp;
   tmp += std::string(level, '\t') + "FileListingMessage{\n";
-  tmp += std::string(level + 1, '\t') + "editorId: " +
-         std::to_string(editorId) + "\n";
+  tmp += std::string(level + 1, '\t') +
+         "editorId: " + std::to_string(editorId) + "\n";
   tmp += std::string(level + 1, '\t') + "files: [\n";
-  for (auto &s: files)
+  for (auto &s : files)
     tmp += std::string(level + 1, '\t') + s.toStdString() + "\n";
   tmp += std::string(level + 1, '\t') + "]\n" + std::string(level, '\t') + "}";
   return tmp;

@@ -1,7 +1,7 @@
 #include "User.h"
 
 User::User(QString username, QString name, QString surname, QString email,
-           const QString& password, QImage picture)
+           const QString &password, QImage picture)
     : username(std::move(username)), name(std::move(name)),
       surname(std::move(surname)), email(std::move(email)),
       password(QCryptographicHash::hash(password.toUtf8(),

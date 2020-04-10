@@ -4,36 +4,35 @@
 #include <QString>
 #include <mutex>
 
-#include <src/components/Symbol.h>
 #include "src/include/lib/serialization/Serializable.h"
+#include <src/components/Symbol.h>
 
+/**
+ * File class, to represent a file
+ */
 class File : public Serializable {
 
 protected:
+  QString fileName;
 
-    QString fileName;
-
-    FileText fileText;
+  FileText fileText;
 
 public:
+  explicit File(QString name, FileText text = {});
 
-    explicit File(QString name, FileText text = {});
+  File() = default;
 
-    File() = default;
+  std::string toStdString(int level) override;
 
-    QString &getFileName();
+  QDataStream &serialize(QDataStream &stream) const override;
 
-    FileText &getFileText();
+  QDataStream &deserialize(QDataStream &stream) override;
 
-    std::string toStdString(int level) override;
+  bool operator==(const QString &name) { return this->fileName == name; }
 
-    QDataStream &serialize(QDataStream &stream) const override;
+  QString &getFileName();
 
-    QDataStream &deserialize(QDataStream &stream) override;
-
-    bool operator==(const QString& name) {
-      return this->fileName == name;
-    }
+  FileText &getFileText();
 };
 
-#endif //COOPERATIVEEDITOR_FILE_H
+#endif // COOPERATIVEEDITOR_FILE_H

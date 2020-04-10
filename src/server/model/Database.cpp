@@ -11,7 +11,7 @@ Database::Database() {
   sqlite3_close(this->DBConnection);
 }
 
-void Database::printErrorAndExit(const std::string& error) {
+void Database::printErrorAndExit(const std::string &error) {
   spdlog::error("{}", error);
   exit(-1);
 }
@@ -283,7 +283,7 @@ int Database::getUserFileID(const QString &filename, User &user) {
   return id;
 }
 
-bool Database::openFile(int fileID, const QString &name,
+bool Database::openFile(qint32 fileID, const QString &name,
                         std::shared_ptr<ServerFile> &serverFile) {
   if (!openConnection()) {
     printErrorAndExit();
