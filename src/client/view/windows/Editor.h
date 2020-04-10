@@ -37,7 +37,7 @@
 #define DEFAULT_FONT_SIZE 12.0
 #define MAX_FONT_SIZE 80.0
 #define MIN_FONT_SIZE 1.0
-#define DEFAULT_FONT_FAMILY "Noto Mono"
+#define DEFAULT_FONT_FAMILY "Noto Sans"
 #define DEFAULT_TEXT_COLOR "white"
 #define DEFAULT_BACKGROUND_COLOR "transparent"
 
