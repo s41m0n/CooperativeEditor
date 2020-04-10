@@ -412,7 +412,10 @@ void Editor::onCharFormatChanged(const QTextCharFormat &f) {
   actionItalic->setChecked(f.fontItalic());
   actionUnderlined->setChecked(f.fontUnderline());
 
+  font->blockSignals(true);
   font->setCurrentIndex(font->findText(QFontInfo(f.font()).family()));
+  font->blockSignals(false);
+
   fontSize->blockSignals(true);
   fontSize->setValue((f.fontPointSize() >= MIN_FONT_SIZE ? f.fontPointSize()
                                                          : DEFAULT_FONT_SIZE));
