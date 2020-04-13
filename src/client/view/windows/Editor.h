@@ -63,6 +63,7 @@ private:
   QFontComboBox *font{};
   QSpinBox *fontSize{};
   bool isHandlingRemote{};
+  std::map<quint32, std::pair<QString, QLabel*>> clientColorCursor;
 
   /**
    * Function to handle topbar creation

@@ -66,6 +66,42 @@ void Editor::onFileTextLoad(FileText &text, QString &fName, QString &username,
 void Editor::onRemoteUserConnected(qint32 cId, const QString &username) {
   usersOnlineList.insert(cId, username);
 
+  QColor color;
+  while(true) {
+    srand(time(0));
+    color = QColor(rand()%256, rand()%256, rand()%256);
+    auto iterator = std::find_if(clientColorCursor.begin(), clientColorCursor.end(), [color](auto &pair) {
+      return pair.second.first == color.name();
+    });
+    if (iterator == clientColorCursor.end())
+      break;
+  }
+
+  QFont fontCursor("American Typewriter", 10, QFont::Bold);
+  auto *remoteLabel = new QLabel(QString(username+"\n"), textEdit);
+  remoteLabel->setAttribute(Qt::WA_TransparentForMouseEvents);
+  remoteLabel->setStyleSheet("color:"+color.name()+";background-color:transparent;border: 1px solid transparent;border-left-color:"+color.name()+";");
+  remoteLabel->setFont(fontCursor);
+  QTextCursor remoteCursor(textEdit->document());
+  remoteCursor.setPosition(0);
+  QRect curCoord = textEdit->cursorRect(remoteCursor);
+  int height = curCoord.bottom()-curCoord.top();
+  remoteLabel->resize(1000, height+5);
+  QFont l_font=remoteLabel->font();
+  QTextCharFormat fmt=remoteCursor.charFormat();
+  int font_size=static_cast<int>(fmt.fontPointSize());
+  if(font_size==0)
+    font_size=12;
+  QFont new_font(l_font.family(),static_cast<int>((font_size/2)+3),QFont::Bold);
+  remoteLabel->setFont(new_font);
+  remoteLabel->move(curCoord.left(), curCoord.top()-(remoteLabel->fontInfo().pointSize()/3));
+  remoteLabel->setVisible(true);
+  remoteLabel->raise();
+
+  clientColorCursor.emplace(cId, std::make_pair(color.name(), remoteLabel));
+
+  cursorChanged(textEdit->textCursor().position());
+
   if (usersOnlineList.size() <= 5) {
     usersOnline->setFixedHeight(usersOnlineList.size() * 30);
   } else {
@@ -78,6 +114,10 @@ void Editor::onRemoteUserConnected(qint32 cId, const QString &username) {
 
 void Editor::onRemoteUserDisconnected(qint32 cId) {
   usersOnlineList.remove(cId);
+  //TODO: delete of the label
+  auto &client = clientColorCursor.at(cId);
+  delete client.second;
+  clientColorCursor.erase(cId);
   refreshOnlineUsersView(); // it is not so easy to remove an element from the
                            // list, it's better to refresh
   textEdit->setFocus();
@@ -427,4 +467,22 @@ void Editor::onGenerateLinkAnswer(const QString& code) {
 void Editor::onUserCursorChanged(quint32 clientId, int position) {
   // TODO: aggiunger mappa con clientId -> {colore_scelto - cursore_remoto}
   spdlog::debug("Update remote cursor {} {}", clientId, position);
+  auto &label = clientColorCursor.at(clientId).second;
+  QTextCursor remoteCursor(textEdit->document());
+  remoteCursor.setPosition(position);
+  QRect remoteCoord = textEdit->cursorRect(remoteCursor);
+  int height = remoteCoord.bottom()-remoteCoord.top();
+  label->resize(1000, height+5);
+
+  /* update label dimension according to remote cursor position */
+  QFont l_font=label->font();
+  QTextCharFormat fmt=remoteCursor.charFormat();
+  int font_size=static_cast<int>(fmt.fontPointSize());
+  if(font_size==0)
+    font_size=12;
+  QFont new_font(l_font.family(),static_cast<int>((font_size/2)+3),QFont::Bold);
+  label->setFont(new_font);
+
+  label->move(remoteCoord.left(), remoteCoord.top()-(label->fontInfo().pointSize()/3));
+  label->setVisible(true);
 }
