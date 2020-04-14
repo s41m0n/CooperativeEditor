@@ -84,18 +84,23 @@ void Editor::onFileTextLoad(FileText &text, QString &fName, QString &username,
 }
 
 void Editor::onRemoteUserConnected(qint32 cId, const QString &username) {
+  auto alreadyPresentId = usersOnlineList.key(username, -1);
   usersOnlineList.insert(cId, username);
 
   QColor color;
-  while (true) {
-    srand(time(0));
-    color = QColor(rand() % 256, rand() % 256, rand() % 256);
-    auto iterator = std::find_if(clientColorCursor.begin(),
-                                 clientColorCursor.end(), [color](auto &pair) {
-                return pair.second.first == color.name();
-            });
-    if (iterator == clientColorCursor.end())
-      break;
+  if (alreadyPresentId == -1) {
+    while (true) {
+      srand(time(0));
+      color = QColor(rand() % 220, rand() % 220, rand() % 220);
+      auto iterator = std::find_if(clientColorCursor.values().begin(),
+                                   clientColorCursor.values().end(), [color](auto &pair) {
+            return pair.first == color.name();
+          });
+      if (iterator == clientColorCursor.values().end())
+        break;
+    }
+  } else {
+    color = QColor(clientColorCursor.value(alreadyPresentId).first);
   }
 
   QFont fontCursor("American Typewriter", 10, QFont::Bold);
@@ -123,7 +128,7 @@ void Editor::onRemoteUserConnected(qint32 cId, const QString &username) {
   remoteLabel->setVisible(true);
   remoteLabel->raise();
 
-  clientColorCursor.emplace(cId, std::make_pair(color.name(), remoteLabel));
+  clientColorCursor.insert(cId, std::make_pair(color.name(), remoteLabel));
 
   cursorChanged(textEdit->textCursor().position());
 
@@ -133,9 +138,9 @@ void Editor::onRemoteUserConnected(qint32 cId, const QString &username) {
 
 void Editor::onRemoteUserDisconnected(qint32 cId) {
   usersOnlineList.remove(cId);
-  auto &client = clientColorCursor.at(cId);
+  auto &client = clientColorCursor.find(cId).value();
   delete client.second;
-  clientColorCursor.erase(cId);
+  clientColorCursor.remove(cId);
   refreshOnlineUsersView(); // it is not so easy to remove an element from the
   // list, it's better to refresh
   textEdit->setFocus();
@@ -494,7 +499,7 @@ void Editor::onGenerateLinkAnswer(const QString &code) {
 void Editor::onUserCursorChanged(quint32 clientId, int position) {
 
   spdlog::debug("Update remote cursor {} {}", clientId, position);
-  auto &label = clientColorCursor.at(clientId).second;
+  auto &label = clientColorCursor.value(clientId).second;
   QTextCursor remoteCursor(textEdit->document());
   remoteCursor.setPosition(position);
   QRect remoteCoord = textEdit->cursorRect(remoteCursor);
