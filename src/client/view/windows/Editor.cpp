@@ -50,7 +50,7 @@ Editor::Editor(QWidget *parent)
                 refreshOnlineUsersView(); //to decolor the label in the users view
                 usersOnline->clearSelection(); //to avoid the blue background on the selection
                 textEdit->setFocus();
-                //TODO:mi serve il testo originale per rimettere il background?
+                emit getUserTextOriginal(clientId);
               }else{
                 item->setBackgroundColor(color);
                 usersOnline->clearSelection(); //to avoid the blue background on the selection
@@ -370,11 +370,6 @@ void Editor::refreshOnlineUsersView() {
   auto usernames = usersOnlineList.values();
   usernames.removeDuplicates(); // remove duplicates
 
-  auto debug = usernames.toStdList();
-  for (auto d : debug) {
-    d.toStdString();
-  }
-
   if (usernames.size() <= 5) {
     usersOnline->setFixedHeight((int) usernames.size() * 30);
   } else {
@@ -522,6 +517,7 @@ void Editor::onUserCursorChanged(quint32 clientId, int position) {
 }
 
 void Editor::onUserTextReceived(const QList<int>& positions, quint32 clientId) {
+  this->blockSignals(true);
 
   QColor color = clientColorCursor[clientId].first;
 
@@ -540,6 +536,30 @@ void Editor::onUserTextReceived(const QList<int>& positions, quint32 clientId) {
     cursor.movePosition(QTextCursor::Right, QTextCursor::KeepAnchor, 1); //select 1 char
     cursor.mergeCharFormat(fmt);
     cursor.clearSelection();
-    textEdit->mergeCurrentCharFormat(fmt);
   }
+
+  this->blockSignals(false);
+}
+
+void Editor::onUserOriginalTextReceived(const QMap<int, QBrush>& textAndColors) {
+  this->blockSignals(true);
+
+  auto c = textEdit->textCursor(); //to remove the eventual selection
+  c.clearSelection();
+  textEdit->setTextCursor(c);
+
+  for(int p : textAndColors.keys()){
+    QTextCharFormat fmt;
+    fmt.setBackground(textAndColors.value(p));
+    QTextCursor cursor(textEdit->document());
+    cursor.movePosition(
+            QTextCursor::Start); //I place it at the beginning of the document
+    cursor.movePosition(QTextCursor::Right, QTextCursor::MoveAnchor,
+                        p); //cursor is now where I want to update the text
+    cursor.movePosition(QTextCursor::Right, QTextCursor::KeepAnchor, 1); //select 1 char
+    cursor.mergeCharFormat(fmt);
+    cursor.clearSelection();
+  }
+
+  this->blockSignals(false);
 }

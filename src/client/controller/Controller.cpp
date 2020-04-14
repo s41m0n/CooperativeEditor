@@ -175,10 +175,20 @@ void Controller::onRequestFileList() {
 
 void Controller::onUserTextAsked(quint32 clientId) {
   QList<int> userCharsPos;
-  for(auto c : model->getFile().getFileText()){
-    if(c.getSiteId() == clientId){
-      userCharsPos.push_back(CrdtAlgorithm::findPositionInsert(c, model->getFile().getFileText())); //TODO:va bene questa funzione?
+  for(int i = 0; i < model->getFile().getFileText().size(); i++){
+    if(model->getFile().getFileText()[i].getSiteId() == clientId){
+      userCharsPos.push_back(i);
     }
   }
   emit sendUserText(userCharsPos, clientId);
+}
+
+void Controller::onUserOriginalTextAsked(quint32 clientId) {
+  QMap<int, QBrush> textAndColors;
+  for(int i = 0; i < model->getFile().getFileText().size(); i++){
+    if(model->getFile().getFileText()[i].getSiteId() == clientId){
+      textAndColors.insert(i, model->getFile().getFileText()[i].getFormat().background());
+    }
+  }
+  emit sendUserOriginalText(textAndColors);
 }

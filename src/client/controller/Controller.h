@@ -126,6 +126,11 @@ public slots:
    */
   void onUserTextAsked(quint32 clientId);
 
+  /**
+  * Slot to handle the request of the original text inserted by an user
+  */
+  void onUserOriginalTextAsked(quint32 clientId);
+
 signals:
 
   /**
@@ -226,6 +231,12 @@ signals:
    * @param clientId   id of the user
    */
   void sendUserText(QList<int> positions, quint32 clientId);
+
+  /**
+    * Signal to send to the view the original text inserted by the user
+    * @param textAndColors  map with positions and background colors
+    */
+  void sendUserOriginalText(QMap<int, QBrush> textAndColors);
 };
 
 #endif // COOPERATIVEEDITOR_CONTROLLER_H

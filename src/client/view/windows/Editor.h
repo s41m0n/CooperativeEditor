@@ -198,6 +198,12 @@ public slots:
     */
   void onUserTextReceived(const QList<int>& positions, quint32 clientId);
 
+  /**
+  * Slot to remove highlighting from the text inserted by a user
+  * @param textAndColors  map with positions and background colors
+  */
+  void onUserOriginalTextReceived(const QMap<int, QBrush>& textAndColors);
+
 signals:
 
   /**
@@ -245,6 +251,12 @@ signals:
    * @param clientId  the clientId of the user whose text to ask
    */
   void getUserText(quint32 clientId);
+
+  /**
+  * Signal to ask the model to get the original text inserted by a user
+  * @param clientId  the clientId of the user whose text to ask
+  */
+  void getUserTextOriginal(quint32 clientId);
 
 };
 
