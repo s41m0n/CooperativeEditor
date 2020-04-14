@@ -1,9 +1,10 @@
 #include "Editor.h"
 
 Editor::Editor(QWidget *parent)
-    : QMainWindow(parent), mainWidget(new QWidget(this)),
-      textEdit(new QTextEdit(mainWidget)),
-      usersOnlineDisplayer(new QLabel("Users online: ")), usersOnlineList() {
+        : QMainWindow(parent), mainWidget(new QWidget(this)),
+          textEdit(new QTextEdit(mainWidget)),
+          usersOnlineDisplayer(new QLabel("Users online: ")),
+          usersOnlineList() {
   // TODO:fai finestra readonly per vedere info utente con vettore
   this->resize(1280, 760);
   this->setMinimumWidth(1000);
@@ -36,8 +37,27 @@ Editor::Editor(QWidget *parent)
                    &Editor::onCharFormatChanged);
 
   QObject::connect(textEdit, &QTextEdit::cursorPositionChanged, this, [&]() {
-    emit cursorChanged(textEdit->textCursor().position());
+      emit cursorChanged(textEdit->textCursor().position());
   });
+
+  QObject::connect(
+          usersOnline, &QListWidget::itemDoubleClicked, this,
+          [this](QListWidgetItem *item) {
+              auto clientId = usersOnlineList.key(item->text());
+              auto color = clientColorCursor[clientId].first;
+
+              if(item->backgroundColor() == color){
+                refreshOnlineUsersView(); //to decolor the label in the users view
+                usersOnline->clearSelection(); //to avoid the blue background on the selection
+                textEdit->setFocus();
+                //TODO:mi serve il testo originale per rimettere il background?
+              }else{
+                item->setBackgroundColor(color);
+                usersOnline->clearSelection(); //to avoid the blue background on the selection
+                textEdit->setFocus();
+                emit getUserText(clientId);
+              }
+          });
 
   textEdit->setFocus();
 }
@@ -67,34 +87,39 @@ void Editor::onRemoteUserConnected(qint32 cId, const QString &username) {
   usersOnlineList.insert(cId, username);
 
   QColor color;
-  while(true) {
+  while (true) {
     srand(time(0));
-    color = QColor(rand()%256, rand()%256, rand()%256);
-    auto iterator = std::find_if(clientColorCursor.begin(), clientColorCursor.end(), [color](auto &pair) {
-      return pair.second.first == color.name();
-    });
+    color = QColor(rand() % 256, rand() % 256, rand() % 256);
+    auto iterator = std::find_if(clientColorCursor.begin(),
+                                 clientColorCursor.end(), [color](auto &pair) {
+                return pair.second.first == color.name();
+            });
     if (iterator == clientColorCursor.end())
       break;
   }
 
   QFont fontCursor("American Typewriter", 10, QFont::Bold);
-  auto *remoteLabel = new QLabel(QString(username+"\n"), textEdit);
+  auto *remoteLabel = new QLabel(QString(username + "\n"), textEdit);
   remoteLabel->setAttribute(Qt::WA_TransparentForMouseEvents);
-  remoteLabel->setStyleSheet("color:"+color.name()+";background-color:transparent;border: 1px solid transparent;border-left-color:"+color.name()+";");
+  remoteLabel->setStyleSheet("color:" + color.name() +
+                             ";background-color:transparent;border: 1px solid transparent;border-left-color:" +
+                             color.name() + ";");
   remoteLabel->setFont(fontCursor);
   QTextCursor remoteCursor(textEdit->document());
   remoteCursor.setPosition(0);
   QRect curCoord = textEdit->cursorRect(remoteCursor);
-  int height = curCoord.bottom()-curCoord.top();
-  remoteLabel->resize(1000, height+5);
-  QFont l_font=remoteLabel->font();
-  QTextCharFormat fmt=remoteCursor.charFormat();
-  int font_size=static_cast<int>(fmt.fontPointSize());
-  if(font_size==0)
-    font_size=12;
-  QFont new_font(l_font.family(),static_cast<int>((font_size/2)+3),QFont::Bold);
+  int height = curCoord.bottom() - curCoord.top();
+  remoteLabel->resize(1000, height + 5);
+  QFont l_font = remoteLabel->font();
+  QTextCharFormat fmt = remoteCursor.charFormat();
+  int font_size = static_cast<int>(fmt.fontPointSize());
+  if (font_size == 0)
+    font_size = 12;
+  QFont new_font(l_font.family(), static_cast<int>((font_size / 2) + 3),
+                 QFont::Bold);
   remoteLabel->setFont(new_font);
-  remoteLabel->move(curCoord.left(), curCoord.top()-(remoteLabel->fontInfo().pointSize()/3));
+  remoteLabel->move(curCoord.left(),
+                    curCoord.top() - (remoteLabel->fontInfo().pointSize() / 3));
   remoteLabel->setVisible(true);
   remoteLabel->raise();
 
@@ -102,24 +127,17 @@ void Editor::onRemoteUserConnected(qint32 cId, const QString &username) {
 
   cursorChanged(textEdit->textCursor().position());
 
-  if (usersOnlineList.size() <= 5) {
-    usersOnline->setFixedHeight(usersOnlineList.size() * 30);
-  } else {
-    usersOnline->setFixedHeight(150);
-  }
-
   refreshOnlineUsersView();
   textEdit->setFocus();
 }
 
 void Editor::onRemoteUserDisconnected(qint32 cId) {
   usersOnlineList.remove(cId);
-  //TODO: delete of the label
   auto &client = clientColorCursor.at(cId);
   delete client.second;
   clientColorCursor.erase(cId);
   refreshOnlineUsersView(); // it is not so easy to remove an element from the
-                           // list, it's better to refresh
+  // list, it's better to refresh
   textEdit->setFocus();
 }
 
@@ -143,53 +161,53 @@ void Editor::createTopBar(QGridLayout *layout) {
   auto actionAboutAuthors = new QAction("About Us", help);
 
   QObject::connect(actionCopy, &QAction::triggered, this, [this]() {
-    QCoreApplication::postEvent(
-        textEdit,
-        new QKeyEvent(QEvent::KeyPress, Qt::Key_C, Qt::ControlModifier));
+      QCoreApplication::postEvent(
+              textEdit,
+              new QKeyEvent(QEvent::KeyPress, Qt::Key_C, Qt::ControlModifier));
   });
 
   QObject::connect(actionPaste, &QAction::triggered, this, [this]() {
-    QCoreApplication::postEvent(
-        textEdit,
-        new QKeyEvent(QEvent::KeyPress, Qt::Key_V, Qt::ControlModifier));
+      QCoreApplication::postEvent(
+              textEdit,
+              new QKeyEvent(QEvent::KeyPress, Qt::Key_V, Qt::ControlModifier));
   });
 
   QObject::connect(actionCut, &QAction::triggered, this, [this]() {
-    QCoreApplication::postEvent(
-        textEdit,
-        new QKeyEvent(QEvent::KeyPress, Qt::Key_X, Qt::ControlModifier));
+      QCoreApplication::postEvent(
+              textEdit,
+              new QKeyEvent(QEvent::KeyPress, Qt::Key_X, Qt::ControlModifier));
   });
 
   QObject::connect(actionGenerateLink, &QAction::triggered, this, [this]() {
-    // TODO: genera link + setta text di linkDisplayer
-    emit generateLink();
+      // TODO: genera link + setta text di linkDisplayer
+      emit generateLink();
   });
 
   QObject::connect(actionEditProfile, &QAction::triggered, this, [this]() {
-    emit openEditProfileFromEditor();
-    this->setDisabled(true);
+      emit openEditProfileFromEditor();
+      this->setDisabled(true);
   });
 
   QObject::connect(actionQuit, &QAction::triggered, this, &QMainWindow::close);
 
   QObject::connect(actionClose, &QAction::triggered, this, [this]() {
-    emit openVisualizerFromEditor();
-    emit fileClosed();
+      emit openVisualizerFromEditor();
+      emit fileClosed();
   });
 
   QObject::connect(actionAboutAuthors, &QAction::triggered, this, [this]() {
-    QMessageBox::information(
-        this, "CooperativeEditor",
-        "Authors:\n  "
-        "- Francesco Pavan: front-end developer di successo;\n  "
-        "- Simone Magnani: vuole le icone tonde perché le ha Google;\n  "
-        "- Riccardo Marchi: sa solo tagliare e cucinare cipolle;\n  "
-        "- Francesco Palmieri: PETARDO.");
+      QMessageBox::information(
+              this, "CooperativeEditor",
+              "Authors:\n  "
+              "- Francesco Pavan: front-end developer di successo;\n  "
+              "- Simone Magnani: vuole le icone tonde perché le ha Google;\n  "
+              "- Riccardo Marchi: sa solo tagliare e cucinare cipolle;\n  "
+              "- Francesco Palmieri: PETARDO.");
   });
   QObject::connect(actionAboutEditor, &QAction::triggered, this, [this]() {
-    QMessageBox::information(
-        this, "CooperativeEditor",
-        "Editor totally developed in C++\n\n Copyright fastidioso");
+      QMessageBox::information(
+              this, "CooperativeEditor",
+              "Editor totally developed in C++\n\n Copyright fastidioso");
   });
   QObject::connect(actionSave, &QAction::triggered, this, &Editor::fileToPDF);
 
@@ -226,17 +244,23 @@ void Editor::createTopBar(QGridLayout *layout) {
 void Editor::createToolBar(QGridLayout *layout) {
   auto toolBar = new QToolBar(mainWidget);
   const QIcon boldIcon =
-      QIcon::fromTheme("format-text-bold", QIcon(":/images/mac/textbold.png"));
+          QIcon::fromTheme("format-text-bold",
+                           QIcon(":/images/mac/textbold.png"));
   const QIcon italicIcon = QIcon::fromTheme(
-      "format-text-italic", QIcon(":/images/mac/textitalic.png"));
+          "format-text-italic", QIcon(":/images/mac/textitalic.png"));
   const QIcon underlineIcon = QIcon::fromTheme(
-      "format-text-underline", QIcon(":images/mac/textunder.png"));
-  const QIcon save = QIcon::fromTheme("document-save-as", QIcon(":images/mac/document-save-as"));
-  const QIcon copy = QIcon::fromTheme("edit-copy", QIcon(":images/mac/edit-copy"));
+          "format-text-underline", QIcon(":images/mac/textunder.png"));
+  const QIcon save = QIcon::fromTheme("document-save-as",
+                                      QIcon(":images/mac/document-save-as"));
+  const QIcon copy = QIcon::fromTheme("edit-copy",
+                                      QIcon(":images/mac/edit-copy"));
   const QIcon cut = QIcon::fromTheme("edit-cut", QIcon(":images/mac/edit-cut"));
-  const QIcon paste = QIcon::fromTheme("edit-paste", QIcon(":images/mac/edit-paste"));
-  const QIcon undo = QIcon::fromTheme("edit-undo", QIcon(":images/mac/edit-undo"));
-  const QIcon redo = QIcon::fromTheme("edit-redo", QIcon(":images/mac/edit-redo"));
+  const QIcon paste = QIcon::fromTheme("edit-paste",
+                                       QIcon(":images/mac/edit-paste"));
+  const QIcon undo = QIcon::fromTheme("edit-undo",
+                                      QIcon(":images/mac/edit-undo"));
+  const QIcon redo = QIcon::fromTheme("edit-redo",
+                                      QIcon(":images/mac/edit-redo"));
 
   font = new QFontComboBox(toolBar);
   font->setWritingSystem(QFontDatabase::Latin);
@@ -246,7 +270,7 @@ void Editor::createToolBar(QGridLayout *layout) {
   actionColorText->setText("A");
   actionColorBackground = new QPushButton(toolBar);
   actionColorBackground->setStyleSheet(
-      "QPushButton {background-color: transparent;}");
+          "QPushButton {background-color: transparent;}");
   textEdit->setTextBackgroundColor(DEFAULT_BACKGROUND_COLOR);
   textEdit->setTextColor(DEFAULT_TEXT_COLOR);
 
@@ -272,7 +296,8 @@ void Editor::createToolBar(QGridLayout *layout) {
 
 
   actionBold =
-      toolBar->addAction(boldIcon, tr("&Bold"), this, &Editor::onActionClicked);
+          toolBar->addAction(boldIcon, tr("&Bold"), this,
+                             &Editor::onActionClicked);
   toolBar->addSeparator();
   actionItalic = toolBar->addAction(italicIcon, tr("&Italic"), this,
                                     &Editor::onActionClicked);
@@ -290,17 +315,18 @@ void Editor::createToolBar(QGridLayout *layout) {
   toolBar->addWidget(actionColorBackground);
 
   QObject::connect(actionColorText, &QPushButton::clicked, [&]() {
-    auto picked = QColorDialog::getColor(Qt::white, this, "Pick a color");
-    if (picked != nullptr) {
-      onColorForegroundChanged(picked);
-    }
+      auto picked = QColorDialog::getColor(Qt::white, this, "Pick a color");
+      if (picked != nullptr) {
+        onColorForegroundChanged(picked);
+      }
   });
   QObject::connect(actionColorBackground, &QPushButton::clicked, [&]() {
-    auto picked = QColorDialog::getColor(Qt::transparent, this, "Pick a color",
-                                         QColorDialog::ShowAlphaChannel);
-    if (picked != nullptr) {
-      onColorBackgroundChanged(picked);
-    }
+      auto picked = QColorDialog::getColor(Qt::transparent, this,
+                                           "Pick a color",
+                                           QColorDialog::ShowAlphaChannel);
+      if (picked != nullptr) {
+        onColorBackgroundChanged(picked);
+      }
   });
 
   connect(font, &QFontComboBox::currentFontChanged, this,
@@ -314,7 +340,7 @@ void Editor::createToolBar(QGridLayout *layout) {
   actionItalic->setCheckable(true);
   actionUnderlined->setCheckable(true);
 
-  toolBar->setFixedHeight(20);
+  toolBar->setFixedHeight(30);
   layout->addWidget(toolBar, 1, 0, 1, 2);
 }
 
@@ -344,8 +370,13 @@ void Editor::refreshOnlineUsersView() {
   auto usernames = usersOnlineList.values();
   usernames.removeDuplicates(); // remove duplicates
 
+  auto debug = usernames.toStdList();
+  for (auto d : debug) {
+    d.toStdString();
+  }
+
   if (usernames.size() <= 5) {
-    usersOnline->setFixedHeight((int)usernames.size() * 30);
+    usersOnline->setFixedHeight((int) usernames.size() * 30);
   } else {
     usersOnline->setFixedHeight(150);
   }
@@ -391,7 +422,7 @@ void Editor::onContentChanged(int pos, int del, int add) {
   if (!isHandlingRemote) {
     auto cursor = textEdit->textCursor();
     for (int i = 0; i < del; i++)
-      emit symbolDeleted(pos);
+            emit symbolDeleted(pos);
 
     for (int i = 0; i < add; i++) {
       cursor.setPosition(pos + i);
@@ -426,7 +457,7 @@ void Editor::onColorForegroundChanged(const QColor &color) {
 
 void Editor::onColorBackgroundChanged(const QColor &color) {
   auto toAdd =
-      (color.alpha() == 0 ? QColor("transparent") : QColor(color.name()));
+          (color.alpha() == 0 ? QColor("transparent") : QColor(color.name()));
   QTextCharFormat fmt;
   fmt.setBackground(toAdd);
   textEdit->textCursor().mergeCharFormat(fmt);
@@ -456,33 +487,59 @@ void Editor::onCharFormatChanged(const QTextCharFormat &f) {
                                  ";}");
 
   actionColorBackground->setStyleSheet(
-      "QPushButton {background-color: " +
-      (backColor.alpha() == 0 ? "transparent" : backColor.name()) + ";}");
+          "QPushButton {background-color: " +
+          (backColor.alpha() == 0 ? "transparent" : backColor.name()) + ";}");
 }
 
-void Editor::onGenerateLinkAnswer(const QString& code) {
+void Editor::onGenerateLinkAnswer(const QString &code) {
   QMessageBox::information(mainWidget, "CooperativeEditor",
                            "Share this code to invite contributors!\n" + code);
 }
+
 void Editor::onUserCursorChanged(quint32 clientId, int position) {
-  // TODO: aggiunger mappa con clientId -> {colore_scelto - cursore_remoto}
+
   spdlog::debug("Update remote cursor {} {}", clientId, position);
   auto &label = clientColorCursor.at(clientId).second;
   QTextCursor remoteCursor(textEdit->document());
   remoteCursor.setPosition(position);
   QRect remoteCoord = textEdit->cursorRect(remoteCursor);
-  int height = remoteCoord.bottom()-remoteCoord.top();
-  label->resize(1000, height+5);
+  int height = remoteCoord.bottom() - remoteCoord.top();
+  label->resize(1000, height + 5);
 
   /* update label dimension according to remote cursor position */
-  QFont l_font=label->font();
-  QTextCharFormat fmt=remoteCursor.charFormat();
-  int font_size=static_cast<int>(fmt.fontPointSize());
-  if(font_size==0)
-    font_size=12;
-  QFont new_font(l_font.family(),static_cast<int>((font_size/2)+3),QFont::Bold);
+  QFont l_font = label->font();
+  QTextCharFormat fmt = remoteCursor.charFormat();
+  int font_size = static_cast<int>(fmt.fontPointSize());
+  if (font_size == 0)
+    font_size = 12;
+  QFont new_font(l_font.family(), static_cast<int>((font_size / 2) + 3),
+                 QFont::Bold);
   label->setFont(new_font);
 
-  label->move(remoteCoord.left(), remoteCoord.top()-(label->fontInfo().pointSize()/3));
+  label->move(remoteCoord.left(),
+              remoteCoord.top() - (label->fontInfo().pointSize() / 3));
   label->setVisible(true);
+}
+
+void Editor::onUserTextReceived(const QList<int>& positions, quint32 clientId) {
+
+  QColor color = clientColorCursor[clientId].first;
+
+  auto c = textEdit->textCursor(); //to remove the eventual selection
+  c.clearSelection();
+  textEdit->setTextCursor(c);
+
+  for(int p : positions){
+    QTextCharFormat fmt;
+    fmt.setBackground(QBrush(color));
+    QTextCursor cursor(textEdit->document());
+    cursor.movePosition(
+            QTextCursor::Start); //I place it at the beginning of the document
+    cursor.movePosition(QTextCursor::Right, QTextCursor::MoveAnchor,
+                        p); //cursor is now where I want to update the text
+    cursor.movePosition(QTextCursor::Right, QTextCursor::KeepAnchor, 1); //select 1 char
+    cursor.mergeCharFormat(fmt);
+    cursor.clearSelection();
+    textEdit->mergeCurrentCharFormat(fmt);
+  }
 }

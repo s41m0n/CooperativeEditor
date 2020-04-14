@@ -63,6 +63,13 @@ public:
    * @return  the current format
    */
   QTextCharFormat &getFormat();
+
+  /**
+   * Function to get the symbol siteId
+   * @return  the current siteId
+   */
+  quint32 getSiteId();
+
 };
 
 /*FileText is a portion of text or the entire one*/

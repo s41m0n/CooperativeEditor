@@ -70,7 +70,7 @@ void Controller::onMessageReceived(Header &header, QByteArray &buf) {
   case Type::U_CONNECTED: {
     auto msg = UserMessage::fromQByteArray(buf);
     auto userConnected = msg.getUser();
-    emit remoteUserConnected(msg.getEditorId(), userConnected.getName());
+    emit remoteUserConnected(msg.getEditorId(), userConnected.getUsername());
     break;
   }
   case Type::U_DISCONNECTED: {
@@ -171,4 +171,14 @@ void Controller::onCursorChanged(int position) {
 void Controller::onRequestFileList() {
   BasicMessage msg(model->getEditorId());
   prepareToSend(Type::F_LISTING, msg);
+}
+
+void Controller::onUserTextAsked(quint32 clientId) {
+  QList<int> userCharsPos;
+  for(auto c : model->getFile().getFileText()){
+    if(c.getSiteId() == clientId){
+      userCharsPos.push_back(CrdtAlgorithm::findPositionInsert(c, model->getFile().getFileText())); //TODO:va bene questa funzione?
+    }
+  }
+  emit sendUserText(userCharsPos, clientId);
 }

@@ -66,3 +66,7 @@ QDataStream &Symbol::deserialize(QDataStream &stream) {
 void Symbol::setFormat(QTextCharFormat fmt) { this->format = std::move(fmt); }
 
 QTextCharFormat &Symbol::getFormat() { return format; }
+
+quint32 Symbol::getSiteId() {
+  return this->siteId;
+}

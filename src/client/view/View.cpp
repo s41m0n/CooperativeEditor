@@ -125,6 +125,14 @@ void View::init() {
   QObject::connect(controller, &Controller::remoteUserDisconnected, editor,
                    &Editor::onRemoteUserDisconnected);
 
+  /*Editor asks the controller the text inserted by a user */
+  QObject::connect(editor, &Editor::getUserText, controller,
+                   &Controller::onUserTextAsked);
+
+  /*Controller sends to the view the text inserted by a user */
+  QObject::connect(controller, &Controller::sendUserText, editor,
+                   &Editor::onUserTextReceived);
+
   login->show();
 }
 

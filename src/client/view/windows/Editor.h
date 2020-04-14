@@ -63,11 +63,12 @@ private:
   QFontComboBox *font{};
   QSpinBox *fontSize{};
   bool isHandlingRemote{};
+  QColor backgColorOnlineUsers;
   std::map<quint32, std::pair<QString, QLabel*>> clientColorCursor;
 
   /**
    * Function to handle topbar creation
-   * @param layout  the layour where it has to be put
+   * @param layout  the layout where it has to be put
    */
   void createTopBar(QGridLayout *layout);
 
@@ -190,6 +191,13 @@ public slots:
    */
   void onUserCursorChanged(quint32 clientId, int position);
 
+  /**
+    * Slot to highlight the text inserted by a user
+    * @param positions  the list of positions to color
+    * @param clientId   the id of the client
+    */
+  void onUserTextReceived(const QList<int>& positions, quint32 clientId);
+
 signals:
 
   /**
@@ -231,6 +239,13 @@ signals:
    * @param position  the new position
    */
   void cursorChanged(int position);
+
+  /**
+   * Signal to ask the model to get the text inserted by a user
+   * @param clientId  the clientId of the user whose text to ask
+   */
+  void getUserText(quint32 clientId);
+
 };
 
 #endif // COOPERATIVEEDITOR_EDITOR_H
