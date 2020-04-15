@@ -5,6 +5,7 @@ Editor::Editor(QWidget *parent)
           textEdit(new QTextEdit(mainWidget)),
           usersOnlineDisplayer(new QLabel("Users online: ")),
           usersOnlineList() {
+  srand(time(NULL));
   // TODO:fai finestra readonly per vedere info utente con vettore
   this->resize(1280, 760);
   this->setMinimumWidth(1000);
@@ -43,19 +44,20 @@ Editor::Editor(QWidget *parent)
   QObject::connect(
           usersOnline, &QListWidget::itemDoubleClicked, this,
           [this](QListWidgetItem *item) {
-              auto clientId = usersOnlineList.key(item->text());
+              auto username = item->text();
+              auto clientId = usersOnlineList.key(username);
               auto color = clientColorCursor[clientId].first;
 
               if(item->backgroundColor() == color){
                 refreshOnlineUsersView(); //to decolor the label in the users view
                 usersOnline->clearSelection(); //to avoid the blue background on the selection
                 textEdit->setFocus();
-                emit getUserTextOriginal(clientId);
+                emit getUserTextOriginal(username);
               }else{
                 item->setBackgroundColor(color);
                 usersOnline->clearSelection(); //to avoid the blue background on the selection
                 textEdit->setFocus();
-                emit getUserText(clientId);
+                emit getUserText(username);
               }
           });
 
@@ -67,6 +69,8 @@ void Editor::onFileTextLoad(FileText &text, QString &fName, QString &username,
   this->setWindowTitle("CooperativeEditor - " + fName);
   usersOnlineList.clear();
   usersOnlineList.insert(editorId, username);
+  QString colorGenerated = generateRandomColor().name();
+  clientColorCursor.insert(editorId, std::make_pair(colorGenerated, nullptr));
   refreshOnlineUsersView();
 
   isHandlingRemote = true;
@@ -89,16 +93,7 @@ void Editor::onRemoteUserConnected(qint32 cId, const QString &username) {
 
   QColor color;
   if (alreadyPresentId == -1) {
-    while (true) {
-      srand(time(0));
-      color = QColor(rand() % 220, rand() % 220, rand() % 220);
-      auto iterator = std::find_if(clientColorCursor.values().begin(),
-                                   clientColorCursor.values().end(), [color](auto &pair) {
-            return pair.first == color.name();
-          });
-      if (iterator == clientColorCursor.values().end())
-        break;
-    }
+    color = generateRandomColor();
   } else {
     color = QColor(clientColorCursor.value(alreadyPresentId).first);
   }
@@ -521,9 +516,10 @@ void Editor::onUserCursorChanged(quint32 clientId, int position) {
   label->setVisible(true);
 }
 
-void Editor::onUserTextReceived(const QList<int>& positions, quint32 clientId) {
+void Editor::onUserTextReceived(const QList<int>& positions, QString username) {
   this->blockSignals(true);
 
+  auto clientId = usersOnlineList.key(username);
   QColor color = clientColorCursor[clientId].first;
 
   auto c = textEdit->textCursor(); //to remove the eventual selection
@@ -567,4 +563,18 @@ void Editor::onUserOriginalTextReceived(const QMap<int, QBrush>& textAndColors) 
   }
 
   this->blockSignals(false);
+}
+
+QColor Editor::generateRandomColor() {
+  while (true) {
+    QColor color = QColor(rand() % 220, rand() % 220, rand() % 220);
+    auto values = clientColorCursor.values();
+    auto iterator = values.begin();
+    while (iterator != values.end()) {
+      if (iterator->first == color.name()) break;
+      iterator++;
+    }
+    if (iterator == values.end())
+      return color;
+  }
 }

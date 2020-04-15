@@ -88,6 +88,12 @@ private:
    */
   void refreshOnlineUsersView();
 
+  /**
+   * Function to generate a random color
+   * @return the generated color
+   */
+  QColor generateRandomColor();
+
 public:
   explicit Editor(QWidget *parent = nullptr);
 
@@ -194,9 +200,9 @@ public slots:
   /**
     * Slot to highlight the text inserted by a user
     * @param positions  the list of positions to color
-    * @param clientId   the id of the client
+    * @param username   the username of the client
     */
-  void onUserTextReceived(const QList<int>& positions, quint32 clientId);
+  void onUserTextReceived(const QList<int>& positions, QString username);
 
   /**
   * Slot to remove highlighting from the text inserted by a user
@@ -248,15 +254,15 @@ signals:
 
   /**
    * Signal to ask the model to get the text inserted by a user
-   * @param clientId  the clientId of the user whose text to ask
+   * @param username  the username of the user whose text to ask
    */
-  void getUserText(quint32 clientId);
+  void getUserText(QString username);
 
   /**
   * Signal to ask the model to get the original text inserted by a user
-  * @param clientId  the clientId of the user whose text to ask
+  * @param username  the username of the user whose text to ask
   */
-  void getUserTextOriginal(quint32 clientId);
+  void getUserTextOriginal(QString username);
 
 };
 

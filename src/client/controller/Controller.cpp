@@ -173,20 +173,20 @@ void Controller::onRequestFileList() {
   prepareToSend(Type::F_LISTING, msg);
 }
 
-void Controller::onUserTextAsked(quint32 clientId) {
+void Controller::onUserTextAsked(QString username) {
   QList<int> userCharsPos;
   for(int i = 0; i < model->getFile().getFileText().size(); i++){
-    if(model->getFile().getFileText()[i].getSiteId() == clientId){
+    if(model->getFile().getFileText()[i].getGeneratorUsername() == username){
       userCharsPos.push_back(i);
     }
   }
-  emit sendUserText(userCharsPos, clientId);
+  emit sendUserText(userCharsPos, username);
 }
 
-void Controller::onUserOriginalTextAsked(quint32 clientId) {
+void Controller::onUserOriginalTextAsked(QString username) {
   QMap<int, QBrush> textAndColors;
   for(int i = 0; i < model->getFile().getFileText().size(); i++){
-    if(model->getFile().getFileText()[i].getSiteId() == clientId){
+    if(model->getFile().getFileText()[i].getGeneratorUsername() == username){
       textAndColors.insert(i, model->getFile().getFileText()[i].getFormat().background());
     }
   }
