@@ -202,7 +202,7 @@ public slots:
     * @param positions  the list of positions to color
     * @param username   the username of the client
     */
-  void onUserTextReceived(const QList<int>& positions, QString username);
+  void onUserTextReceived(const QList<int>& positions, const QString& username);
 
   /**
   * Slot to remove highlighting from the text inserted by a user

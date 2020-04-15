@@ -20,6 +20,7 @@ Editor::Editor(QWidget *parent)
   usersOnline = new QListWidget(mainWidget);
   usersOnline->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
   usersOnline->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+  usersOnline->setSortingEnabled(true);
   usersOnline->setLayout(new QVBoxLayout);
   usersOnline->setFixedHeight(30);
   usersOnline->setFixedWidth(250);
@@ -48,12 +49,13 @@ Editor::Editor(QWidget *parent)
               auto clientId = usersOnlineList.key(username);
               auto color = clientColorCursor[clientId].first;
 
-              if(item->backgroundColor() == color){
-                refreshOnlineUsersView(); //to decolor the label in the users view
+              if (item->backgroundColor() == color) {
+                usersOnline->addItem(item->text());
+                delete item; //it is not possible to find the default background color, so delete + insert
                 usersOnline->clearSelection(); //to avoid the blue background on the selection
                 textEdit->setFocus();
                 emit getUserTextOriginal(username);
-              }else{
+              } else {
                 item->setBackgroundColor(color);
                 usersOnline->clearSelection(); //to avoid the blue background on the selection
                 textEdit->setFocus();
@@ -516,7 +518,8 @@ void Editor::onUserCursorChanged(quint32 clientId, int position) {
   label->setVisible(true);
 }
 
-void Editor::onUserTextReceived(const QList<int>& positions, QString username) {
+void Editor::onUserTextReceived(const QList<int> &positions,
+                                const QString &username) {
   this->blockSignals(true);
 
   auto clientId = usersOnlineList.key(username);
@@ -526,7 +529,7 @@ void Editor::onUserTextReceived(const QList<int>& positions, QString username) {
   c.clearSelection();
   textEdit->setTextCursor(c);
 
-  for(int p : positions){
+  for (int p : positions) {
     QTextCharFormat fmt;
     fmt.setBackground(QBrush(color));
     QTextCursor cursor(textEdit->document());
@@ -534,7 +537,8 @@ void Editor::onUserTextReceived(const QList<int>& positions, QString username) {
             QTextCursor::Start); //I place it at the beginning of the document
     cursor.movePosition(QTextCursor::Right, QTextCursor::MoveAnchor,
                         p); //cursor is now where I want to update the text
-    cursor.movePosition(QTextCursor::Right, QTextCursor::KeepAnchor, 1); //select 1 char
+    cursor.movePosition(QTextCursor::Right, QTextCursor::KeepAnchor,
+                        1); //select 1 char
     cursor.mergeCharFormat(fmt);
     cursor.clearSelection();
   }
@@ -542,14 +546,15 @@ void Editor::onUserTextReceived(const QList<int>& positions, QString username) {
   this->blockSignals(false);
 }
 
-void Editor::onUserOriginalTextReceived(const QMap<int, QBrush>& textAndColors) {
+void
+Editor::onUserOriginalTextReceived(const QMap<int, QBrush> &textAndColors) {
   this->blockSignals(true);
 
   auto c = textEdit->textCursor(); //to remove the eventual selection
   c.clearSelection();
   textEdit->setTextCursor(c);
 
-  for(int p : textAndColors.keys()){
+  for (int p : textAndColors.keys()) {
     QTextCharFormat fmt;
     fmt.setBackground(textAndColors.value(p));
     QTextCursor cursor(textEdit->document());
@@ -557,7 +562,8 @@ void Editor::onUserOriginalTextReceived(const QMap<int, QBrush>& textAndColors) 
             QTextCursor::Start); //I place it at the beginning of the document
     cursor.movePosition(QTextCursor::Right, QTextCursor::MoveAnchor,
                         p); //cursor is now where I want to update the text
-    cursor.movePosition(QTextCursor::Right, QTextCursor::KeepAnchor, 1); //select 1 char
+    cursor.movePosition(QTextCursor::Right, QTextCursor::KeepAnchor,
+                        1); //select 1 char
     cursor.mergeCharFormat(fmt);
     cursor.clearSelection();
   }
