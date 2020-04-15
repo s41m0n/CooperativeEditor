@@ -18,12 +18,14 @@ private:
 
   quint32 siteId;
 
+  QString generatorUsername;
+
   QVector<Identifier> position;
 
   QTextCharFormat format;
 
 public:
-  Symbol(QChar character, quint32 siteId, QVector<Identifier> &position);
+  Symbol(QChar character, quint32 siteId, QVector<Identifier> &position, QString username);
 
   Symbol();
 
@@ -65,10 +67,10 @@ public:
   QTextCharFormat &getFormat();
 
   /**
-   * Function to get the symbol siteId
-   * @return  the current siteId
+   * Function to get the symbol generator username
+   * @return  the current generator username
    */
-  quint32 getSiteId();
+  QString getGeneratorUsername();
 
 };
 

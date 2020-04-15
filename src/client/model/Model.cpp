@@ -60,7 +60,7 @@ Symbol Model::generateSymbol(int index, QChar value) {
                   : QVector<Identifier>();
   auto newPos = CrdtAlgorithm::generatePosBetween(pos1, pos2, editorId);
 
-  return std::move(Symbol(value, editorId, newPos));
+  return std::move(Symbol(value, editorId, newPos, user.getUsername()));
 }
 
 void Model::setEditorId(unsigned int newEditorId) { editorId = newEditorId; }
