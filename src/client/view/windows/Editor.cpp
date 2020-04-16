@@ -46,20 +46,26 @@ Editor::Editor(QWidget *parent)
           usersOnline, &QListWidget::itemDoubleClicked, this,
           [this](QListWidgetItem *item) {
               auto username = item->text();
-              auto clientId = usersOnlineList.key(username);
-              auto color = clientColorCursor[clientId].first;
-
-              if (item->backgroundColor() == color) {
+              if (item->background().isOpaque()) {
                 usersOnline->addItem(item->text());
                 delete item; //it is not possible to find the default background color, so delete + insert
                 usersOnline->clearSelection(); //to avoid the blue background on the selection
                 textEdit->setFocus();
                 emit getUserTextOriginal(username);
+                for (int i = 0; i < usersOnline->count(); i++) {
+                  auto *itemIterator = usersOnline->item(i);
+                  if (itemIterator->background().isOpaque())
+                    break;
+                  if (i == usersOnline->count() - 1)
+                    textEdit->setReadOnly(false);
+                }
               } else {
+                auto color = clientColorCursor[usersOnlineList.key(username)].first;
                 item->setBackgroundColor(color);
                 usersOnline->clearSelection(); //to avoid the blue background on the selection
                 textEdit->setFocus();
                 emit getUserText(username);
+                textEdit->setReadOnly(true);
               }
           });
 
@@ -396,6 +402,17 @@ void Editor::onRemoteErase(int index) {
 }
 
 void Editor::onRemoteInsert(int index, Symbol &symbol) {
+  for (int i = 0; i < usersOnline->count(); i++) {
+    auto *item = usersOnline->item(i);
+    if (item->text() != symbol.getGeneratorUsername())
+      continue;
+    auto remoteId = usersOnlineList.key(symbol.getGeneratorUsername());
+    QColor color = clientColorCursor[remoteId].first;
+    if (item->backgroundColor() == color) {
+      symbol.getFormat().setBackground(QBrush(color));
+    }
+    break;
+  }
   auto cursor = textEdit->textCursor();
   isHandlingRemote = true;
   cursor.setPosition(index);

@@ -63,7 +63,6 @@ private:
   QFontComboBox *font{};
   QSpinBox *fontSize{};
   bool isHandlingRemote{};
-  QColor backgColorOnlineUsers;
   QMap<quint32, std::pair<QString, QLabel*>> clientColorCursor;
 
   /**
