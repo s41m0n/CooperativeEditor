@@ -6,7 +6,19 @@ Editor::Editor(QWidget *parent)
           usersOnlineDisplayer(new QLabel("Users online: ")),
           usersOnlineList() {
   srand(time(NULL));
-  // TODO:fai finestra readonly per vedere info utente con vettore
+
+  //SIMONE:
+    //TODO: cambia SQL in Database.cpp + cambia messaggi utente;
+  //FRA:
+    //TODO: messaggi invio nuovi dati + mostrare box in caso di pasword sbagliata;
+    //TODO: se utente prova ad uscire gli chiedo conferma se vuole farlo?
+    //TODO: cerca icona formato senza dover impazzire + togli che cambia colore in toolbar
+    //TODO: sistema easter egg delle frasi su di noi
+  //RICK:
+    //TODO: quando cancelli codice in blocco come sposta puntatori remoti
+    //TODO: sistema gestione messaggio non riconosciuto nel server
+    //TODO: controllare eccezioni CRDT
+
   this->resize(1280, 760);
   this->setMinimumWidth(1000);
 
@@ -187,7 +199,6 @@ void Editor::createTopBar(QGridLayout *layout) {
   });
 
   QObject::connect(actionGenerateLink, &QAction::triggered, this, [this]() {
-      // TODO: genera link + setta text di linkDisplayer
       emit generateLink();
   });
 

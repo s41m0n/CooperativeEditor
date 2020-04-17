@@ -32,7 +32,7 @@ FileVisualizer::FileVisualizer(QWidget *parent) : QMainWindow(parent) {
   boxCreate->layout()->addWidget(buttonCreate);
 
   auto boxLink = new QGroupBox(
-      "Insert here the shared link to collaborate to a file:", mainWidget);
+      "Insert here the shared code to collaborate to a file:", mainWidget);
   boxLink->setLayout(new QVBoxLayout());
   layout->addWidget(boxLink, 2, 0, 1, 2);
 
