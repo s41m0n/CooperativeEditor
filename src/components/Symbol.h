@@ -18,12 +18,14 @@ private:
 
   quint32 siteId;
 
+  QString generatorUsername;
+
   QVector<Identifier> position;
 
   QTextCharFormat format;
 
 public:
-  Symbol(QChar character, quint32 siteId, QVector<Identifier> &position);
+  Symbol(QChar character, quint32 siteId, QVector<Identifier> &position, QString username);
 
   Symbol();
 
@@ -63,6 +65,13 @@ public:
    * @return  the current format
    */
   QTextCharFormat &getFormat();
+
+  /**
+   * Function to get the symbol generator username
+   * @return  the current generator username
+   */
+  QString getGeneratorUsername();
+
 };
 
 /*FileText is a portion of text or the entire one*/

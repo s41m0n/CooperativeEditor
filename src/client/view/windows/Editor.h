@@ -63,10 +63,11 @@ private:
   QFontComboBox *font{};
   QSpinBox *fontSize{};
   bool isHandlingRemote{};
+  QMap<quint32, std::pair<QString, QLabel*>> clientColorCursor;
 
   /**
    * Function to handle topbar creation
-   * @param layout  the layour where it has to be put
+   * @param layout  the layout where it has to be put
    */
   void createTopBar(QGridLayout *layout);
 
@@ -85,6 +86,12 @@ private:
    * Function to refresh user online list
    */
   void refreshOnlineUsersView();
+
+  /**
+   * Function to generate a random color
+   * @return the generated color
+   */
+  QColor generateRandomColor();
 
 public:
   explicit Editor(QWidget *parent = nullptr);
@@ -189,6 +196,19 @@ public slots:
    */
   void onUserCursorChanged(quint32 clientId, int position);
 
+  /**
+    * Slot to highlight the text inserted by a user
+    * @param positions  the list of positions to color
+    * @param username   the username of the client
+    */
+  void onUserTextReceived(const QList<int>& positions, const QString& username);
+
+  /**
+  * Slot to remove highlighting from the text inserted by a user
+  * @param textAndColors  map with positions and background colors
+  */
+  void onUserOriginalTextReceived(const QMap<int, QBrush>& textAndColors);
+
 signals:
 
   /**
@@ -230,6 +250,19 @@ signals:
    * @param position  the new position
    */
   void cursorChanged(int position);
+
+  /**
+   * Signal to ask the model to get the text inserted by a user
+   * @param username  the username of the user whose text to ask
+   */
+  void getUserText(QString username);
+
+  /**
+  * Signal to ask the model to get the original text inserted by a user
+  * @param username  the username of the user whose text to ask
+  */
+  void getUserTextOriginal(QString username);
+
 };
 
 #endif // COOPERATIVEEDITOR_EDITOR_H

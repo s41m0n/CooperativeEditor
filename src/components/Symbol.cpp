@@ -2,9 +2,9 @@
 
 #include <utility>
 
-Symbol::Symbol(QChar character, quint32 siteId, QVector<Identifier> &position)
+Symbol::Symbol(QChar character, quint32 siteId, QVector<Identifier> &position, QString username)
     : position(std::move(position)), siteId(siteId), character(character),
-      format() {}
+      format(), generatorUsername(std::move(username)) {}
 
 Symbol::Symbol() : character('\0'), position(), siteId(-1) {}
 
@@ -52,13 +52,13 @@ std::string Symbol::toStdString(int level) {
 }
 
 QDataStream &Symbol::serialize(QDataStream &stream) const {
-  stream << character << format << siteId << position;
+  stream << character << format << generatorUsername << siteId << position;
 
   return stream;
 }
 
 QDataStream &Symbol::deserialize(QDataStream &stream) {
-  stream >> character >> format >> siteId >> position;
+  stream >> character >> format >> generatorUsername >> siteId >> position;
 
   return stream;
 }
@@ -66,3 +66,7 @@ QDataStream &Symbol::deserialize(QDataStream &stream) {
 void Symbol::setFormat(QTextCharFormat fmt) { this->format = std::move(fmt); }
 
 QTextCharFormat &Symbol::getFormat() { return format; }
+
+QString Symbol::getGeneratorUsername() {
+  return this->generatorUsername;
+}

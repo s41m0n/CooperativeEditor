@@ -70,7 +70,7 @@ void Controller::onMessageReceived(Header &header, QByteArray &buf) {
   case Type::U_CONNECTED: {
     auto msg = UserMessage::fromQByteArray(buf);
     auto userConnected = msg.getUser();
-    emit remoteUserConnected(msg.getEditorId(), userConnected.getName());
+    emit remoteUserConnected(msg.getEditorId(), userConnected.getUsername());
     break;
   }
   case Type::U_DISCONNECTED: {
@@ -171,4 +171,24 @@ void Controller::onCursorChanged(int position) {
 void Controller::onRequestFileList() {
   BasicMessage msg(model->getEditorId());
   prepareToSend(Type::F_LISTING, msg);
+}
+
+void Controller::onUserTextAsked(QString username) {
+  QList<int> userCharsPos;
+  for(int i = 0; i < model->getFile().getFileText().size(); i++){
+    if(model->getFile().getFileText()[i].getGeneratorUsername() == username){
+      userCharsPos.push_back(i);
+    }
+  }
+  emit sendUserText(userCharsPos, username);
+}
+
+void Controller::onUserOriginalTextAsked(QString username) {
+  QMap<int, QBrush> textAndColors;
+  for(int i = 0; i < model->getFile().getFileText().size(); i++){
+    if(model->getFile().getFileText()[i].getGeneratorUsername() == username){
+      textAndColors.insert(i, model->getFile().getFileText()[i].getFormat().background());
+    }
+  }
+  emit sendUserOriginalText(textAndColors);
 }

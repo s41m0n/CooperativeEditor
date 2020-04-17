@@ -92,10 +92,6 @@ EditUserProfile::EditUserProfile(QWidget *parent) : QMainWindow(parent) {
   buttonExit->setAutoDefault(true);
   layout->addWidget(buttonExit, 3, 0, 1, 2);
 
-  auto buttonDeleteProfile = new QPushButton("Delete Your Profile", mainWidget);
-  buttonDeleteProfile->setAutoDefault(true);
-  layout->addWidget(buttonDeleteProfile, 4, 0, 1, 2);
-
   // TODO: implementare questi messaggi lato server
   // QMessageBox::warning(this, "CooperativeEditor", "The two passwords must
   // match.") QMessageBox::warning(this, "CooperativeEditor", "The old password
@@ -148,12 +144,6 @@ EditUserProfile::EditUserProfile(QWidget *parent) : QMainWindow(parent) {
                      // TODO: devo mandare i nuovi dati al server che deve
                      // salvarli + check vecchia password
                      this->close();
-                   });
-
-  QObject::connect(buttonDeleteProfile, &QAbstractButton::clicked, this,
-                   [this]() {
-                     // TODO: segnale per mandare al server la richiesta di
-                     // cancellazione account
                    });
 }
 
