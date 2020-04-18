@@ -9,6 +9,7 @@
 #include <QString>
 #include <QMessageBox>
 #include <QGridLayout>
+#include <src/common/User.h>
 
 /**
  * Login application window
@@ -29,10 +30,9 @@ signals:
 
     /**
      * Signal to notify login attempt
-     * @param username
-     * @param password
+     * @param user to be logged
      */
-    void loginRequest(QString username, QString password);
+    void loginRequest(User user);
 
     /**
      * Signal to notify to open signup view

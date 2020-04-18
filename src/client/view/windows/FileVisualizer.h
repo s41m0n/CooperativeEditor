@@ -59,6 +59,11 @@ signals:
    * @param code  the invite link
    */
   void insertInviteLink(const QString &code);
+
+  /**
+   * Signal to notify view that user wants to edit its profile
+   */
+   void openEditProfile();
 };
 
 #endif // COOPERATIVEEDITOR_FILEVISUALIZER_H

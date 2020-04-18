@@ -60,6 +60,12 @@ public slots:
    */
   void onUserProfileInfo(User &user);
 
+  /**
+   * Slot to handle update response
+   * @param response  true if ok, false otherwise
+   */
+  void onUpdateResponse(bool response);
+
 signals:
 
   /**
@@ -71,6 +77,14 @@ signals:
    * Signal to go back to editor
    */
   void openEditorFromEditProfileNoChanges();
+
+  /**
+   * Signal to notify that the user wants to update its profile
+   * @param user the user to be updated
+   * @param oldPassword the old password to be verified
+   */
+  void updateRequest(User user, QString oldPassword);
+
 };
 
 #endif // COOPERATIVEEDITOR_EDITUSERPROFILE_H

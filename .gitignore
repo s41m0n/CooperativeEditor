@@ -177,3 +177,5 @@ fabric.properties
 # Except for these file
 !CMakeLists*
 !conanfile.txt
+
+*.png

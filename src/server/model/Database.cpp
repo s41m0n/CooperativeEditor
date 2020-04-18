@@ -111,7 +111,7 @@ bool Database::loginUser(User &user) {
   if (!openConnection()) {
     printErrorAndExit();
   }
-  std::string sql = "SELECT Username, Name, Surname, Email FROM User WHERE "
+  std::string sql = "SELECT Username, Name, Surname, Email, ProfilePic FROM User WHERE "
                     "Username=? AND Password=?;";
   sqlite3_stmt *statement = nullptr;
 
@@ -129,25 +129,31 @@ bool Database::loginUser(User &user) {
     return false;
   }
   QByteArray buffer = QByteArray::fromRawData(
-      reinterpret_cast<const char *>(sqlite3_column_blob(statement, 6)),
-      sqlite3_column_bytes(statement, 6));
+      reinterpret_cast<const char *>(sqlite3_column_blob(statement, 4)),
+      sqlite3_column_bytes(statement, 4));
   user = User(reinterpret_cast<const char *>(sqlite3_column_text(statement, 0)),
               reinterpret_cast<const char *>(sqlite3_column_text(statement, 1)),
               reinterpret_cast<const char *>(sqlite3_column_text(statement, 2)),
               reinterpret_cast<const char *>(sqlite3_column_text(statement, 3)),
               convertIntoQImage(buffer));
-
   sqlite3_finalize(statement);
   sqlite3_close(this->DBConnection);
   return true;
 }
 
-bool Database::updateUser(User &user) {
+bool Database::updateUser(User &user, QString oldPassword) {
   if (!openConnection()) {
     printErrorAndExit();
   }
-  std::string sql = "UPDATE User set Password = ?, Name= ?, Surname = ?, "
-                    "Email = ?, ProfilePic = ? where Username = ?;";
+  std::string sql;
+  if(oldPassword.isEmpty()) {
+    sql = "UPDATE User set Name= ?, Surname = ?, "
+         "Email = ?, ProfilePic = ? where Username = ?;";
+  } else {
+    sql = "UPDATE User set Password = ?, Name= ?, Surname = ?, "
+          "Email = ?, ProfilePic = ? where Username = ? and Password = ?;";
+  }
+
   sqlite3_stmt *statement = nullptr;
 
   if (sqlite3_prepare_v2(this->DBConnection, sql.c_str(), -1, &statement,
@@ -157,18 +163,37 @@ bool Database::updateUser(User &user) {
 
   QByteArray buffer = convertFromQImage(user.getPicture());
 
-  sqlite3_bind_text(statement, 6, user.getUsername().toStdString().c_str(), -1,
-                    SQLITE_TRANSIENT);
-  sqlite3_bind_text(statement, 1, user.getPassword().toStdString().c_str(), -1,
-                    SQLITE_TRANSIENT);
-  sqlite3_bind_text(statement, 2, user.getName().toStdString().c_str(), -1,
-                    SQLITE_TRANSIENT);
-  sqlite3_bind_text(statement, 3, user.getSurname().toStdString().c_str(), -1,
-                    SQLITE_TRANSIENT);
-  sqlite3_bind_text(statement, 4, user.getEmail().toStdString().c_str(), -1,
-                    SQLITE_TRANSIENT);
-  sqlite3_bind_blob(statement, 5, buffer.data(), buffer.size(),
-                    SQLITE_TRANSIENT);
+  if(oldPassword.isEmpty()) {
+    sqlite3_bind_text(statement, 5, user.getUsername().toStdString().c_str(), -1,
+                      SQLITE_TRANSIENT);
+    sqlite3_bind_text(statement, 1, user.getName().toStdString().c_str(), -1,
+                      SQLITE_TRANSIENT);
+    sqlite3_bind_text(statement, 2, user.getSurname().toStdString().c_str(), -1,
+                      SQLITE_TRANSIENT);
+    sqlite3_bind_text(statement, 3, user.getEmail().toStdString().c_str(), -1,
+                      SQLITE_TRANSIENT);
+    sqlite3_bind_blob(statement, 4, buffer.data(), buffer.size(),
+                      SQLITE_TRANSIENT);
+  } else {
+    sqlite3_bind_text(statement, 6, user.getUsername().toStdString().c_str(), -1,
+                      SQLITE_TRANSIENT);
+    sqlite3_bind_text(statement, 7, oldPassword.toStdString().c_str(), -1,
+                      SQLITE_TRANSIENT);
+    sqlite3_bind_text(statement, 1, user.getPassword().toStdString().c_str(), -1,
+                      SQLITE_TRANSIENT);
+    sqlite3_bind_text(statement, 2, user.getName().toStdString().c_str(), -1,
+                      SQLITE_TRANSIENT);
+    sqlite3_bind_text(statement, 3, user.getSurname().toStdString().c_str(), -1,
+                      SQLITE_TRANSIENT);
+    sqlite3_bind_text(statement, 4, user.getEmail().toStdString().c_str(), -1,
+                      SQLITE_TRANSIENT);
+    sqlite3_bind_blob(statement, 5, buffer.data(), buffer.size(),
+                      SQLITE_TRANSIENT);
+  }
+
+  if(!oldPassword.isEmpty())
+    sqlite3_bind_text(statement, 5, oldPassword.toStdString().c_str(), -1,
+                      SQLITE_TRANSIENT);
 
   if (sqlite3_step(statement) != SQLITE_DONE) {
     sqlite3_finalize(statement);
@@ -409,10 +434,10 @@ bool Database::insertInvite(const QString &link) {
 }
 
 QImage Database::convertIntoQImage(QByteArray buffer) {
+  QImage userPic;
   QDataStream ds(&buffer, QIODevice::ReadOnly);
-  QImage ret;
-  ds >> ret;
-  return ret;
+  ds >> userPic;
+  return userPic;
 }
 
 QByteArray Database::convertFromQImage(const QImage &userPic) {

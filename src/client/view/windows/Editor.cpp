@@ -86,7 +86,7 @@ Editor::Editor(QWidget *parent)
 
 void Editor::onFileTextLoad(FileText &text, QString &fName, QString &username,
                             unsigned int editorId) {
-  this->setWindowTitle("CooperativeEditor - " + fName);
+  this->setWindowTitle("CooperativeEditor - File `" + fName + "`");
   usersOnlineList.clear();
   usersOnlineList.insert(editorId, username);
   QString colorGenerated = generateRandomColor().name();

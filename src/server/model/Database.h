@@ -114,9 +114,10 @@ public:
   /**
    * Function to update a user into the DB
    * @param user the user structure
+   * @param oldPassword the old user password
    * @return true if ok, false otherwise
    */
-  bool updateUser(User &user);
+  bool updateUser(User &user, QString oldPassword);
 
   /**
    * Function to check if an invite code is valid and give the invited user the

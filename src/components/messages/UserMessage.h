@@ -13,6 +13,8 @@ class UserMessage : public BasicMessage {
 private:
   User user;
 
+protected:
+
   QDataStream &serialize(QDataStream &stream) const override;
 
   QDataStream &deserialize(QDataStream &stream) override;

@@ -4,9 +4,9 @@ View::View(Controller *controller, QWidget *parent)
     : QWidget(parent), controller(controller) {
 
   connect(controller, &Controller::connected, this, &View::init);
-  connect(controller, &Controller::error, this, [this]() {
+  connect(controller, &Controller::error, this, [this](QString what) {
     QMessageBox::warning(nullptr, "CooperativeEditor",
-                         "Connection error. Try later, please.");
+                         "Error: " + what);
     exit(-1);
   });
 }
@@ -33,6 +33,12 @@ void View::init() {
   QObject::connect(editProfile, &EditUserProfile::requestUserProfile,
                    controller, &Controller::onShowEditProfile);
 
+  /*Notify controller that user wants update its data*/
+  QObject::connect(editProfile, &EditUserProfile::updateRequest, controller, &Controller::onUpdateRequest);
+
+  /*Notify view editProfile about result of update request*/
+  QObject::connect(controller, &Controller::updateResponse, editProfile, &EditUserProfile::onUpdateResponse);
+
   /*Controller answers with user data*/
   QObject::connect(controller, &Controller::userProfileInfo, editProfile,
                    &EditUserProfile::onUserProfileInfo);
@@ -57,6 +63,9 @@ void View::init() {
   /*Controller notify editor of generate link answer*/
   QObject::connect(controller, &Controller::generateLinkAnswer, editor,
                    &Editor::onGenerateLinkAnswer);
+
+  /*Notify view the user wants to edit its profile from FileSelection*/
+  QObject::connect(fileVisualizer, &FileVisualizer::openEditProfile, editProfile, &QMainWindow::show);
 
   /*File visualizer notify controller of invite link insertion*/
   QObject::connect(fileVisualizer, &FileVisualizer::insertInviteLink,

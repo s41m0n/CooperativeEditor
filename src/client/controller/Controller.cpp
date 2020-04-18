@@ -1,3 +1,4 @@
+
 #include "Controller.h"
 
 Controller::Controller(Model *model, const std::string &host, int port)
@@ -9,7 +10,7 @@ Controller::Controller(Model *model, const std::string &host, int port)
   connect(socket, &QTcpSocket::disconnected, this, &Controller::disconnected);
   connect(socket,
           QOverload<QAbstractSocket::SocketError>::of(&QAbstractSocket::error),
-          this, &Controller::error);
+          [&]() -> void {emit error("Socket error");});
 }
 
 void Controller::onMessageReceived(Header &header, QByteArray &buf) {
@@ -30,6 +31,14 @@ void Controller::onMessageReceived(Header &header, QByteArray &buf) {
     emit loginResponse(true);
     auto msg = UserMessage::fromQByteArray(buf);
     model->setCurrentUser(msg.getUser());
+    break;
+  }
+  case Type::U_UPDATE_KO: {
+    emit updateResponse(false);
+    break;
+  }
+  case Type::U_UPDATE_OK: {
+    emit updateResponse(true);
     break;
   }
   case Type::F_LISTING: {
@@ -88,8 +97,12 @@ void Controller::onMessageReceived(Header &header, QByteArray &buf) {
     emit userCursorChanged(msg.getEditorId(), msg.getPos());
     break;
   }
+  case Type::U_UNAUTHORIZED : {
+    emit error("Unauthorized");
+    break;
+  }
   default:
-    emit error();
+    emit error("Unknown message");
   }
 }
 
@@ -123,15 +136,16 @@ void Controller::onCharErased(int index) {
   }
 }
 
-void Controller::onLoginRequest(const QString &username,
-                                const QString &password) {
+void Controller::onLoginRequest(User user) {
 
-  QByteArray hashedPassword =
-      QCryptographicHash::hash(password.toUtf8(), QCryptographicHash::Sha512);
-
-  UserMessage msg(model->getEditorId(),
-                  User(username, QString(hashedPassword.toHex())));
+  UserMessage msg(model->getEditorId(), user);
   prepareToSend(Type::U_LOGIN, msg);
+}
+
+void Controller::onUpdateRequest(User user, QString oldPassword) {
+  UserUpdateMessage msg(model->getEditorId(), user, QCryptographicHash::hash(oldPassword.toUtf8(),
+                                                                             QCryptographicHash::Sha512).toHex());
+  prepareToSend(Type::U_UPDATE, msg);
 }
 
 void Controller::onSignUpRequest(User user) {
