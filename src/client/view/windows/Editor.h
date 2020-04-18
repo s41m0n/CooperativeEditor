@@ -64,6 +64,7 @@ private:
   QSpinBox *fontSize{};
   bool isHandlingRemote{};
   QMap<quint32, std::pair<QString, QLabel*>> clientColorCursor;
+  QToolBar *toolBar;
 
   /**
    * Function to handle topbar creation

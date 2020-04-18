@@ -68,8 +68,10 @@ Editor::Editor(QWidget *parent)
                   auto *itemIterator = usersOnline->item(i);
                   if (itemIterator->background().isOpaque())
                     break;
-                  if (i == usersOnline->count() - 1)
-                    textEdit->setReadOnly(false);
+                  if (i == usersOnline->count() - 1) {
+                      textEdit->setReadOnly(false);
+                      toolBar->setDisabled(false);
+                  }
                 }
               } else {
                 auto color = clientColorCursor[usersOnlineList.key(username)].first;
@@ -78,6 +80,7 @@ Editor::Editor(QWidget *parent)
                 textEdit->setFocus();
                 emit getUserText(username);
                 textEdit->setReadOnly(true);
+                toolBar->setDisabled(true);
               }
           });
 
@@ -261,7 +264,7 @@ void Editor::createTopBar(QGridLayout *layout) {
 }
 
 void Editor::createToolBar(QGridLayout *layout) {
-  auto toolBar = new QToolBar(mainWidget);
+  toolBar = new QToolBar(mainWidget);
   const QIcon boldIcon =
           QIcon::fromTheme("format-text-bold",
                            QIcon(":/images/mac/textbold.png"));
