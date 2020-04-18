@@ -45,9 +45,7 @@ void Controller::onMessageReceived(Header &header, QByteArray &buf) {
   auto sender = dynamic_cast<TcpSocket *>(QObject::sender());
   auto clientId = sender->getClientID();
 
-  switch (header.getType()) {
-  case Type::U_REGISTER:
-  case Type::U_LOGIN: {
+  if(header.getType() == Type::U_LOGIN || header.getType() == Type::U_REGISTER) {
     auto msg = UserMessage::fromQByteArray(buf);
     auto user = msg.getUser();
     bool result = header.getType() == Type::U_LOGIN ? Model::logInUser(user)
@@ -66,8 +64,17 @@ void Controller::onMessageReceived(Header &header, QByteArray &buf) {
                                                       : Type::U_REGISTER_KO,
                     newMsg);
     }
-    break;
+    return;
   }
+
+  /*If header type different we need to check if the user is effectively logged*/
+  if(!model->isLogged(sender)) {
+    BasicMessage msg(clientId);
+    prepareToSend(sender, Type::U_UNAUTHORIZED, msg);
+    return;
+  };
+
+  switch (header.getType()) {
   case Type::F_LISTING: {
     FileListingMessage newMsg2(clientId, model->getAvailableUserFiles(sender));
     prepareToSend(sender, Type::F_LISTING, newMsg2);
@@ -89,9 +96,9 @@ void Controller::onMessageReceived(Header &header, QByteArray &buf) {
     break;
   }
   case Type::U_UPDATE: {
-    auto msg = UserMessage::fromQByteArray(buf);
+    auto msg = UserUpdateMessage::fromQByteArray(buf);
     auto user = msg.getUser();
-    if (Model::updateUser(user)) {
+    if (Model::updateUser(user, msg.getOldPassword())) {
       UserMessage newMsg(clientId, user);
       prepareToSend(sender, Type::U_UPDATE_OK, newMsg);
     } else {

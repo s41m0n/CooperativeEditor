@@ -1,7 +1,7 @@
 #include "FileVisualizer.h"
 
 FileVisualizer::FileVisualizer(QWidget *parent) : QMainWindow(parent) {
-  this->setWindowTitle("File Selection");
+  this->setWindowTitle("CooperativeEditor - Home");
   this->setFixedSize(this->minimumSize());
 
   auto mainWidget = new QWidget(this);
@@ -46,9 +46,15 @@ FileVisualizer::FileVisualizer(QWidget *parent) : QMainWindow(parent) {
   QObject::connect(buttonOpenLink, &QAbstractButton::clicked, this,
                    [&]() { emit insertInviteLink(lineLink->text()); });
 
+  auto buttonEditProfile = new QPushButton("Edit Profile", boxLink);
+  buttonEditProfile->setAutoDefault(true);
+  layout->addWidget(buttonEditProfile, 3, 0, 1, 2);
+
+  QObject::connect(buttonEditProfile, &QAbstractButton::clicked, this, &FileVisualizer::openEditProfile);
+
   auto buttonExit = new QPushButton("Exit", mainWidget);
   buttonExit->setAutoDefault(true);
-  layout->addWidget(buttonExit, 3, 0, 1, 2);
+  layout->addWidget(buttonExit, 4, 0, 1, 2);
 
   buttonExit->setFocus();
 

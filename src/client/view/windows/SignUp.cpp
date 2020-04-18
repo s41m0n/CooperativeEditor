@@ -2,7 +2,7 @@
 
 SignUp::SignUp(QWidget *parent) : QMainWindow(parent) {
 
-  this->setWindowTitle("Sign Up Form");
+  this->setWindowTitle("CooperativeEditor - SignUp");
   this->setFixedSize(this->minimumSize());
 
   auto mainWidget = new QWidget(this);

@@ -1,10 +1,11 @@
+#include <src/include/lib/spdlog/spdlog.h>
 #include "EditUserProfile.h"
 
 EditUserProfile::EditUserProfile(QWidget *parent) : QMainWindow(parent) {
 
   this->setWindowFlags(Qt::WindowStaysOnTopHint); // windows always on top
 
-  this->setWindowTitle("Edit User Profile");
+  this->setWindowTitle("CooperativeEditor - Edit");
   this->setFixedSize(this->minimumSize());
 
   auto mainWidget = new QWidget(this);
@@ -14,7 +15,7 @@ EditUserProfile::EditUserProfile(QWidget *parent) : QMainWindow(parent) {
   mainWidget->setLayout(layout);
 
   auto registerBox = new QGroupBox(
-      "Change the following fields to edit your profile:", mainWidget);
+    "Change the following fields to edit your profile:", mainWidget);
   registerBox->setLayout(new QVBoxLayout());
   layout->addWidget(registerBox, 1, 0, 1, 2);
 
@@ -80,7 +81,7 @@ EditUserProfile::EditUserProfile(QWidget *parent) : QMainWindow(parent) {
 
   newPasswordTextFieldConfirm = new QLineEdit(registerBox);
   newPasswordTextFieldConfirm->setEchoMode(
-      newPasswordTextFieldConfirm->Password);
+    newPasswordTextFieldConfirm->Password);
   newPasswordTextFieldConfirm->setStyleSheet("lineedit-password-character: 42");
   registerBox->layout()->addWidget(newPasswordTextFieldConfirm);
 
@@ -92,42 +93,37 @@ EditUserProfile::EditUserProfile(QWidget *parent) : QMainWindow(parent) {
   buttonExit->setAutoDefault(true);
   layout->addWidget(buttonExit, 3, 0, 1, 2);
 
-  // TODO: implementare questi messaggi lato server
-  // QMessageBox::warning(this, "CooperativeEditor", "The two passwords must
-  // match.") QMessageBox::warning(this, "CooperativeEditor", "The old password
-  // inserted is wrong.")
-
   buttonSaveAndBackToEditor->setFocus();
 
   QObject::connect(buttonExit, &QAbstractButton::clicked, this, [this]() {
-    int result = QMessageBox::question(this, "CooperativeEditor",
-                                       "Are you sure you want to exit?",
-                                       QMessageBox::Yes, QMessageBox::No);
+      int result = QMessageBox::question(this, "CooperativeEditor",
+                                         "Are you sure you want to exit?",
+                                         QMessageBox::Yes, QMessageBox::No);
 
-    if (result == QMessageBox::Yes) {
-      this->close();
-    }
+      if (result == QMessageBox::Yes) {
+        this->close();
+      }
   });
 
   QObject::connect(
-      buttonSelectImage, &QAbstractButton::clicked, this, [this]() {
+    buttonSelectImage, &QAbstractButton::clicked, this, [this]() {
         auto path =
-            QFileDialog::getOpenFileName(this, tr("Open Image"), "/home",
-                                         tr("Image Files (*.png *.jpg *.bmp)"));
+          QFileDialog::getOpenFileName(this, tr("Open Image"), "/home",
+                                       tr("Image Files (*.png *.jpg *.bmp)"));
         if (!path.isEmpty()) {
           userImage = QImage(path);
 
           if (userImage.sizeInBytes() > 1048576) { // maxSize = 1MB
             auto errorSizeLimit = new QMessageBox(this);
             errorSizeLimit->setText(
-                "The image you have selected is too big. Try again.");
+              "The image you have selected is too big. Try again.");
             errorSizeLimit->setFixedSize(this->minimumSize());
             errorSizeLimit->setWindowTitle("Error");
             errorSizeLimit->show();
             userImage = QImage();
           } else {
             displayImage->setPixmap(QPixmap::fromImage(userImage).scaled(
-                75, 75, Qt::KeepAspectRatio));
+              75, 75, Qt::KeepAspectRatio));
 
             imageBorder->layout()->addWidget(displayImage);
             imageBorder->show();
@@ -137,19 +133,33 @@ EditUserProfile::EditUserProfile(QWidget *parent) : QMainWindow(parent) {
         } else {
           buttonSelectImage->setText("Select Icon");
         }
-      });
+    });
 
   QObject::connect(buttonSaveAndBackToEditor, &QAbstractButton::clicked, this,
                    [this]() {
-                     // TODO: devo mandare i nuovi dati al server che deve
-                     // salvarli + check vecchia password
-                     this->close();
+                       if(newPasswordTextField->text() != newPasswordTextFieldConfirm->text()) {
+                         QMessageBox::warning(this, "CooperativeEditor", "The two new password must match");
+                         return;
+                       }
+                       if (!newPasswordTextField->text().isEmpty() && oldPasswordTextField->text().isEmpty()) {
+                          QMessageBox::warning(this, "CooperativeEditor", "To modify your password you need to insert also the old one");
+                          return;
+                       }
+                       if(!oldPasswordTextField->text().isEmpty() && newPasswordTextField->text().isEmpty()) {
+                         QMessageBox::warning(this, "CooperativeEditor", "The old password is required only if you want to change it");
+                         return;
+                       }
+                       emit updateRequest(
+                     User(usernameTextField->text(), nameTextField->text(), surnameTextField->text(),
+                          emailTextField->text(), newPasswordTextField->text(), userImage),
+                     oldPasswordTextField->text());
                    });
 }
 
 void EditUserProfile::onUserProfileInfo(User &user) {
+  this->userImage = user.getPicture();
   displayImage->setPixmap(QPixmap::fromImage(user.getPicture())
-                              .scaled(75, 75, Qt::KeepAspectRatio));
+                            .scaled(75, 75, Qt::KeepAspectRatio));
   imageBorder->layout()->addWidget(displayImage);
   nameTextField->setText(user.getName());
   surnameTextField->setText(user.getSurname());
@@ -161,4 +171,11 @@ void EditUserProfile::showEvent(QShowEvent *ev) { emit requestUserProfile(); }
 
 void EditUserProfile::closeEvent(QCloseEvent *event) {
   emit openEditorFromEditProfileNoChanges();
+}
+
+void EditUserProfile::onUpdateResponse(bool response) {
+  QMessageBox::information(this, "CooperativeEditor", response? "Your info has been successfully updated" : "Unable to update your info");
+  if(response) {
+    close();
+  }
 }

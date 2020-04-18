@@ -16,7 +16,9 @@ User::User(QString username, QString name, QString surname, QString email,
       picture(std::move(picture)) {}
 
 User::User(QString username, QString password)
-    : username(std::move(username)), password(std::move(password)) {}
+    : username(std::move(username)), password(QCryptographicHash::hash(password.toUtf8(),
+                                                                       QCryptographicHash::Sha512).toHex()) {
+}
 
 QString &User::getUsername() { return username; }
 

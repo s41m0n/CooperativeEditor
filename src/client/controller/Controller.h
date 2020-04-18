@@ -21,6 +21,7 @@
 #include "src/components/messages/FileMessage.h"
 #include "src/components/messages/UserMessage.h"
 #include <src/components/messages/RequestMessage.h>
+#include <src/components/messages/UserUpdateMessage.h>
 
 /**
  * Controller class for the client
@@ -57,16 +58,22 @@ public slots:
 
   /**
    * Slot to handle a login request
-   * @param username  the username inserted
-   * @param password  the password inserted (will be hashed)
+   * @param The user to be logged
    */
-  void onLoginRequest(const QString &username, const QString &password);
+  void onLoginRequest(User user);
 
   /**
    * Slot to handle a signup request
    * @param user  the structure containing all the user parameters
    */
   void onSignUpRequest(User user);
+
+  /**
+   * Slot to handle an update request
+   * @param user the user to be updated
+   * @param oldPassword  the old password to verify
+   */
+  void onUpdateRequest(User user, QString oldPassword);
 
   /**
    * Slot to handle a local symbol insertion
@@ -146,13 +153,19 @@ signals:
   /**
    * Error signal
    */
-  void error();
+  void error(QString what);
 
   /**
    * Signal to notify the view of a login answer
    * @param response true if ok, false otherwise
    */
   void loginResponse(bool response);
+
+  /**
+   * Signal to notify the view of a update answer
+   * @param response  true if ok, false otherwise
+   */
+  void updateResponse(bool response);
 
   /**
    * Signal to notify the view of the list of the current user files

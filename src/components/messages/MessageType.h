@@ -31,6 +31,7 @@ enum class Type : qint32 {
   U_INSERT_INVITE_OK = 21,
   U_INSERT_INVITE_KO = 22,
   U_CURSOR = 23,
+  U_UNAUTHORIZED = 24,
   UNKNOWN = -1
 };
 

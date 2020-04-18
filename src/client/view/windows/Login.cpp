@@ -2,7 +2,7 @@
 
 Login::Login(QWidget *parent) : QMainWindow(parent) {
 
-  this->setWindowTitle("Login Form");
+  this->setWindowTitle("CooperativeEditor - Login");
   this->setFixedSize(this->minimumSize());
 
   auto mainWidget = new QWidget(this);
@@ -62,8 +62,8 @@ Login::Login(QWidget *parent) : QMainWindow(parent) {
                    [this]() {
                        if (!usernameTextField->text().isEmpty() &&
                            !passwordTextField->text().isEmpty()) {
-                         emit loginRequest(usernameTextField->text(),
-                                           passwordTextField->text());
+                         emit loginRequest(User(usernameTextField->text(),
+                                           passwordTextField->text()));
                        } else {
                          QMessageBox::information(this, "CooperativeEditor", "Please insert username and password.");
                        }

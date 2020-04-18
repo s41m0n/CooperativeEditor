@@ -127,9 +127,10 @@ public:
   /**
    * Function to update a user
    * @param user the structure with the new fields
+   * @param oldPassword the old user password
    * @return true if ok, false otherwise
    */
-  static bool updateUser(User &user);
+  static bool updateUser(User &user, QString oldPassword);
 
   /**
    * Function to generate the invite code
@@ -155,6 +156,12 @@ public:
    * @return a vector containing all the users' TcpSocket
    */
   std::vector<TcpSocket *> getFileConnections(qint32 fileID);
+
+  /**
+   * Function to check if a user is logged or not
+   * @param sender the user socket to be checked
+   */
+   bool isLogged(TcpSocket *sender);
 };
 
 #endif // COOPERATIVEEDITOR_MODEL_H

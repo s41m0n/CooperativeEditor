@@ -123,8 +123,8 @@ bool Model::registerUser(User &user) {
   return Database::getInstance().insertUser(user);
 }
 
-bool Model::updateUser(User &user) {
-  return Database::getInstance().updateUser(user);
+bool Model::updateUser(User &user, QString oldPassword) {
+  return Database::getInstance().updateUser(user, oldPassword);
 }
 
 QString Model::generateInvite(TcpSocket *sender, const QString &filename) {
@@ -147,4 +147,8 @@ bool Model::insertInviteCode(TcpSocket *sender, const QString &code,
     return true;
   }
   return false;
+}
+
+bool Model::isLogged(TcpSocket *sender) {
+  return socketToUser.find(sender) != socketToUser.end();
 }
