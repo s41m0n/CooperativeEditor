@@ -1,3 +1,4 @@
+#include <src/include/lib/spdlog/spdlog.h>
 #include "CrdtAlgorithm.h"
 
 quint32 CrdtAlgorithm::generateIdBetween(quint32 id1,
@@ -173,7 +174,8 @@ int CrdtAlgorithm::remoteErase(Symbol &toErase, FileText &symbols) {
   int index = CrdtAlgorithm::findPositionErase(toErase, symbols);
 
   if (index < 0) {
-    throw std::runtime_error("Remote erase bad index" + std::to_string(index));
+    spdlog::error("Invalid index: operation aborted.");
+    return -1;
   }
 
   symbols.remove(index);
@@ -185,7 +187,8 @@ int CrdtAlgorithm::remoteInsert(Symbol &toInsert, FileText &symbols) {
   int index = CrdtAlgorithm::findPositionInsert(toInsert, symbols);
 
   if (index < 0) {
-    throw std::runtime_error("Remote insert bad index" + std::to_string(index));
+      spdlog::error("Invalid index: operation aborted.");
+      return -1;
   }
 
   symbols.insert(index, toInsert);

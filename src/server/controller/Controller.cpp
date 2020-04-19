@@ -163,7 +163,7 @@ void Controller::onMessageReceived(Header &header, QByteArray &buf) {
     break;
   }
   default:
-    throw std::runtime_error("Must never read different types of Message!!!");
+    spdlog::error("Unknown message type: message discarded.");
   }
 }
 

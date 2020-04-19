@@ -11,9 +11,8 @@ void Model::userInsert(TcpSocket *socket, Symbol &symbol) {
 
   std::lock_guard<std::mutex> guard(serverFile->mutex);
 
-  CrdtAlgorithm::remoteInsert(symbol, serverFile->getFileText());
-
-  Database::getInstance().updateFile(*serverFile);
+   if (CrdtAlgorithm::remoteInsert(symbol, serverFile->getFileText()) >= 0)
+     Database::getInstance().updateFile(*serverFile);
 }
 
 void Model::userErase(TcpSocket *socket, Symbol &symbol) {
@@ -25,9 +24,8 @@ void Model::userErase(TcpSocket *socket, Symbol &symbol) {
 
   std::lock_guard<std::mutex> guard(serverFile->mutex);
 
-  CrdtAlgorithm::remoteErase(symbol, serverFile->getFileText());
-
-  Database::getInstance().updateFile(*serverFile);
+  if (CrdtAlgorithm::remoteErase(symbol, serverFile->getFileText()) >= 0)
+    Database::getInstance().updateFile(*serverFile);
 }
 
 bool Model::createFileByUser(TcpSocket *socket, const QString &filename) {

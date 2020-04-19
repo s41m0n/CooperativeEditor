@@ -67,9 +67,13 @@ void Controller::onMessageReceived(Header &header, QByteArray &buf) {
       auto msg = CrdtMessage::fromQByteArray(buf);
       auto symbol = msg.getSymbol();
       if (header.getType() == Type::S_INSERT) {
-        emit remoteUserInsert(model->remoteInsert(symbol), symbol);
+        auto index = model->remoteInsert(symbol);
+        if (index >= 0)
+          emit remoteUserInsert(index, symbol);
       } else {
-        emit remoteUserDelete(model->remoteErase(symbol));
+        auto index = model->remoteErase(symbol);
+        if (index >= 0)
+          emit remoteUserDelete(index);
       }
     } catch (std::exception &e) {
       spdlog::error("Error on remote operation:\nMsg -> {}", e.what());

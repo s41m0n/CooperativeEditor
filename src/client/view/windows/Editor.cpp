@@ -449,8 +449,11 @@ void Editor::onContentChanged(int pos, int del, int add) {
   /*Checking if this event is due to remote op*/
   if (!isHandlingRemote) {
     auto cursor = textEdit->textCursor();
-    for (int i = 0; i < del; i++)
-            emit symbolDeleted(pos);
+    for (int i = 0; i < del; i++) {
+      if (i == 0)
+        cursorChanged(pos);
+      emit symbolDeleted(pos);
+    }
 
     for (int i = 0; i < add; i++) {
       cursor.setPosition(pos + i);
@@ -525,7 +528,7 @@ void Editor::onGenerateLinkAnswer(const QString &code) {
 }
 
 void Editor::onUserCursorChanged(quint32 clientId, int position) {
-
+if (position > textEdit->document()->characterCount() - 1) return;
   spdlog::debug("Update remote cursor {} {}", clientId, position);
   auto &label = clientColorCursor.value(clientId).second;
   QTextCursor remoteCursor(textEdit->document());
@@ -544,7 +547,7 @@ void Editor::onUserCursorChanged(quint32 clientId, int position) {
                  QFont::Bold);
   label->setFont(new_font);
 
-  label->move(remoteCoord.left(),
+  label->move(remoteCoord.left() + 2,
               remoteCoord.top() - (label->fontInfo().pointSize() / 3));
   label->setVisible(true);
 }
