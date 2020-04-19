@@ -58,6 +58,7 @@ private:
   QPushButton *actionColorText{};
   QPushButton *actionColorBackground{};
   QLabel *usersOnlineDisplayer;
+  QLabel *infoLabel;
   QString fileName;
   QMap<qint32, QString> usersOnlineList;
   QFontComboBox *font{};
@@ -93,6 +94,13 @@ private:
    * @return the generated color
    */
   QColor generateRandomColor();
+
+protected:
+    /**
+    * Function to be called when CLOSED
+    * @param event
+    */
+    void closeEvent(QCloseEvent *event) override;
 
 public:
   explicit Editor(QWidget *parent = nullptr);

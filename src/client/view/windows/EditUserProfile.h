@@ -24,13 +24,13 @@ private:
   QLabel *displayImage;
   QLineEdit *nameTextField;
   QLineEdit *surnameTextField;
-  QLineEdit *usernameTextField;
   QLineEdit *emailTextField;
   QLineEdit *oldPasswordTextField;
   QLineEdit *newPasswordTextField;
   QLineEdit *newPasswordTextFieldConfirm;
   QPushButton *buttonSelectImage;
   QImage userImage;
+  QLabel *usernameLabel;
 
 protected:
   /**

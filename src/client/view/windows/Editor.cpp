@@ -4,20 +4,10 @@ Editor::Editor(QWidget *parent)
         : QMainWindow(parent), mainWidget(new QWidget(this)),
           textEdit(new QTextEdit(mainWidget)),
           usersOnlineDisplayer(new QLabel("Users online: ")),
+          infoLabel(new QLabel(
+                  "While visualizing other users' \ncontents you cannot edit the file.")),
           usersOnlineList() {
   srand(time(NULL));
-
-  //SIMONE:
-    //TODO: cambia SQL in Database.cpp + cambia messaggi utente;
-  //FRA:
-    //TODO: messaggi invio nuovi dati + mostrare box in caso di pasword sbagliata;
-    //TODO: se utente prova ad uscire gli chiedo conferma se vuole farlo?
-    //TODO: cerca icona formato senza dover impazzire + togli che cambia colore in toolbar
-    //TODO: sistema easter egg delle frasi su di noi
-  //RICK:
-    //TODO: quando cancelli codice in blocco come sposta puntatori remoti
-    //TODO: sistema gestione messaggio non riconosciuto nel server
-    //TODO: controllare eccezioni CRDT
 
   this->resize(1280, 760);
   this->setMinimumWidth(1000);
@@ -27,7 +17,7 @@ Editor::Editor(QWidget *parent)
   createTopBar(layout);
   createToolBar(layout);
 
-  usersOnlineDisplayer->setFixedHeight(30); // 1 user is present
+  usersOnlineDisplayer->setFixedHeight(30);
 
   usersOnline = new QListWidget(mainWidget);
   usersOnline->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
@@ -38,8 +28,12 @@ Editor::Editor(QWidget *parent)
   usersOnline->setFixedWidth(250);
 
   layout->addWidget(textEdit, 2, 0, 5, 3);
-  layout->addWidget(usersOnline, 3, 3, 1, 1);
   layout->addWidget(usersOnlineDisplayer, 2, 3, 1, 1);
+  layout->addWidget(usersOnline, 3, 3, 1, 1);
+
+  infoLabel->setFixedHeight(60);
+  infoLabel->hide();
+  layout->addWidget(infoLabel, 4, 3, 1, 1);
 
   mainWidget->setLayout(layout);
   setCentralWidget(mainWidget);
@@ -69,18 +63,21 @@ Editor::Editor(QWidget *parent)
                   if (itemIterator->background().isOpaque())
                     break;
                   if (i == usersOnline->count() - 1) {
-                      textEdit->setReadOnly(false);
-                      toolBar->setDisabled(false);
+                    textEdit->setReadOnly(false);
+                    toolBar->setDisabled(false);
+                    infoLabel->hide();
                   }
                 }
               } else {
-                auto color = clientColorCursor[usersOnlineList.key(username)].first;
+                auto color = clientColorCursor[usersOnlineList.key(
+                        username)].first;
                 item->setBackgroundColor(color);
                 usersOnline->clearSelection(); //to avoid the blue background on the selection
                 textEdit->setFocus();
                 emit getUserText(username);
                 textEdit->setReadOnly(true);
                 toolBar->setDisabled(true);
+                infoLabel->show();
               }
           });
 
@@ -221,15 +218,15 @@ void Editor::createTopBar(QGridLayout *layout) {
       QMessageBox::information(
               this, "CooperativeEditor",
               "Authors:\n  "
-              "- Francesco Pavan: front-end developer di successo;\n  "
-              "- Simone Magnani: vuole le icone tonde perché le ha Google;\n  "
-              "- Riccardo Marchi: sa solo tagliare e cucinare cipolle;\n  "
-              "- Francesco Palmieri: PETARDO.");
+              "- Simone Magnani;\n  "
+              "- Riccardo Marchi;\n  "
+              "- Francesco Palmieri;\n  "
+              "- Francesco Pavan.");
   });
   QObject::connect(actionAboutEditor, &QAction::triggered, this, [this]() {
       QMessageBox::information(
               this, "CooperativeEditor",
-              "Editor totally developed in C++\n\n Copyright fastidioso");
+              "Editor developed in C++.\n\n");
   });
   QObject::connect(actionSave, &QAction::triggered, this, &Editor::fileToPDF);
 
@@ -291,8 +288,9 @@ void Editor::createToolBar(QGridLayout *layout) {
   actionColorText = new QPushButton(toolBar);
   actionColorText->setText("A");
   actionColorBackground = new QPushButton(toolBar);
-  actionColorBackground->setStyleSheet(
-          "QPushButton {background-color: transparent;}");
+  actionColorBackground->setText("Background");
+  //actionColorBackground->setStyleSheet(
+  //        "QPushButton {background-color: transparent;}");
   textEdit->setTextBackgroundColor(DEFAULT_BACKGROUND_COLOR);
   textEdit->setTextColor(DEFAULT_TEXT_COLOR);
 
@@ -520,6 +518,7 @@ void Editor::onCharFormatChanged(const QTextCharFormat &f) {
   actionColorBackground->setStyleSheet(
           "QPushButton {background-color: " +
           (backColor.alpha() == 0 ? "transparent" : backColor.name()) + ";}");
+
 }
 
 void Editor::onGenerateLinkAnswer(const QString &code) {
@@ -528,7 +527,7 @@ void Editor::onGenerateLinkAnswer(const QString &code) {
 }
 
 void Editor::onUserCursorChanged(quint32 clientId, int position) {
-if (position > textEdit->document()->characterCount() - 1) return;
+  if (position > textEdit->document()->characterCount() - 1) return;
   spdlog::debug("Update remote cursor {} {}", clientId, position);
   auto &label = clientColorCursor.value(clientId).second;
   QTextCursor remoteCursor(textEdit->document());
@@ -616,5 +615,17 @@ QColor Editor::generateRandomColor() {
     }
     if (iterator == values.end())
       return color;
+  }
+}
+
+void Editor::closeEvent(QCloseEvent *event) {
+  int result = QMessageBox::question(this, "CooperativeEditor",
+                                     "Are you sure you want to exit?",
+                                     QMessageBox::Yes, QMessageBox::No);
+
+  if (result == QMessageBox::Yes) {
+    event->accept();
+  } else {
+    event->ignore();
   }
 }
