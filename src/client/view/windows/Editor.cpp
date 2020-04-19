@@ -169,18 +169,32 @@ void Editor::createTopBar(QGridLayout *layout) {
   auto file = new QMenu("File", topBar);
   auto actionSave = new QAction("Save As PDF", file);
   auto actionClose = new QAction("Select another file", file);
+  auto actionGenerateLink = new QAction("Invite a contributor", file);
+  auto actionEditProfile = new QAction("Profile Settings", file);
   auto actionQuit = new QAction("Quit", file);
   /*Edit menu*/
   auto edit = new QMenu("Edit", topBar);
   auto actionCopy = new QAction("Copy", edit);
   auto actionPaste = new QAction("Paste", edit);
   auto actionCut = new QAction("Cut", edit);
-  auto actionGenerateLink = new QAction("Invite a contributor", edit);
-  auto actionEditProfile = new QAction("Edit your profile", edit);
+  auto actionUndo = new QAction("Undo", edit);
+  auto actionRedo = new QAction("Redo", edit);
   /*Help Menu*/
   auto help = new QMenu("Help", topBar);
   auto actionAboutEditor = new QAction("About the Editor", help);
   auto actionAboutAuthors = new QAction("About Us", help);
+
+  QObject::connect(actionUndo, &QAction::triggered, this, [this]() {
+      QCoreApplication::postEvent(
+        textEdit,
+        new QKeyEvent(QEvent::KeyPress, Qt::Key_Z, {Qt::ControlModifier}));
+  });
+
+  QObject::connect(actionRedo, &QAction::triggered, this, [this]() {
+      QCoreApplication::postEvent(
+        textEdit,
+        new QKeyEvent(QEvent::KeyPress, Qt::Key_Z, {Qt::ControlModifier, Qt::ShiftModifier}));
+  });
 
   QObject::connect(actionCopy, &QAction::triggered, this, [this]() {
       QCoreApplication::postEvent(
@@ -235,21 +249,24 @@ void Editor::createTopBar(QGridLayout *layout) {
   actionPaste->setShortcuts(QKeySequence::Paste);
   actionCopy->setShortcuts(QKeySequence::Copy);
   actionCut->setShortcuts(QKeySequence::Cut);
+  actionUndo->setShortcuts(QKeySequence::Undo);
+  actionRedo->setShortcuts(QKeySequence::Redo);
+
   edit->addAction(actionPaste);
   edit->addAction(actionCopy);
   edit->addAction(actionCut);
-  edit->addSeparator();
-  edit->addAction(actionGenerateLink);
-  edit->addSeparator();
-  edit->addAction(actionEditProfile);
+  edit->addAction(actionUndo);
+  edit->addAction(actionRedo);
 
   help->addAction(actionAboutEditor);
-  help->addSeparator();
   help->addAction(actionAboutAuthors);
 
   file->addAction(actionSave);
-  file->addSeparator();
   file->addAction(actionClose);
+  file->addAction(actionGenerateLink);
+  file->addSeparator();
+  file->addAction(actionEditProfile);
+  file->addSeparator();
   file->addAction(actionQuit);
 
   topBar->addMenu(file);
@@ -288,11 +305,9 @@ void Editor::createToolBar(QGridLayout *layout) {
   fontSize = new QSpinBox(toolBar);
 
   actionColorText = new QPushButton(toolBar);
-  actionColorText->setText("A");
+  actionColorText->setText("Text Color");
   actionColorBackground = new QPushButton(toolBar);
   actionColorBackground->setText("Background");
-  //actionColorBackground->setStyleSheet(
-  //        "QPushButton {background-color: transparent;}");
   textEdit->setTextBackgroundColor(DEFAULT_BACKGROUND_COLOR);
   textEdit->setTextColor(DEFAULT_TEXT_COLOR);
 
@@ -344,7 +359,7 @@ void Editor::createToolBar(QGridLayout *layout) {
   });
   QObject::connect(actionColorBackground, &QPushButton::clicked, [&]() {
       auto picked = QColorDialog::getColor(Qt::transparent, this,
-                                           "Pick a color",
+                                           "Pick a color (Alpha=0 is transparent)",
                                            QColorDialog::ShowAlphaChannel);
       if (picked != nullptr) {
         onColorBackgroundChanged(picked);
@@ -513,14 +528,6 @@ void Editor::onCharFormatChanged(const QTextCharFormat &f) {
   fontSize->setValue((f.fontPointSize() >= MIN_FONT_SIZE ? f.fontPointSize()
                                                          : DEFAULT_FONT_SIZE));
   fontSize->blockSignals(false);
-
-  actionColorText->setStyleSheet("QPushButton {color: " + frontColor.name() +
-                                 ";}");
-
-  actionColorBackground->setStyleSheet(
-          "QPushButton {background-color: " +
-          (backColor.alpha() == 0 ? "transparent" : backColor.name()) + ";}");
-
 }
 
 void Editor::onGenerateLinkAnswer(const QString &code) {
