@@ -95,6 +95,14 @@ private:
    */
   QColor generateRandomColor();
 
+    /**
+     * Function to generate a ignore shortcuts
+     * @param obj is the watched object
+     * @param event is the filtered event
+     * @return the generated color
+     */
+  bool eventFilter(QObject *obj, QEvent *event) override;
+
 protected:
     /**
     * Function to be called when CLOSED

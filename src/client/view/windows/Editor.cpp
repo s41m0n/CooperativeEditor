@@ -66,6 +66,7 @@ Editor::Editor(QWidget *parent)
                     textEdit->setReadOnly(false);
                     toolBar->setDisabled(false);
                     infoLabel->hide();
+                    textEdit->removeEventFilter(this);
                   }
                 }
               } else {
@@ -78,6 +79,7 @@ Editor::Editor(QWidget *parent)
                 textEdit->setReadOnly(true);
                 toolBar->setDisabled(true);
                 infoLabel->show();
+                textEdit->installEventFilter(this);
               }
           });
 
@@ -629,3 +631,12 @@ void Editor::closeEvent(QCloseEvent *event) {
     event->ignore();
   }
 }
+
+bool Editor::eventFilter(QObject *obj, QEvent *event) { //ignore shortcuts
+  if (event->type() == QEvent::ShortcutOverride) {
+    event->accept();
+    return true;
+  }
+  return false;
+}
+
