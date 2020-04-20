@@ -308,8 +308,6 @@ void Editor::createToolBar(QGridLayout *layout) {
   actionColorText->setText("Text Color");
   actionColorBackground = new QPushButton(toolBar);
   actionColorBackground->setText("Background");
-  textEdit->setTextBackgroundColor(DEFAULT_BACKGROUND_COLOR);
-  textEdit->setTextColor(DEFAULT_TEXT_COLOR);
 
   textEdit->setFont(QFont(DEFAULT_FONT_FAMILY));
   font->setFont(textEdit->currentFont());

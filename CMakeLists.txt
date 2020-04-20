@@ -52,6 +52,19 @@ add_executable(CooperativeServer src/mainserver.cpp src/server/controller/Contro
         src/include/lib/serialization/Serializable.cpp src/components/messages/Header.cpp src/components/messages/CursorMessage.cpp
         src/components/messages/UserUpdateMessage.cpp src/server/model/Database.cpp)
 
+add_executable(ServerTest tests/server/maintests.cpp
+        tests/client/TestControllerClient.cpp tests/client/TestControllerClient.h tests/client/TestModelClient.cpp tests/client/TestModelClient.h
+        tests/server/TestModelServer.cpp tests/server/TestModelServer.h tests/server/TestControllerServer.cpp tests/server/TestControllerServer.h
+        src/server/controller/Controller.cpp src/server/model/Model.cpp
+        src/components/Symbol.cpp src/components/Identifier.cpp src/components/messages/BasicMessage.cpp
+        src/components/messages/FileMessage.cpp src/components/messages/RequestMessage.cpp src/components/messages/UserMessage.cpp
+        src/components/messages/CrdtMessage.cpp src/components/messages/FileListingMessage.cpp src/include/lib/crdt/CrdtAlgorithm.cpp
+        src/common/TcpSocket.cpp src/common/User.cpp src/common/TcpSocket.cpp src/common/File.cpp src/server/model/ServerFile.cpp
+        src/include/lib/serialization/Serializable.cpp src/components/messages/Header.cpp src/components/messages/CursorMessage.cpp
+        src/components/messages/UserUpdateMessage.cpp src/server/model/Database.cpp)
+
+add_executable(ClientTest tests/server/maintests.cpp)
+
 #Add libraries to compile the client
 if (CMAKE_G++_COMPILER_VERSION VERSION_LESS 9.0.0)
     target_link_libraries(CooperativeServer "-lstdc++fs")
@@ -59,3 +72,5 @@ endif ()
 
 target_link_libraries(CooperativeClient Qt5::Core Qt5::Network Qt5::Widgets Qt5::PrintSupport)
 target_link_libraries(CooperativeServer sqlite3 Qt5::Core Qt5::Network Qt5::Widgets Qt5::PrintSupport)
+target_link_libraries(ServerTest sqlite3 Qt5::Core Qt5::Network Qt5::Widgets Qt5::PrintSupport)
+target_link_libraries(ClientTest sqlite3 Qt5::Core Qt5::Network Qt5::Widgets Qt5::PrintSupport)
