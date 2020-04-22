@@ -4,7 +4,7 @@ View::View(Controller *controller, QWidget *parent)
     : QWidget(parent), controller(controller) {
 
   connect(controller, &Controller::connected, this, &View::init);
-  connect(controller, &Controller::error, this, [this](QString what) {
+  connect(controller, &Controller::error, this, [this](const QString& what) {
     QMessageBox::warning(nullptr, "CooperativeEditor",
                          "Error: " + what);
     exit(-1);

@@ -98,13 +98,25 @@ void Editor::onFileTextLoad(FileText &text, QString &fName, QString &username,
   isHandlingRemote = true;
   textEdit->document()->blockSignals(true);
   textEdit->blockSignals(true);
+  toolBar->blockSignals(true);
   textEdit->clear();
   for (Symbol &s : text) {
     textEdit->setCurrentCharFormat(s.getFormat());
     textEdit->insertPlainText(s.getChar());
   }
+  textEdit->textCursor().setPosition(text.size());
+  if(text.isEmpty()){
+    font->setCurrentIndex(font->findText(DEFAULT_FONT_FAMILY));
+    fontSize->setValue(DEFAULT_FONT_SIZE);
+  } else {
+    auto last = text.last().getFormat();
+    font->setCurrentIndex(font->findText(last.font().family()));
+    fontSize->setValue(last.fontPointSize());
+  }
   textEdit->document()->blockSignals(false);
   textEdit->blockSignals(false);
+  toolBar->blockSignals(false);
+
   isHandlingRemote = false;
   textEdit->setFocus();
 }
@@ -228,6 +240,7 @@ void Editor::createTopBar(QGridLayout *layout) {
   QObject::connect(actionClose, &QAction::triggered, this, [this]() {
       emit openVisualizerFromEditor();
       emit fileClosed();
+      this->hide();
   });
 
   QObject::connect(actionAboutAuthors, &QAction::triggered, this, [this]() {
@@ -310,9 +323,7 @@ void Editor::createToolBar(QGridLayout *layout) {
   actionColorBackground->setText("Background");
 
   textEdit->setFont(QFont(DEFAULT_FONT_FAMILY));
-  font->setFont(textEdit->currentFont());
   textEdit->setFontPointSize(DEFAULT_FONT_SIZE);
-  fontSize->setValue(textEdit->fontPointSize());
   fontSize->setRange(MIN_FONT_SIZE, MAX_FONT_SIZE);
   textEdit->document()->setDefaultFont(textEdit->currentFont());
 
