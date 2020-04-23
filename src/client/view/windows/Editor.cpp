@@ -240,6 +240,9 @@ void Editor::createTopBar(QGridLayout *layout) {
   QObject::connect(actionQuit, &QAction::triggered, this, &QMainWindow::close);
 
   QObject::connect(actionClose, &QAction::triggered, this, [this]() {
+      for (auto it = clientColorCursor.begin(); it != clientColorCursor.end(); it++)
+        delete it.value().second;
+      clientColorCursor.clear();
       emit openVisualizerFromEditor();
       emit fileClosed();
       this->hide();
