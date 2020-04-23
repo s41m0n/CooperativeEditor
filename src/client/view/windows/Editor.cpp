@@ -66,7 +66,7 @@ Editor::Editor(QWidget *parent)
                     textEdit->setReadOnly(false);
                     toolBar->setDisabled(false);
                     infoLabel->hide();
-                    textEdit->setUndoRedoEnabled(true);
+                    textEdit->document()->clearUndoRedoStacks();
                     textEdit->removeEventFilter(this);
                   }
                 }
@@ -80,7 +80,6 @@ Editor::Editor(QWidget *parent)
                 textEdit->setReadOnly(true);
                 toolBar->setDisabled(true);
                 infoLabel->show();
-                textEdit->setUndoRedoEnabled(false);
                 textEdit->installEventFilter(this);
               }
           });
@@ -123,7 +122,7 @@ void Editor::onFileTextLoad(FileText &text, QString &fName, QString &username,
   textEdit->document()->blockSignals(false);
   textEdit->blockSignals(false);
   toolBar->blockSignals(false);
-
+  textEdit->document()->clearUndoRedoStacks();
   isHandlingRemote = false;
   textEdit->setFocus();
 }
@@ -541,9 +540,6 @@ void Editor::onColorBackgroundChanged(const QColor &color) {
 }
 
 void Editor::onCharFormatChanged(const QTextCharFormat &f) {
-
-  auto frontColor = f.foreground().color();
-  auto backColor = f.background().color();
 
   actionBold->setChecked(f.fontWeight() == QFont::Bold);
   actionItalic->setChecked(f.fontItalic());
