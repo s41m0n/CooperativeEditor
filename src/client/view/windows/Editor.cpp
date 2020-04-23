@@ -489,7 +489,7 @@ void Editor::onContentChanged(int pos, int del, int add) {
     }
 
     for (int i = 0; i < add; i++) {
-      cursor.setPosition(pos + i);
+      cursor.setPosition(pos + i + 1);
       emit symbolInserted(pos + i, textEdit->document()->characterAt(pos + i),
                           cursor.charFormat());
     }
@@ -562,7 +562,6 @@ void Editor::onGenerateLinkAnswer(const QString &code) {
 
 void Editor::onUserCursorChanged(quint32 clientId, int position) {
   if (position > textEdit->document()->characterCount() - 1) return;
-  spdlog::debug("Update remote cursor {} {}", clientId, position);
   auto &label = clientColorCursor.value(clientId).second;
   QTextCursor remoteCursor(textEdit->document());
   remoteCursor.setPosition(position);
