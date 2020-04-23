@@ -49,7 +49,7 @@ Editor::Editor(QWidget *parent)
   });
 
   QObject::connect(
-          usersOnline, &QListWidget::itemDoubleClicked, this,
+          usersOnline, &QListWidget::itemClicked, this,
           [this](QListWidgetItem *item) {
               auto username = item->text();
               if (item->background().isOpaque()) {
