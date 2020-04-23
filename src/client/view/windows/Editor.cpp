@@ -434,9 +434,17 @@ void Editor::refreshOnlineUsersView() {
   usersOnlineDisplayer->setText("Users online: " +
                                 QString::number(usernames.size()));
 
+  std::map<QString, bool> opaqueUsers;
+  for (int i = 0; i < usersOnline->count(); i++)
+    opaqueUsers.emplace(usersOnline->item(i)->text(), usersOnline->item(i)->background().isOpaque());
   usersOnline->clear();
   for (const QString &s : usernames) {
     usersOnline->addItem(s);
+    auto elem = opaqueUsers.find(s);
+    if (elem != opaqueUsers.end() && elem->second) {
+      usersOnline->item(usersOnline->count() - 1)->setBackgroundColor(
+          clientColorCursor[usersOnlineList.key(s)].first);
+    }
   }
 }
 
