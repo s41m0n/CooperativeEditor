@@ -66,6 +66,7 @@ Editor::Editor(QWidget *parent)
                     textEdit->setReadOnly(false);
                     toolBar->setDisabled(false);
                     infoLabel->hide();
+                    textEdit->setUndoRedoEnabled(true);
                     textEdit->removeEventFilter(this);
                   }
                 }
@@ -79,6 +80,7 @@ Editor::Editor(QWidget *parent)
                 textEdit->setReadOnly(true);
                 toolBar->setDisabled(true);
                 infoLabel->show();
+                textEdit->setUndoRedoEnabled(false);
                 textEdit->installEventFilter(this);
               }
           });
