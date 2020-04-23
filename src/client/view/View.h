@@ -41,7 +41,7 @@ public slots:
    * Slot to handle a login response
    * @param result true if ok, false otherwise
    */
-  void onLoginResponse(bool result);
+  void onLoginResponse(bool result, bool isRegisterRequest);
 
   /**
    * Slot called when connection established

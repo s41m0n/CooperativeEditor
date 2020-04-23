@@ -158,8 +158,9 @@ signals:
   /**
    * Signal to notify the view of a login answer
    * @param response true if ok, false otherwise
+   * @param isRegisterRequest true if this is a result of a registration request, false otherwise
    */
-  void loginResponse(bool response);
+  void loginResponse(bool response, bool isRegisterRequest);
 
   /**
    * Signal to notify the view of a update answer

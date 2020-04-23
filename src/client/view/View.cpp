@@ -153,14 +153,14 @@ void View::init() {
   login->show();
 }
 
-void View::onLoginResponse(bool result) {
+void View::onLoginResponse(bool result, bool isRegisterRequest) {
   if (result) {
     fileVisualizer->show();
     login->hide();
     signUp->hide();
   } else {
     QMessageBox::information(login, "CooperativeEditor",
-                             "Username and Password are not correct.");
+                             isRegisterRequest? "Username/Email already taken" : "Username and Password are not correct.");
   }
 }
 

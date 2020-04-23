@@ -21,14 +21,17 @@ void Controller::onMessageReceived(Header &header, QByteArray &buf) {
     model->setEditorId(msg.getEditorId());
     break;
   }
-  case Type::U_REGISTER_KO:
+  case Type::U_REGISTER_KO: {
+    emit loginResponse(false, true);
+    break;
+  }
   case Type::U_LOGIN_KO: {
-    emit loginResponse(false);
+    emit loginResponse(false, false);
     break;
   }
   case Type::U_REGISTER_OK:
   case Type::U_LOGIN_OK: {
-    emit loginResponse(true);
+    emit loginResponse(true, false);
     auto msg = UserMessage::fromQByteArray(buf);
     model->setCurrentUser(msg.getUser());
     break;

@@ -110,10 +110,15 @@ void Editor::onFileTextLoad(FileText &text, QString &fName, QString &username,
   if(text.isEmpty()){
     font->setCurrentIndex(font->findText(DEFAULT_FONT_FAMILY));
     fontSize->setValue(DEFAULT_FONT_SIZE);
+    QTextCharFormat fmt;
+    fmt.setFontFamily(DEFAULT_FONT_FAMILY);
+    fmt.setFontPointSize(DEFAULT_FONT_SIZE);
+    textEdit->textCursor().mergeCharFormat(fmt);
+    textEdit->mergeCurrentCharFormat(fmt);
   } else {
-    auto last = text.last().getFormat();
-    font->setCurrentIndex(font->findText(last.font().family()));
-    fontSize->setValue(last.fontPointSize());
+    auto lastSymbolFormat = text.last().getFormat();
+    font->setCurrentIndex(font->findText(lastSymbolFormat.fontFamily()));
+    fontSize->setValue(lastSymbolFormat.fontPointSize());
   }
   textEdit->document()->blockSignals(false);
   textEdit->blockSignals(false);
@@ -488,6 +493,16 @@ void Editor::onContentChanged(int pos, int del, int add) {
       cursor.setPosition(pos + i);
       emit symbolInserted(pos + i, textEdit->document()->characterAt(pos + i),
                           cursor.charFormat());
+    }
+
+    /* Resetting char format to default.
+     * Needed because when deleting all text, the textEdit loses all the information (charFormat, cursorCharFormat, etc.)*/
+    if(textEdit->document()->isEmpty()) {
+      QTextCharFormat fmt;
+      fmt.setFontFamily(DEFAULT_FONT_FAMILY);
+      fmt.setFontPointSize(DEFAULT_FONT_SIZE);
+      textEdit->textCursor().mergeCharFormat(fmt);
+      textEdit->mergeCurrentCharFormat(fmt);
     }
   }
 }
