@@ -27,10 +27,13 @@ int CrdtAlgorithm::findPositionErase(Symbol &s, FileText &symbols) {
   auto right = symbols.size() - 1;
 
   // check if struct is empty or char is less than first char
-  if (symbols.empty() || s.compareTo(symbols[left]) <= 0)
-    return 0;
-  else if (s.compareTo(symbols[right]) > 0)
-    return symbols.size();
+  if (symbols.empty() || s.compareTo(symbols[left]) < 0 || s.compareTo(symbols[right]) > 0)
+    return -1;
+
+  if(s.compareTo(symbols[left]) == 0)
+    return left;
+  if(s.compareTo(symbols[right]) == 0)
+    return right;
 
   // binary search
   while (left <= right) {
@@ -174,7 +177,7 @@ int CrdtAlgorithm::remoteErase(Symbol &toErase, FileText &symbols) {
   int index = CrdtAlgorithm::findPositionErase(toErase, symbols);
 
   if (index < 0) {
-    spdlog::error("Invalid index: operation aborted.");
+    spdlog::debug("Invalid index: operation aborted.");
     return -1;
   }
 

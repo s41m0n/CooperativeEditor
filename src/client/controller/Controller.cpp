@@ -131,7 +131,7 @@ void Controller::onCharInserted(int index, QChar value,
                     model->getEditorId());
     prepareToSend(Type::S_INSERT, msg);
   } catch (std::exception &e) {
-    spdlog::error("Error on local insert:\nIndex-> {}\nMsg -> {}", index,
+    spdlog::debug("Error on local insert:\nIndex-> {}\nMsg -> {}", index,
                   e.what());
   }
 }
@@ -142,7 +142,7 @@ void Controller::onCharErased(int index) {
     CrdtMessage msg(model->localErase(index), model->getEditorId());
     prepareToSend(Type::S_ERASE, msg);
   } catch (std::exception &e) {
-    spdlog::error("Error on local erase: Index-> {} @ Msg -> {}", index,
+    spdlog::debug("Error on local erase: Index-> {} @ Msg -> {}", index,
                   e.what());
   }
 }
