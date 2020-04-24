@@ -170,5 +170,11 @@ fabric.properties
 
 # Editor section
 .idea
-CMakeLists.txt
-.txt
+#CMakeLists.txt
+
+*.txt
+
+# Except for these file
+!CMakeLists*
+
+*.png

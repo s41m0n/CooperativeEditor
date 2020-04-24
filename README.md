@@ -1,12 +1,19 @@
 # CooperativeEditor
-System and Device programming project - Cooperative multiuser editor.
 
-The aim of this project is to implement, using client-server architecture, a cooperative editor thanks to many user can work on the same file.
+*System and Device Programming project* - Cooperative multiuser editor.
 
-## Author
+The aim of this project is to implement, using client-server architecture, a C++ cooperative editor thanks to many user can work on the same file.
 
-**Simone Magnani** * *System and Device Programming project* * [Linkedin](https://www.linkedin.com/in/simone-magnani-564830151/)
+## Dependencies
 
-## License
+The following libraries need to be installed in your system:
 
-This project is licensed under the **Polytechnic University of Turin**
+* Qt (>= 5.12)
+* sqlite3
+
+## Usage
+
+To launch the CooperativeServer: `./CooperativeServer <local_port> [-d]`
+
+To launch the CooperativeClient: `./CooperativeClient <server_address> <server_port> [-d]`
+
