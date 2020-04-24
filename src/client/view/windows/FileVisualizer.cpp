@@ -11,7 +11,7 @@ FileVisualizer::FileVisualizer(QWidget *parent) : QMainWindow(parent) {
   mainWidget->setLayout(layout);
 
   auto boxFileList =
-      new QGroupBox("Select the file you want to open:", mainWidget);
+          new QGroupBox("Select the file you want to open:", mainWidget);
   boxFileList->setLayout(new QVBoxLayout());
   layout->addWidget(boxFileList, 0, 0, 1, 2);
 
@@ -23,7 +23,7 @@ FileVisualizer::FileVisualizer(QWidget *parent) : QMainWindow(parent) {
   boxFileList->layout()->addWidget(list);
 
   auto boxCreate =
-      new QGroupBox("Click here to create a new file:", mainWidget);
+          new QGroupBox("Click here to create a new file:", mainWidget);
   boxCreate->setLayout(new QVBoxLayout());
   layout->addWidget(boxCreate, 1, 0, 1, 2);
 
@@ -32,7 +32,7 @@ FileVisualizer::FileVisualizer(QWidget *parent) : QMainWindow(parent) {
   boxCreate->layout()->addWidget(buttonCreate);
 
   auto boxLink = new QGroupBox(
-      "Insert here the shared code to collaborate to a file:", mainWidget);
+          "Insert here the shared code to collaborate to a file:", mainWidget);
   boxLink->setLayout(new QVBoxLayout());
   layout->addWidget(boxLink, 2, 0, 1, 2);
 
@@ -44,13 +44,17 @@ FileVisualizer::FileVisualizer(QWidget *parent) : QMainWindow(parent) {
   boxLink->layout()->addWidget(buttonOpenLink);
 
   QObject::connect(buttonOpenLink, &QAbstractButton::clicked, this,
-                   [&]() { emit insertInviteLink(lineLink->text()); });
+                   [&]() {
+                       emit insertInviteLink(lineLink->text());
+                       lineLink->clear();
+                   });
 
   auto buttonEditProfile = new QPushButton("Edit Profile", boxLink);
   buttonEditProfile->setAutoDefault(true);
   layout->addWidget(buttonEditProfile, 3, 0, 1, 2);
 
-  QObject::connect(buttonEditProfile, &QAbstractButton::clicked, this, &FileVisualizer::openEditProfile);
+  QObject::connect(buttonEditProfile, &QAbstractButton::clicked, this,
+                   &FileVisualizer::openEditProfile);
 
   auto buttonExit = new QPushButton("Exit", mainWidget);
   buttonExit->setAutoDefault(true);
@@ -59,42 +63,45 @@ FileVisualizer::FileVisualizer(QWidget *parent) : QMainWindow(parent) {
   buttonExit->setFocus();
 
   QObject::connect(buttonExit, &QAbstractButton::clicked, this, [this]() {
-    int resultExit = QMessageBox::question(this, "CooperativeEditor",
-                                           "Are you sure you want to exit?",
-                                           QMessageBox::Yes, QMessageBox::No);
+      int resultExit = QMessageBox::question(this, "CooperativeEditor",
+                                             "Are you sure you want to exit?",
+                                             QMessageBox::Yes, QMessageBox::No);
 
-    if (resultExit == QMessageBox::Yes) {
-      this->close();
-    }
+      if (resultExit == QMessageBox::Yes) {
+        this->close();
+      }
   });
 
   QObject::connect(buttonCreate, &QAbstractButton::clicked, this, [this]() {
-    bool ok;
-    QString name = QInputDialog::getText(
-        this, "New File",
-        "Insert the name of the file you want to create:", QLineEdit::Normal,
-        "",
-        &ok); // ok = button ok on the dialog
+      bool ok;
+      QString name = QInputDialog::getText(
+              this, "New File",
+              "Insert the name of the file you want to create:",
+              QLineEdit::Normal,
+              "",
+              &ok); // ok = button ok on the dialog
 
-    if (ok && !name.isEmpty()) { // ok clicked + text provided
-      emit fileRequest(name, false);
-    } else if (ok) { // ok clicked but no text provided
-      auto nameEmpty = new QMessageBox(this);
-      nameEmpty->setText("You inserted an invalid name. Try again.");
-      nameEmpty->setFixedSize(this->minimumSize());
-      nameEmpty->show();
-    }
+      if (ok && !name.isEmpty()) { // ok clicked + text provided
+        emit fileRequest(name, false);
+      } else if (ok) { // ok clicked but no text provided
+        auto nameEmpty = new QMessageBox(this);
+        nameEmpty->setText("You inserted an invalid name. Try again.");
+        nameEmpty->setFixedSize(this->minimumSize());
+        nameEmpty->show();
+      }
   });
 
   QObject::connect(
-      list, &QListWidget::itemDoubleClicked, this,
-      [this](QListWidgetItem *item) { emit fileRequest(item->text(), true); });
+          list, &QListWidget::itemDoubleClicked, this,
+          [this](QListWidgetItem *item) {
+              emit fileRequest(item->text(), true);
+          });
 }
 
 void FileVisualizer::onFileListing(const QVector<QString> &filesArray) {
 
   if (filesArray.size() <= 10) {
-    list->setFixedHeight((int)filesArray.size() * 30);
+    list->setFixedHeight((int) filesArray.size() * 30);
   } else {
     list->setFixedHeight(300);
   }
@@ -102,7 +109,7 @@ void FileVisualizer::onFileListing(const QVector<QString> &filesArray) {
   list->clear();
   if (filesArray.empty()) {
     list->addItem(
-        "There are not file to open on the server. Please create a new file.");
+            "There are not file to open on the server. Please create a new file.");
   } else {
     for (const auto &i : filesArray) {
       list->addItem(i);

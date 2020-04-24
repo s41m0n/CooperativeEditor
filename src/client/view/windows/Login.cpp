@@ -33,7 +33,7 @@ Login::Login(QWidget *parent) : QMainWindow(parent) {
   buttonEnter->setAutoDefault(true);
   loginBox->layout()->addWidget(buttonEnter);
 
-  auto registerBox = new QGroupBox("Don't you have an account yet? Don't worry",
+  auto registerBox = new QGroupBox("New to the Editor? Create an account",
                               mainWidget);
   registerBox->setLayout(new QVBoxLayout());
   layout->addWidget(registerBox, 4, 0, 1, 2);

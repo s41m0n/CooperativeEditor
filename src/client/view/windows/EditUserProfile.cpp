@@ -180,6 +180,9 @@ void EditUserProfile::onUpdateResponse(bool response) {
                            response ? "Your info has been successfully updated"
                                     : "Unable to update your info");
   if (response) {
+    oldPasswordTextField->clear();
+    newPasswordTextField->clear();
+    newPasswordTextFieldConfirm->clear();
     close();
   }
 }

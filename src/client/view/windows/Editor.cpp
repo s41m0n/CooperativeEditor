@@ -10,7 +10,7 @@ Editor::Editor(QWidget *parent)
   srand(time(NULL));
 
   this->resize(1280, 760);
-  this->setMinimumWidth(1000);
+  this->setMinimumWidth(1180);
 
   auto layout = new QGridLayout(mainWidget);
 
