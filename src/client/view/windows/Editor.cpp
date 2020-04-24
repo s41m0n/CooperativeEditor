@@ -441,9 +441,28 @@ void Editor::refreshOnlineUsersView() {
   for (const QString &s : usernames) {
     usersOnline->addItem(s);
     auto elem = opaqueUsers.find(s);
-    if (elem != opaqueUsers.end() && elem->second) {
-      usersOnline->item(usersOnline->count() - 1)->setBackgroundColor(
-          clientColorCursor[usersOnlineList.key(s)].first);
+    if (elem != opaqueUsers.end()) {
+      if (elem->second)
+        usersOnline->item(usersOnline->count() - 1)->setBackgroundColor(
+            clientColorCursor[usersOnlineList.key(s)].first);
+        opaqueUsers.erase(elem);
+    }
+  }
+  for (auto it = opaqueUsers.begin(); it != opaqueUsers.end(); it++) {
+    if (it->second) {
+      emit getUserTextOriginal(it->first);
+      for (int i = 0; i < usersOnline->count(); i++) {
+        auto *itemIterator = usersOnline->item(i);
+        if (itemIterator->background().isOpaque())
+          break;
+        if (i == usersOnline->count() - 1) {
+          textEdit->setReadOnly(false);
+          toolBar->setDisabled(false);
+          infoLabel->hide();
+          textEdit->document()->clearUndoRedoStacks();
+          textEdit->removeEventFilter(this);
+        }
+      }
     }
   }
 }
