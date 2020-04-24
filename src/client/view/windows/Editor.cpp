@@ -1,12 +1,12 @@
 #include "Editor.h"
 
 Editor::Editor(QWidget *parent)
-        : QMainWindow(parent), mainWidget(new QWidget(this)),
-          textEdit(new QTextEdit(mainWidget)),
-          usersOnlineDisplayer(new QLabel("Users online: ")),
-          infoLabel(new QLabel(
-                  "While visualizing other users' \ncontents you cannot edit the file.")),
-          usersOnlineList() {
+  : QMainWindow(parent), mainWidget(new QWidget(this)),
+    textEdit(new QTextEdit(mainWidget)),
+    usersOnlineDisplayer(new QLabel("Users online: ")),
+    infoLabel(new QLabel(
+      "While visualizing other users' \ncontents you cannot edit the file.")),
+    usersOnlineList() {
   srand(time(NULL));
 
   this->resize(1280, 760);
@@ -49,40 +49,40 @@ Editor::Editor(QWidget *parent)
   });
 
   QObject::connect(
-          usersOnline, &QListWidget::itemClicked, this,
-          [this](QListWidgetItem *item) {
-              auto username = item->text();
-              if (item->background().isOpaque()) {
-                usersOnline->addItem(item->text());
-                delete item; //it is not possible to find the default background color, so delete + insert
-                usersOnline->clearSelection(); //to avoid the blue background on the selection
-                textEdit->setFocus();
-                emit getUserTextOriginal(username);
-                for (int i = 0; i < usersOnline->count(); i++) {
-                  auto *itemIterator = usersOnline->item(i);
-                  if (itemIterator->background().isOpaque())
-                    break;
-                  if (i == usersOnline->count() - 1) {
-                    textEdit->setReadOnly(false);
-                    toolBar->setDisabled(false);
-                    infoLabel->hide();
-                    textEdit->document()->clearUndoRedoStacks();
-                    textEdit->removeEventFilter(this);
-                  }
-                }
-              } else {
-                auto color = clientColorCursor[usersOnlineList.key(
-                        username)].first;
-                item->setBackgroundColor(color);
-                usersOnline->clearSelection(); //to avoid the blue background on the selection
-                textEdit->setFocus();
-                emit getUserText(username);
-                textEdit->setReadOnly(true);
-                toolBar->setDisabled(true);
-                infoLabel->show();
-                textEdit->installEventFilter(this);
-              }
-          });
+    usersOnline, &QListWidget::itemClicked, this,
+    [this](QListWidgetItem *item) {
+        auto username = item->text();
+        if (item->background().isOpaque()) {
+          usersOnline->addItem(item->text());
+          delete item; //it is not possible to find the default background color, so delete + insert
+          usersOnline->clearSelection(); //to avoid the blue background on the selection
+          textEdit->setFocus();
+          emit getUserTextOriginal(username);
+          for (int i = 0; i < usersOnline->count(); i++) {
+            auto *itemIterator = usersOnline->item(i);
+            if (itemIterator->background().isOpaque())
+              break;
+            if (i == usersOnline->count() - 1) {
+              textEdit->setReadOnly(false);
+              toolBar->setDisabled(false);
+              infoLabel->hide();
+              textEdit->document()->clearUndoRedoStacks();
+              textEdit->removeEventFilter(this);
+            }
+          }
+        } else {
+          auto color = clientColorCursor[usersOnlineList.key(
+            username)].first;
+          item->setBackgroundColor(color);
+          usersOnline->clearSelection(); //to avoid the blue background on the selection
+          textEdit->setFocus();
+          emit getUserText(username);
+          textEdit->setReadOnly(true);
+          toolBar->setDisabled(true);
+          infoLabel->show();
+          textEdit->installEventFilter(this);
+        }
+    });
 
   textEdit->setFocus();
 }
@@ -106,7 +106,7 @@ void Editor::onFileTextLoad(FileText &text, QString &fName, QString &username,
     textEdit->insertPlainText(s.getChar());
   }
   textEdit->textCursor().setPosition(text.size());
-  if(text.isEmpty()){
+  if (text.isEmpty()) {
     font->setCurrentIndex(font->findText(DEFAULT_FONT_FAMILY));
     fontSize->setValue(DEFAULT_FONT_SIZE);
     QTextCharFormat fmt;
@@ -216,20 +216,20 @@ void Editor::createTopBar(QGridLayout *layout) {
 
   QObject::connect(actionCopy, &QAction::triggered, this, [this]() {
       QCoreApplication::postEvent(
-              textEdit,
-              new QKeyEvent(QEvent::KeyPress, Qt::Key_C, Qt::ControlModifier));
+        textEdit,
+        new QKeyEvent(QEvent::KeyPress, Qt::Key_C, Qt::ControlModifier));
   });
 
   QObject::connect(actionPaste, &QAction::triggered, this, [this]() {
       QCoreApplication::postEvent(
-              textEdit,
-              new QKeyEvent(QEvent::KeyPress, Qt::Key_V, Qt::ControlModifier));
+        textEdit,
+        new QKeyEvent(QEvent::KeyPress, Qt::Key_V, Qt::ControlModifier));
   });
 
   QObject::connect(actionCut, &QAction::triggered, this, [this]() {
       QCoreApplication::postEvent(
-              textEdit,
-              new QKeyEvent(QEvent::KeyPress, Qt::Key_X, Qt::ControlModifier));
+        textEdit,
+        new QKeyEvent(QEvent::KeyPress, Qt::Key_X, Qt::ControlModifier));
   });
 
   QObject::connect(actionGenerateLink, &QAction::triggered, this, [this]() {
@@ -254,17 +254,17 @@ void Editor::createTopBar(QGridLayout *layout) {
 
   QObject::connect(actionAboutAuthors, &QAction::triggered, this, [this]() {
       QMessageBox::information(
-              this, "CooperativeEditor",
-              "Authors:\n  "
-              "- Simone Magnani;\n  "
-              "- Riccardo Marchi;\n  "
-              "- Francesco Palmieri;\n  "
-              "- Francesco Pavan.");
+        this, "CooperativeEditor",
+        "Authors:\n  "
+        "- Simone Magnani;\n  "
+        "- Riccardo Marchi;\n  "
+        "- Francesco Palmieri;\n  "
+        "- Francesco Pavan.");
   });
   QObject::connect(actionAboutEditor, &QAction::triggered, this, [this]() {
       QMessageBox::information(
-              this, "CooperativeEditor",
-              "Editor developed in C++.\n\n");
+        this, "CooperativeEditor",
+        "Editor developed in C++.\n\n");
   });
   QObject::connect(actionSave, &QAction::triggered, this, &Editor::fileToPDF);
 
@@ -304,12 +304,12 @@ void Editor::createTopBar(QGridLayout *layout) {
 void Editor::createToolBar(QGridLayout *layout) {
   toolBar = new QToolBar(mainWidget);
   const QIcon boldIcon =
-          QIcon::fromTheme("format-text-bold",
-                           QIcon(":/images/mac/textbold.png"));
+    QIcon::fromTheme("format-text-bold",
+                     QIcon(":/images/mac/textbold.png"));
   const QIcon italicIcon = QIcon::fromTheme(
-          "format-text-italic", QIcon(":/images/mac/textitalic.png"));
+    "format-text-italic", QIcon(":/images/mac/textitalic.png"));
   const QIcon underlineIcon = QIcon::fromTheme(
-          "format-text-underline", QIcon(":images/mac/textunder.png"));
+    "format-text-underline", QIcon(":images/mac/textunder.png"));
   const QIcon save = QIcon::fromTheme("document-save-as",
                                       QIcon(":images/mac/document-save-as"));
   const QIcon copy = QIcon::fromTheme("edit-copy",
@@ -351,8 +351,8 @@ void Editor::createToolBar(QGridLayout *layout) {
 
 
   actionBold =
-          toolBar->addAction(boldIcon, tr("&Bold"), this,
-                             &Editor::onActionClicked);
+    toolBar->addAction(boldIcon, tr("&Bold"), this,
+                       &Editor::onActionClicked);
   toolBar->addSeparator();
   actionItalic = toolBar->addAction(italicIcon, tr("&Italic"), this,
                                     &Editor::onActionClicked);
@@ -444,13 +444,13 @@ void Editor::refreshOnlineUsersView() {
     if (elem != opaqueUsers.end()) {
       if (elem->second)
         usersOnline->item(usersOnline->count() - 1)->setBackgroundColor(
-            clientColorCursor[usersOnlineList.key(s)].first);
-        opaqueUsers.erase(elem);
+          clientColorCursor[usersOnlineList.key(s)].first);
+      opaqueUsers.erase(elem);
     }
   }
-  for (auto it = opaqueUsers.begin(); it != opaqueUsers.end(); it++) {
-    if (it->second) {
-      emit getUserTextOriginal(it->first);
+  for (auto & opaqueUser : opaqueUsers) {
+    if (opaqueUser.second) {
+      emit getUserTextOriginal(opaqueUser.first);
       for (int i = 0; i < usersOnline->count(); i++) {
         auto *itemIterator = usersOnline->item(i);
         if (itemIterator->background().isOpaque())
@@ -523,7 +523,7 @@ void Editor::onContentChanged(int pos, int del, int add) {
 
     /* Resetting char format to default.
      * Needed because when deleting all text, the textEdit loses all the information (charFormat, cursorCharFormat, etc.)*/
-    if(textEdit->document()->isEmpty()) {
+    if (textEdit->document()->isEmpty()) {
       QTextCharFormat fmt;
       fmt.setFontFamily(DEFAULT_FONT_FAMILY);
       fmt.setFontPointSize(DEFAULT_FONT_SIZE);
@@ -558,7 +558,7 @@ void Editor::onColorForegroundChanged(const QColor &color) {
 
 void Editor::onColorBackgroundChanged(const QColor &color) {
   auto toAdd =
-          (color.alpha() == 0 ? QColor("transparent") : QColor(color.name()));
+    (color.alpha() == 0 ? QColor("transparent") : QColor(color.name()));
   QTextCharFormat fmt;
   fmt.setBackground(toAdd);
   textEdit->textCursor().mergeCharFormat(fmt);
@@ -627,7 +627,7 @@ void Editor::onUserTextReceived(const QList<int> &positions,
     fmt.setBackground(QBrush(color));
     QTextCursor cursor(textEdit->document());
     cursor.movePosition(
-            QTextCursor::Start); //I place it at the beginning of the document
+      QTextCursor::Start); //I place it at the beginning of the document
     cursor.movePosition(QTextCursor::Right, QTextCursor::MoveAnchor,
                         p); //cursor is now where I want to update the text
     cursor.movePosition(QTextCursor::Right, QTextCursor::KeepAnchor,
@@ -652,7 +652,7 @@ Editor::onUserOriginalTextReceived(const QMap<int, QBrush> &textAndColors) {
     fmt.setBackground(textAndColors.value(p));
     QTextCursor cursor(textEdit->document());
     cursor.movePosition(
-            QTextCursor::Start); //I place it at the beginning of the document
+      QTextCursor::Start); //I place it at the beginning of the document
     cursor.movePosition(QTextCursor::Right, QTextCursor::MoveAnchor,
                         p); //cursor is now where I want to update the text
     cursor.movePosition(QTextCursor::Right, QTextCursor::KeepAnchor,

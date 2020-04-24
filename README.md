@@ -8,11 +8,12 @@ The aim of this project is to implement, using client-server architecture, a C++
 
 The following libraries need to be installed in your system:
 
-* qt
+* Qt (>= 5.12)
 * sqlite3
 
 ## Usage
 
-To launch the CooperativeEditor client: `./CooperativeClient <server_address> <server_port>`
+To launch the CooperativeServer: `./CooperativeServer <local_port> [-d]`
 
-To launch the CooperativeEditor server: `./CooperativeServer <local_port>`
+To launch the CooperativeClient: `./CooperativeClient <server_address> <server_port> [-d]`
+
