@@ -1,4 +1,3 @@
-
 #include "Controller.h"
 
 Controller::Controller(Model *model, const std::string &host, int port)
@@ -41,6 +40,8 @@ void Controller::onMessageReceived(Header &header, QByteArray &buf) {
     break;
   }
   case Type::U_UPDATE_OK: {
+    auto msg = UserMessage::fromQByteArray(buf);
+    model->setCurrentUser(msg.getUser());
     emit updateResponse(true);
     break;
   }
@@ -49,14 +50,17 @@ void Controller::onMessageReceived(Header &header, QByteArray &buf) {
     emit fileListing(msg.getFiles());
     break;
   }
-  case Type::U_INSERT_INVITE_KO:
+  case Type::U_INSERT_INVITE_KO: {
+    emit fileResult(false, true);
+    break;
+  }
   case Type::F_FILE_KO: {
-    emit fileResult(false);
+    emit fileResult(false, false);
     break;
   }
   case Type::U_INSERT_INVITE_OK:
   case Type::F_FILE_OK: {
-    emit fileResult(true);
+    emit fileResult(true, header.getType() == Type::U_INSERT_INVITE_OK);
     auto msg = FileMessage::fromQByteArray(buf);
     model->setCurrentFile(msg.getFile());
     auto file = model->getFile();
@@ -145,12 +149,12 @@ void Controller::onCharErased(int index) {
 
 void Controller::onLoginRequest(User user) {
 
-  UserMessage msg(model->getEditorId(), user);
+  UserMessage msg(model->getEditorId(), std::move(user));
   prepareToSend(Type::U_LOGIN, msg);
 }
 
-void Controller::onUpdateRequest(User user, QString oldPassword) {
-  UserUpdateMessage msg(model->getEditorId(), user, QCryptographicHash::hash(oldPassword.toUtf8(),
+void Controller::onUpdateRequest(User user, const QString& oldPassword) {
+  UserUpdateMessage msg(model->getEditorId(), std::move(user), oldPassword.isEmpty()? "" : QCryptographicHash::hash(oldPassword.toUtf8(),
                                                                              QCryptographicHash::Sha512).toHex());
   prepareToSend(Type::U_UPDATE, msg);
 }
@@ -194,7 +198,7 @@ void Controller::onRequestFileList() {
   prepareToSend(Type::F_LISTING, msg);
 }
 
-void Controller::onUserTextAsked(QString username) {
+void Controller::onUserTextAsked(const QString& username) {
   QList<int> userCharsPos;
   for(int i = 0; i < model->getFile().getFileText().size(); i++){
     if(model->getFile().getFileText()[i].getGeneratorUsername() == username){
@@ -204,7 +208,7 @@ void Controller::onUserTextAsked(QString username) {
   emit sendUserText(userCharsPos, username);
 }
 
-void Controller::onUserOriginalTextAsked(QString username) {
+void Controller::onUserOriginalTextAsked(const QString& username) {
   QMap<int, QBrush> textAndColors;
   for(int i = 0; i < model->getFile().getFileText().size(); i++){
     if(model->getFile().getFileText()[i].getGeneratorUsername() == username){

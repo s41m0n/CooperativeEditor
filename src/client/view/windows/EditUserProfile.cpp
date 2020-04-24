@@ -3,7 +3,7 @@
 
 EditUserProfile::EditUserProfile(QWidget *parent) : QMainWindow(parent),
                                                     usernameLabel(
-                                                            new QLabel("")) {
+                                                      new QLabel("")), emailLabel(new QLabel("")) {
 
   this->setWindowFlags(Qt::WindowStaysOnTopHint); // windows always on top
 
@@ -17,13 +17,14 @@ EditUserProfile::EditUserProfile(QWidget *parent) : QMainWindow(parent),
   mainWidget->setLayout(layout);
 
   layout->addWidget(usernameLabel, 1, 0, 1, 1);
+  layout->addWidget(emailLabel, 2, 0, 1, 1);
 
   auto registerBox = new QGroupBox(
-          "Change the following fields to edit your profile:", mainWidget);
+    "Change the following fields to edit your profile:", mainWidget);
   registerBox->setLayout(new QVBoxLayout());
-  layout->addWidget(registerBox, 2, 0, 1, 2);
+  layout->addWidget(registerBox, 3, 0, 1, 2);
 
-  auto imageLabel = new QLabel("Icon (MaxSize 1 MB):");
+  auto imageLabel = new QLabel("Icon (MaxSize 5 MB):");
   registerBox->layout()->addWidget(imageLabel);
 
   imageBorder = new QGroupBox(registerBox);
@@ -51,11 +52,6 @@ EditUserProfile::EditUserProfile(QWidget *parent) : QMainWindow(parent),
   surnameTextField = new QLineEdit();
   registerBox->layout()->addWidget(surnameTextField);
 
-  auto emailLabel = new QLabel("E-mail:", registerBox);
-  registerBox->layout()->addWidget(emailLabel);
-
-  emailTextField = new QLineEdit();
-  registerBox->layout()->addWidget(emailTextField);
 
   auto oldPasswordLabel = new QLabel("Old Password:", registerBox);
   registerBox->layout()->addWidget(oldPasswordLabel);
@@ -79,17 +75,17 @@ EditUserProfile::EditUserProfile(QWidget *parent) : QMainWindow(parent),
 
   newPasswordTextFieldConfirm = new QLineEdit(registerBox);
   newPasswordTextFieldConfirm->setEchoMode(
-          newPasswordTextFieldConfirm->Password);
+    newPasswordTextFieldConfirm->Password);
   newPasswordTextFieldConfirm->setStyleSheet("lineedit-password-character: 42");
   registerBox->layout()->addWidget(newPasswordTextFieldConfirm);
 
-  auto buttonSaveAndBackToEditor = new QPushButton("Save and Exit", mainWidget);
+  auto buttonSaveAndBackToEditor = new QPushButton("Save", mainWidget);
   buttonSaveAndBackToEditor->setAutoDefault(true);
-  layout->addWidget(buttonSaveAndBackToEditor, 3, 0, 1, 2);
+  layout->addWidget(buttonSaveAndBackToEditor, 5, 0, 1, 2);
 
-  auto buttonExit = new QPushButton("Exit Without Saving", mainWidget);
+  auto buttonExit = new QPushButton("Quit", mainWidget);
   buttonExit->setAutoDefault(true);
-  layout->addWidget(buttonExit, 4, 0, 1, 2);
+  layout->addWidget(buttonExit, 6, 0, 1, 2);
 
   buttonSaveAndBackToEditor->setFocus();
 
@@ -103,35 +99,35 @@ EditUserProfile::EditUserProfile(QWidget *parent) : QMainWindow(parent),
   });
 
   QObject::connect(
-          buttonSelectImage, &QAbstractButton::clicked, this, [this]() {
-              auto path =
-                      QFileDialog::getOpenFileName(this, tr("Open Image"),
-                                                   "/home",
-                                                   tr("Image Files (*.png *.jpg *.bmp)"));
-              if (!path.isEmpty()) {
-                userImage = QImage(path);
+    buttonSelectImage, &QAbstractButton::clicked, this, [this]() {
+        auto path =
+          QFileDialog::getOpenFileName(this, tr("Open Image"),
+                                       "/home",
+                                       tr("Image Files (*.png *.jpg *.bmp)"));
+        if (!path.isEmpty()) {
+          userImage = QImage(path);
 
-                if (userImage.sizeInBytes() > 1048576) { // maxSize = 1MB
-                  auto errorSizeLimit = new QMessageBox(this);
-                  errorSizeLimit->setText(
-                          "The image you have selected is too big. Try again.");
-                  errorSizeLimit->setFixedSize(this->minimumSize());
-                  errorSizeLimit->setWindowTitle("Error");
-                  errorSizeLimit->show();
-                  userImage = QImage();
-                } else {
-                  displayImage->setPixmap(QPixmap::fromImage(userImage).scaled(
-                          75, 75, Qt::KeepAspectRatio));
+          if (userImage.width()*userImage.height() > 5242880) { // maxSize = 5MiB
+            auto errorSizeLimit = new QMessageBox(this);
+            errorSizeLimit->setText(
+              "The image you have selected is too big. Try again.");
+            errorSizeLimit->setFixedSize(this->minimumSize());
+            errorSizeLimit->setWindowTitle("Error");
+            errorSizeLimit->show();
+            userImage = QImage();
+          } else {
+            displayImage->setPixmap(QPixmap::fromImage(userImage).scaled(
+              75, 75, Qt::KeepAspectRatio));
 
-                  imageBorder->layout()->addWidget(displayImage);
-                  imageBorder->show();
-                  displayImage->show();
-                  buttonSelectImage->setText("Select Another Icon");
-                }
-              } else {
-                buttonSelectImage->setText("Select Icon");
-              }
-          });
+            imageBorder->layout()->addWidget(displayImage);
+            imageBorder->show();
+            displayImage->show();
+            buttonSelectImage->setText("Select Another Icon");
+          }
+        } else {
+          buttonSelectImage->setText("Select Icon");
+        }
+    });
 
   QObject::connect(buttonSaveAndBackToEditor, &QAbstractButton::clicked, this,
                    [this]() {
@@ -154,23 +150,23 @@ EditUserProfile::EditUserProfile(QWidget *parent) : QMainWindow(parent),
                          return;
                        }
                        emit updateRequest(
-                           User(usernameLabel->text(),
-                                nameTextField->text(), surnameTextField->text(),
-                                emailTextField->text(),
-                                newPasswordTextField->text(), userImage),
-                           oldPasswordTextField->text());
+                     User("",
+                          nameTextField->text(), surnameTextField->text(),
+                          "",
+                          newPasswordTextField->text(), userImage),
+                     oldPasswordTextField->text());
                    });
 }
 
 void EditUserProfile::onUserProfileInfo(User &user) {
   this->userImage = user.getPicture();
   displayImage->setPixmap(QPixmap::fromImage(user.getPicture())
-                                  .scaled(75, 75, Qt::KeepAspectRatio));
+                            .scaled(75, 75, Qt::KeepAspectRatio));
   imageBorder->layout()->addWidget(displayImage);
   nameTextField->setText(user.getName());
   surnameTextField->setText(user.getSurname());
-  emailTextField->setText(user.getEmail());
-  usernameLabel->setText("Hello " + user.getUsername() + "!");
+  usernameLabel->setText("Your username: " + user.getUsername());
+  emailLabel->setText("Your email: " + user.getEmail());
 }
 
 void EditUserProfile::showEvent(QShowEvent *ev) { emit requestUserProfile(); }

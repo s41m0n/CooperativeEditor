@@ -98,7 +98,7 @@ void Controller::onMessageReceived(Header &header, QByteArray &buf) {
   case Type::U_UPDATE: {
     auto msg = UserUpdateMessage::fromQByteArray(buf);
     auto user = msg.getUser();
-    if (Model::updateUser(user, msg.getOldPassword())) {
+    if (model->updateUser(sender, user, msg.getOldPassword())) {
       UserMessage newMsg(clientId, user);
       prepareToSend(sender, Type::U_UPDATE_OK, newMsg);
     } else {

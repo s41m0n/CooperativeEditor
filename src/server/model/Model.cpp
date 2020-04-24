@@ -1,5 +1,7 @@
 #include "Model.h"
 
+#include <utility>
+
 Model::Model() : idGenerator(1) {}
 
 void Model::userInsert(TcpSocket *socket, Symbol &symbol) {
@@ -121,8 +123,8 @@ bool Model::registerUser(User &user) {
   return Database::getInstance().insertUser(user);
 }
 
-bool Model::updateUser(User &user, QString oldPassword) {
-  return Database::getInstance().updateUser(user, oldPassword);
+bool Model::updateUser(TcpSocket *sender, User &user, const QString& oldPassword) {
+  return Database::getInstance().updateUser(user, socketToUser[sender], oldPassword);
 }
 
 QString Model::generateInvite(TcpSocket *sender, const QString &filename) {

@@ -1,3 +1,4 @@
+#include <src/include/lib/spdlog/spdlog.h>
 #include "SignUp.h"
 
 SignUp::SignUp(QWidget *parent) : QMainWindow(parent) {
@@ -12,15 +13,15 @@ SignUp::SignUp(QWidget *parent) : QMainWindow(parent) {
   mainWidget->setLayout(layout);
 
   auto title = new QLabel(this);
-  title->setText("Welcome to Our Cooperative Editor!");
+  title->setText("Welcome to our Cooperative Editor!");
   layout->addWidget(title, 0, 0);
 
   auto registerBox = new QGroupBox(
-      "Fill the following fields to sign up to the system:", mainWidget);
+      "Fill the following fields to create an account:", mainWidget);
   registerBox->setLayout(new QVBoxLayout());
   layout->addWidget(registerBox, 1, 0, 1, 2);
 
-  auto imageLabel = new QLabel("Icon (MaxSize 1 MB):", registerBox);
+  auto imageLabel = new QLabel("Icon (MaxSize 5 MB):", registerBox);
   registerBox->layout()->addWidget(imageLabel);
 
   imageBorder = new QGroupBox(registerBox);
@@ -70,7 +71,7 @@ SignUp::SignUp(QWidget *parent) : QMainWindow(parent) {
   passwordTextField->setStyleSheet("lineedit-password-character: 42");
   registerBox->layout()->addWidget(passwordTextField);
 
-  auto passwordLabelConfirm = new QLabel("Repeat Password:", registerBox);
+  auto passwordLabelConfirm = new QLabel("Confirm Password:", registerBox);
   registerBox->layout()->addWidget(passwordLabelConfirm);
 
   passwordTextFieldConfirm = new QLineEdit(registerBox);
@@ -83,7 +84,7 @@ SignUp::SignUp(QWidget *parent) : QMainWindow(parent) {
   registerBox->layout()->addWidget(buttonSignUp);
 
   auto alreadyRegisteredBox =
-      new QGroupBox("Are you already registered?", mainWidget);
+      new QGroupBox("Do you already have an account?", mainWidget);
   alreadyRegisteredBox->setLayout(new QVBoxLayout());
   alreadyRegisteredBox->setWindowTitle("Error");
   layout->addWidget(alreadyRegisteredBox, 2, 0, 1, 2);
@@ -116,7 +117,7 @@ SignUp::SignUp(QWidget *parent) : QMainWindow(parent) {
         if (!path.isEmpty()) {
           userImage = QImage(path);
 
-          if (userImage.sizeInBytes() > 1048576) { // maxSize = 1MB
+          if (userImage.width()*userImage.height() > 5242880) { // maxSize = 5MiB
             QMessageBox::information(
                 this, "CooperativeEditor",
                 "The image you have selected is too big. Try again.");

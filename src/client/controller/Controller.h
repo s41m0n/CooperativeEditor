@@ -73,7 +73,7 @@ public slots:
    * @param user the user to be updated
    * @param oldPassword  the old password to verify
    */
-  void onUpdateRequest(User user, QString oldPassword);
+  void onUpdateRequest(User user, const QString& oldPassword);
 
   /**
    * Slot to handle a local symbol insertion
@@ -131,12 +131,12 @@ public slots:
   /**
    * Slot to handle the request of the text inserted by an user
    */
-  void onUserTextAsked(QString username);
+  void onUserTextAsked(const QString& username);
 
   /**
   * Slot to handle the request of the original text inserted by an user
   */
-  void onUserOriginalTextAsked(QString username);
+  void onUserOriginalTextAsked(const QString& username);
 
 signals:
 
@@ -177,8 +177,9 @@ signals:
   /**
    * Signal to notify the view about a file opening/creation operation
    * @param result  true if ok, false otherwise
+   * @param isInviteLink true if it is a response from an invite link insertion, false otherwise
    */
-  void fileResult(bool result);
+  void fileResult(bool result, bool isInviteLink);
 
   /**
    * Signal to notify the view of the current file content

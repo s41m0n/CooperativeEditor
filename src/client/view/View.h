@@ -34,12 +34,14 @@ public slots:
   /**
    * Slot to handle a file opening/closure result
    * @param result  true if ok, false otherwise
+   * @param isInviteLink true if it is a response to an invite link insertion, false otherwise
    */
-  void onFileResult(bool result);
+  void onFileResult(bool result, bool isInviteLink);
 
   /**
    * Slot to handle a login response
    * @param result true if ok, false otherwise
+   * @param isRegisterRequest true if it is a result for a registration, false otherwise
    */
   void onLoginResponse(bool result, bool isRegisterRequest);
 

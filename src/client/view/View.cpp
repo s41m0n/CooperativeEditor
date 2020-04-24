@@ -1,13 +1,13 @@
 #include "View.h"
 
 View::View(Controller *controller, QWidget *parent)
-    : QWidget(parent), controller(controller) {
+  : QWidget(parent), controller(controller) {
 
   connect(controller, &Controller::connected, this, &View::init);
-  connect(controller, &Controller::error, this, [this](const QString& what) {
-    QMessageBox::warning(nullptr, "CooperativeEditor",
-                         "Error: " + what);
-    exit(-1);
+  connect(controller, &Controller::error, this, [this](const QString &what) {
+      QMessageBox::warning(nullptr, "CooperativeEditor",
+                           "Error: " + what);
+      exit(-1);
   });
 }
 
@@ -160,23 +160,19 @@ void View::onLoginResponse(bool result, bool isRegisterRequest) {
     signUp->hide();
   } else {
     QMessageBox::information(login, "CooperativeEditor",
-                             isRegisterRequest? "Username/Email already taken" : "Username and Password are not correct.");
+                             isRegisterRequest ? "Username/Email already taken"
+                                               : "Username and Password are not correct.");
   }
 }
 
-void View::onFileResult(bool result) {
+void View::onFileResult(bool result, bool isInviteLink) {
   if (result) {
     editor->show();
     fileVisualizer->hide();
   } else {
-    auto reply = QMessageBox::question(
-        fileVisualizer, "Cooperative",
-        "Sorry, the action requested cannot be performed (have "
-        "you inserted"
-        "an already existing file name?). Retry?",
-        QMessageBox::Yes | QMessageBox::No);
-    if (reply == QMessageBox::No) {
-      fileVisualizer->close();
-    }
+    QMessageBox::warning(
+      fileVisualizer, "Cooperative",
+      isInviteLink ? "The link you are inserting is not valid (Have you already used it?)"
+                   : "The file you are trying to create already exists");
   }
 }

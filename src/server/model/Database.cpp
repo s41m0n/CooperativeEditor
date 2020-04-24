@@ -52,8 +52,8 @@ void Database::createDB() {
 bool Database::checkTable() {
   char *messageError;
   std::string sql =
-      "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='User' "
-      "OR name='Invites' OR name='File' OR name='UserFile';";
+    "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='User' "
+    "OR name='Invites' OR name='File' OR name='UserFile';";
   int count;
   int exitCode = sqlite3_exec(this->DBConnection, sql.c_str(), callbackCount,
                               &count, &messageError);
@@ -129,8 +129,8 @@ bool Database::loginUser(User &user) {
     return false;
   }
   QByteArray buffer = QByteArray::fromRawData(
-      reinterpret_cast<const char *>(sqlite3_column_blob(statement, 4)),
-      sqlite3_column_bytes(statement, 4));
+    reinterpret_cast<const char *>(sqlite3_column_blob(statement, 4)),
+    sqlite3_column_bytes(statement, 4));
   user = User(reinterpret_cast<const char *>(sqlite3_column_text(statement, 0)),
               reinterpret_cast<const char *>(sqlite3_column_text(statement, 1)),
               reinterpret_cast<const char *>(sqlite3_column_text(statement, 2)),
@@ -141,19 +141,14 @@ bool Database::loginUser(User &user) {
   return true;
 }
 
-bool Database::updateUser(User &user, QString oldPassword) {
+bool Database::updateUser(User &newUser, User &oldUser, const QString &oldPassword) {
   if (!openConnection()) {
     printErrorAndExit();
   }
   std::string sql;
-  if(oldPassword.isEmpty()) {
-    sql = "UPDATE User set Name= ?, Surname = ?, "
-         "Email = ?, ProfilePic = ? where Username = ?;";
-  } else {
-    sql = "UPDATE User set Password = ?, Name= ?, Surname = ?, "
-          "Email = ?, ProfilePic = ? where Username = ? and Password = ?;";
-  }
 
+  sql = oldPassword.isEmpty() ? "UPDATE User set Name= ?, Surname = ?, ProfilePic = ? where Username = ?;"
+                              : "UPDATE User set Password = ?, Name= ?, Surname = ?,ProfilePic = ? where Username = ? and Password = ?;";
   sqlite3_stmt *statement = nullptr;
 
   if (sqlite3_prepare_v2(this->DBConnection, sql.c_str(), -1, &statement,
@@ -161,47 +156,39 @@ bool Database::updateUser(User &user, QString oldPassword) {
     printErrorAndExit("Failed to prepare statement");
   }
 
-  QByteArray buffer = convertFromQImage(user.getPicture());
+  QByteArray buffer = convertFromQImage(newUser.getPicture());
 
-  if(oldPassword.isEmpty()) {
-    sqlite3_bind_text(statement, 5, user.getUsername().toStdString().c_str(), -1,
+  if (oldPassword.isEmpty()) {
+    sqlite3_bind_text(statement, 1, newUser.getName().toStdString().c_str(), -1,
                       SQLITE_TRANSIENT);
-    sqlite3_bind_text(statement, 1, user.getName().toStdString().c_str(), -1,
+    sqlite3_bind_text(statement, 2, newUser.getSurname().toStdString().c_str(), -1,
                       SQLITE_TRANSIENT);
-    sqlite3_bind_text(statement, 2, user.getSurname().toStdString().c_str(), -1,
+    sqlite3_bind_blob(statement, 3, buffer.data(), buffer.size(),
                       SQLITE_TRANSIENT);
-    sqlite3_bind_text(statement, 3, user.getEmail().toStdString().c_str(), -1,
+    sqlite3_bind_text(statement, 4, oldUser.getUsername().toStdString().c_str(), -1,
+                      SQLITE_TRANSIENT);
+  } else {
+    sqlite3_bind_text(statement, 1, newUser.getPassword().toStdString().c_str(), -1,
+                      SQLITE_TRANSIENT);
+    sqlite3_bind_text(statement, 2, newUser.getName().toStdString().c_str(), -1,
+                      SQLITE_TRANSIENT);
+    sqlite3_bind_text(statement, 3, newUser.getSurname().toStdString().c_str(), -1,
                       SQLITE_TRANSIENT);
     sqlite3_bind_blob(statement, 4, buffer.data(), buffer.size(),
                       SQLITE_TRANSIENT);
-  } else {
-    sqlite3_bind_text(statement, 6, user.getUsername().toStdString().c_str(), -1,
+    sqlite3_bind_text(statement, 5, oldUser.getUsername().toStdString().c_str(), -1,
                       SQLITE_TRANSIENT);
-    sqlite3_bind_text(statement, 7, oldPassword.toStdString().c_str(), -1,
-                      SQLITE_TRANSIENT);
-    sqlite3_bind_text(statement, 1, user.getPassword().toStdString().c_str(), -1,
-                      SQLITE_TRANSIENT);
-    sqlite3_bind_text(statement, 2, user.getName().toStdString().c_str(), -1,
-                      SQLITE_TRANSIENT);
-    sqlite3_bind_text(statement, 3, user.getSurname().toStdString().c_str(), -1,
-                      SQLITE_TRANSIENT);
-    sqlite3_bind_text(statement, 4, user.getEmail().toStdString().c_str(), -1,
-                      SQLITE_TRANSIENT);
-    sqlite3_bind_blob(statement, 5, buffer.data(), buffer.size(),
+    sqlite3_bind_text(statement, 6, oldPassword.toStdString().c_str(), -1,
                       SQLITE_TRANSIENT);
   }
 
-  if(!oldPassword.isEmpty())
-    sqlite3_bind_text(statement, 5, oldPassword.toStdString().c_str(), -1,
-                      SQLITE_TRANSIENT);
-
-  if (sqlite3_step(statement) != SQLITE_DONE) {
+  if (sqlite3_step(statement) != SQLITE_DONE || sqlite3_changes(this->DBConnection) == 0) {
     sqlite3_finalize(statement);
     sqlite3_close(this->DBConnection);
     return false;
   }
-  user = User(user.getUsername(), user.getName(), user.getSurname(),
-              user.getEmail(), user.getPicture());
+  newUser = User(oldUser.getUsername(), newUser.getName(), newUser.getSurname(), oldUser.getEmail(),
+                 newUser.getPicture());
   sqlite3_finalize(statement);
   sqlite3_close(this->DBConnection);
   return true;
@@ -234,7 +221,7 @@ QVector<QString> Database::getUserFiles(User &user) {
   QVector<QString> ret;
   while (sqlite3_step(statement) == SQLITE_ROW) {
     ret.append(
-        reinterpret_cast<const char *>(sqlite3_column_text(statement, 0)));
+      reinterpret_cast<const char *>(sqlite3_column_text(statement, 0)));
   }
   sqlite3_finalize(statement);
   sqlite3_close(this->DBConnection);
@@ -330,11 +317,11 @@ bool Database::openFile(qint32 fileID, const QString &name,
   }
 
   QByteArray buffer = QByteArray::fromRawData(
-      reinterpret_cast<const char *>(sqlite3_column_blob(statement, 0)),
-      sqlite3_column_bytes(statement, 0));
+    reinterpret_cast<const char *>(sqlite3_column_blob(statement, 0)),
+    sqlite3_column_bytes(statement, 0));
 
   serverFile =
-      std::make_shared<ServerFile>(fileID, name, convertIntoFileText(buffer));
+    std::make_shared<ServerFile>(fileID, name, convertIntoFileText(buffer));
   sqlite3_finalize(statement);
   sqlite3_close(this->DBConnection);
   return true;
@@ -446,6 +433,7 @@ QByteArray Database::convertFromQImage(const QImage &userPic) {
   ds << userPic;
   return bytes;
 }
+
 QByteArray Database::convertFromFileText(FileText &text) {
   QByteArray buffer;
   QDataStream ds(&buffer, QIODevice::WriteOnly);

@@ -126,11 +126,12 @@ public:
 
   /**
    * Function to update a user
+   * @param sender the user socket
    * @param user the structure with the new fields
    * @param oldPassword the old user password
    * @return true if ok, false otherwise
    */
-  static bool updateUser(User &user, QString oldPassword);
+  bool updateUser(TcpSocket *sender, User &user, const QString& oldPassword);
 
   /**
    * Function to generate the invite code
